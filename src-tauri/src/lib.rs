@@ -1,8 +1,10 @@
 mod commands;
 mod domain;
 mod platform;
+mod state;
 mod window_manager;
 
+use tauri::Manager;
 use tauri_plugin_window_state::StateFlags;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -22,6 +24,11 @@ pub fn run() {
         )
         .invoke_handler(commands.invoke_handler())
         .setup(|app| {
+            let data_dir = app.path().app_data_dir()?;
+            std::fs::create_dir_all(&data_dir)?;
+            let conn = domain::db::open(&data_dir.join("board.db"))?;
+            app.manage(state::Db::new(conn));
+
             window_manager::open_board(app.handle())?;
             Ok(())
         })

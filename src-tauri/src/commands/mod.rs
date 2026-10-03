@@ -4,11 +4,16 @@
 //! in `src/lib/bindings.ts` (run `pnpm bindings`).
 
 mod app;
+mod board;
 
 use tauri_specta::{collect_commands, Builder};
 
 pub fn builder() -> Builder<tauri::Wry> {
-    Builder::<tauri::Wry>::new().commands(collect_commands![app::app_version])
+    Builder::<tauri::Wry>::new().commands(collect_commands![
+        app::app_version,
+        board::board_load,
+        board::board_apply_ops,
+    ])
 }
 
 #[cfg(test)]

@@ -2,9 +2,9 @@
 
 ## 1. Úložiště
 
-- [ ] 1.1 Přidat rusqlite (bundled) + rusqlite_migration, otevření `board.db` ve WAL a migraci v1 (boards, items, media, app_state) a ověřit `cargo test` na migraci do dočasné DB
-- [ ] 1.2 Repository v `domain/board` (načtení nástěnky, dávkové `apply_ops` v transakci) a ověřit unit testy vč. rollbacku při chybě v dávce
-- [ ] 1.3 Commands `board_load` a `board_apply_ops` s TS typy (tauri-specta) a mock v `e2e/mocks` a ověřit typovou kontrolou a smoke E2E
+- [x] 1.1 Přidat rusqlite (bundled) + rusqlite_migration, otevření `board.db` ve WAL a migraci v1 (boards, items, media, app_state) a ověřit `cargo test` na migraci do dočasné DB
+- [x] 1.2 Repository v `domain/board` (načtení nástěnky, dávkové `apply_ops` v transakci) a ověřit unit testy vč. rollbacku při chybě v dávce
+- [x] 1.3 Commands `board_load` a `board_apply_ops` s TS typy (tauri-specta) a mock v `e2e/mocks` a ověřit typovou kontrolou a smoke E2E
 
 ## 2. Plátno a položky
 
