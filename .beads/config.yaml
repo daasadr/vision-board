@@ -74,3 +74,5 @@
 export.auto: true
 export:
     interval: 10m
+sync:
+    remote: "git+https://github.com/daasadr/vision-board.git"
