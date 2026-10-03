@@ -17,9 +17,11 @@ export default defineConfig({
     locale: "cs-CZ",
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
-  // Runs the production frontend without Tauri; the Rust backend is replaced by e2e/support/ipc.ts.
+  // Serves the production build (`pnpm e2e` builds it first) without Tauri; the Rust backend is
+  // replaced by e2e/support/ipc.ts. Vite runs directly under node, not through pnpm or a shell
+  // chain, so Playwright can stop it: otherwise teardown hangs on Linux CI.
   webServer: {
-    command: `pnpm exec vite build && pnpm exec vite preview --port ${PORT} --strictPort`,
+    command: `node node_modules/vite/bin/vite.js preview --port ${PORT} --strictPort`,
     url: `http://localhost:${PORT}`,
     reuseExistingServer: !process.env.CI,
   },
