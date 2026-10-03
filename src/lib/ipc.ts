@@ -2,6 +2,7 @@
 // which keeps IPC typed in one place and lets E2E tests swap it for a mock.
 import {
   commands,
+  type AppFlag,
   type BoardOp,
   type Entitlement,
   type Feature,
@@ -90,4 +91,15 @@ export const ipc = {
   async mediaLibrary(): Promise<MediaLibrary> {
     return unwrap("media_list", await commands.mediaList());
   },
+
+  async flagIsSet(flag: AppFlag): Promise<boolean> {
+    return unwrap("app_flag_get", await commands.appFlagGet(flag));
+  },
+
+  async setFlag(flag: AppFlag): Promise<void> {
+    unwrap("app_flag_set", await commands.appFlagSet(flag));
+  },
+
+  /** Tells the backend this window saved its edits, so quitting can continue. */
+  readyToQuit: () => commands.appReadyToQuit(),
 };

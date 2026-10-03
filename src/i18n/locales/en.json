@@ -62,6 +62,11 @@
       "pasted": "Pasted image",
       "failed": "The images could not be added. Please try again.",
       "processing": "Processing image"
+    },
+    "trayNotice": {
+      "title": "Vision Board keeps running",
+      "body": "The window closes, but Vision Board stays in the notification area next to the clock (in the menu bar on macOS). Open your board or quit the app from there at any time.",
+      "ok": "Got it"
     }
   }
 }

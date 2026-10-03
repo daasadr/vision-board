@@ -25,3 +25,7 @@ Windows 11, 8 jader, release build, `vision-board.exe` 4,3 MB.
 Pro srovnání: Working Set celkem 355 MB, Private Bytes 193 MB (z toho GPU proces 124 MB). Ani jedna metrika neodpovídá skutečné spotřebě RAM, viz výše.
 
 Vyzkoušené a nezavedené: `--renderer-process-limit=1` a vypnutí funkcí Edge (SmartScreen, Translate) přes `WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS` ušetřily jen ~4 MB.
+
+### 2026-10-03 – fáze 1, jen tray (bez okna)
+
+Debug build, Windows 11, 60 s po zavření okna: **4,9 MB** (vlastní proces), žádné procesy msedgewebview2. Cíl < 40 MB. Okno se po zavření ruší (`destroy`), WebView2 se ukončí spolu s ním.

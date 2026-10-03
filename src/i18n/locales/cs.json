@@ -62,6 +62,11 @@
       "pasted": "Vložený obrázek",
       "failed": "Obrázky se nepodařilo přidat. Zkuste to prosím znovu.",
       "processing": "Zpracovávám obrázek"
+    },
+    "trayNotice": {
+      "title": "Vision Board poběží dál",
+      "body": "Okno se zavře, ale Vision Board zůstane v oznamovací oblasti vedle hodin (na macOS v řádku nabídek). Odtud nástěnku kdykoli otevřete nebo aplikaci ukončíte.",
+      "ok": "Rozumím"
     }
   }
 }

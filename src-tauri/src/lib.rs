@@ -1,10 +1,12 @@
 mod commands;
 mod domain;
+mod lifecycle;
 mod platform;
 mod state;
+mod tray;
 mod window_manager;
 
-use tauri::Manager;
+use tauri::{Manager, RunEvent};
 use tauri_plugin_window_state::StateFlags;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -34,10 +36,23 @@ pub fn run() {
             }
             app.manage(state::Db::new(conn));
             app.manage(state::MediaDir(media_dir));
+            app.manage(lifecycle::Lifecycle::default());
 
+            tray::create(app.handle())?;
             window_manager::open_board(app.handle())?;
             Ok(())
         })
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while building tauri application")
+        .run(|app, event| {
+            // Closing the last window keeps the app in the tray; only Quit (app.exit) ends it.
+            if let RunEvent::ExitRequested {
+                code: None, api, ..
+            } = event
+            {
+                if !app.state::<lifecycle::Lifecycle>().is_quitting() {
+                    api.prevent_exit();
+                }
+            }
+        });
 }

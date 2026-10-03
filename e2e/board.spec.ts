@@ -106,9 +106,9 @@ test.describe("first run", () => {
     await dialog.getByRole("textbox", { name: "Text" }).fill("Rok 2027");
     await dialog.getByRole("textbox", { name: "Text" }).press("Control+Enter");
     await expect(page.getByRole("button", { name: "Text: Rok 2027" })).toBeVisible();
-    await stored(page, (await storedItems(page))[0]?.id ?? "").toMatchObject({
-      content: { kind: "text", text: "Rok 2027", variant: "heading" },
-    });
+    await expect
+      .poll(async () => (await storedItems(page)).map((i) => i.content))
+      .toEqual([{ kind: "text", text: "Rok 2027", variant: "heading" }]);
   });
 });
 

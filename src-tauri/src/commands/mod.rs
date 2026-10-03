@@ -15,6 +15,10 @@ use tauri_specta::{collect_commands, Builder};
 pub fn builder() -> Builder<tauri::Wry> {
     Builder::<tauri::Wry>::new().commands(collect_commands![
         app::app_version,
+        app::app_flag_get,
+        app::app_flag_set,
+        app::app_ready_to_quit,
+        app::app_quit,
         board::board_load,
         board::board_apply_ops,
         entitlements::entitlements_get,

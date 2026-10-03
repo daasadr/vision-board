@@ -9,6 +9,12 @@ import { invoke as __TAURI_INVOKE } from "@tauri-apps/api/core";
 export const commands = {
 	/**  Version of the running app, as declared in Cargo.toml. */
 	appVersion: () => __TAURI_INVOKE<string>("app_version"),
+	appFlagGet: (flag: AppFlag) => typedError<boolean, string>(__TAURI_INVOKE("app_flag_get", { flag })),
+	appFlagSet: (flag: AppFlag) => typedError<null, string>(__TAURI_INVOKE("app_flag_set", { flag })),
+	/**  The board window stored its pending edits; quitting may continue. */
+	appReadyToQuit: () => __TAURI_INVOKE<void>("app_ready_to_quit"),
+	/**  Quits the app the same way the tray menu does: pending work finishes first. */
+	appQuit: () => __TAURI_INVOKE<void>("app_quit"),
 	/**  Loads the board with all its items, back to front. */
 	boardLoad: () => typedError<Board, string>(__TAURI_INVOKE("board_load")),
 	/**  Stores a batch of edits atomically. On error nothing from the batch is stored. */
@@ -27,6 +33,11 @@ export const commands = {
 };
 
 /* Types */
+/**  Known flags. An enum, so the frontend cannot write arbitrary keys. */
+export type AppFlag = 
+/**  The user was told that closing the window keeps the app running in the tray. */
+"trayNoticeShown";
+
 export type Board = {
 	id: string,
 	/**  Back to front. */

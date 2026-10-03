@@ -6,6 +6,7 @@ use specta::Type;
 use tauri::State;
 
 use crate::domain::media::{self, Media, MediaError};
+use crate::lifecycle::Lifecycle;
 use crate::state::{Db, MediaDir};
 
 use super::now_ms;
@@ -65,8 +66,10 @@ fn display_name(path: &Path) -> String {
 pub async fn media_import_paths(
     db: State<'_, Db>,
     dir: State<'_, MediaDir>,
+    lifecycle: State<'_, Lifecycle>,
     paths: Vec<String>,
 ) -> Result<Vec<ImportResult>, String> {
+    let _running = lifecycle.track_import();
     let media_dir = dir.0.clone();
     let paths: Vec<PathBuf> = paths.into_iter().map(PathBuf::from).collect();
     // Decoding is CPU-heavy; keep it off the async runtime. Files are processed one at a time
@@ -101,8 +104,10 @@ pub async fn media_import_paths(
 pub async fn media_import_bytes(
     db: State<'_, Db>,
     dir: State<'_, MediaDir>,
+    lifecycle: State<'_, Lifecycle>,
     base64: String,
 ) -> Result<ImportResult, String> {
+    let _running = lifecycle.track_import();
     let media_dir = dir.0.clone();
     let result = tauri::async_runtime::spawn_blocking(move || {
         // Reject before decoding base64 so an oversized paste never allocates its full size.

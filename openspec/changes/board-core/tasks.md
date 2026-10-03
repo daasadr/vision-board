@@ -23,14 +23,14 @@
 - [x] 3.1 `domain/media` pipeline (magické bajty, limit 50 MB, dekódování, EXIF orientace, resize 2560, WebP q80, náhled, atomický zápis) a ověřit `cargo test` s testovacími obrázky (orientace, alfa, GPS odstraněno, velikost)
 - [x] 3.2 Command `media_import_paths` / `media_import_bytes` na `spawn_blocking` a asset protokol se scope `media/` a ověřit, že UI během importu 40MB souboru reaguje
 - [x] 3.3 Drag & drop z OS, vložení ze schránky, dialog výběru; zástupný stav a chybové hlášky pro nepodporované soubory a ověřit E2E (mockované IPC) + ruční test přetažení 3 JPG a PNG+PDF
-- [ ] 3.4 Úklid neodkazovaných médií při startu a ukončení a ověřit `cargo test`
+- [x] 3.4 Úklid neodkazovaných médií při startu a ukončení a ověřit `cargo test`
 - [ ] 3.5 Codex review: parsování souborů a asset protokol scope (vstup od uživatele → bezpečnost) a zapracovat nálezy
 
 ## 4. Tray a životní cyklus
 
-- [ ] 4.1 Tray ikona s lokalizovanou nabídkou, klik otevře nástěnku a ověřit ručně na Windows (checklist v docs/testing.md)
-- [ ] 4.2 Zavření okna = destroy webview, prevent_exit, jednorázové upozornění a ověřit ručně + měřením paměti v tray (< 40 MB, zapsat do docs/performance.md)
-- [ ] 4.3 „Ukončit“ s flush ukládání a importu (max 5 s) a ověřit ručně scénářem „Ukončení během importu“
+- [x] 4.1 Tray ikona s lokalizovanou nabídkou, klik otevře nástěnku a ověřit ručně na Windows (checklist v docs/testing.md)
+- [x] 4.2 Zavření okna = destroy webview, prevent_exit, jednorázové upozornění a ověřit ručně + měřením paměti v tray (< 40 MB, zapsat do docs/performance.md)
+- [x] 4.3 „Ukončit“ s flush ukládání a importu (max 5 s) a ověřit ručně scénářem „Ukončení během importu“
 
 ## 5. Entitlements
 

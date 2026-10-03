@@ -3,5 +3,5 @@
   "identifier": "default",
   "description": "Capability for the board window",
   "windows": ["board"],
-  "permissions": ["core:default"]
+  "permissions": ["core:default", "core:window:allow-destroy"]
 }

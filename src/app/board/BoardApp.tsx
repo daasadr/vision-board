@@ -1,7 +1,6 @@
-import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Notices, type Notice } from "../../design/components";
+import { Button, Dialog, Notices, type Notice } from "../../design/components";
 import { ipc } from "../../lib/ipc";
 import { AddQuoteDialog, AddTextDialog } from "./AddItemDialogs";
 import styles from "./BoardApp.module.css";
@@ -14,6 +13,7 @@ import { newQuote, newText } from "./newItems";
 import { createSaver } from "./saver";
 import { createBoardStore, topZ } from "./store";
 import { useImageImport } from "./useImageImport";
+import { useWindowLifecycle } from "./useWindowLifecycle";
 
 function createServices(): BoardServices {
   const saver = createSaver(ipc.applyBoardOps, {
@@ -56,31 +56,9 @@ function useShortcuts() {
   }, [store]);
 }
 
-/** Writes pending edits before the window closes. */
-function useFlushOnClose() {
-  const { saver } = useBoardServices();
-  useEffect(() => {
-    let unlisten: (() => void) | undefined;
-    try {
-      getCurrentWindow()
-        .onCloseRequested(() => saver.flush())
-        .then((fn) => (unlisten = fn))
-        .catch(() => {});
-    } catch {
-      // Not running inside Tauri (browser dev server, tests).
-    }
-    const onUnload = () => void saver.flush();
-    window.addEventListener("pagehide", onUnload);
-    return () => {
-      unlisten?.();
-      window.removeEventListener("pagehide", onUnload);
-    };
-  }, [saver]);
-}
-
 function Board() {
   const { t } = useTranslation();
-  const { store, media } = useBoardServices();
+  const { store, media, saver } = useBoardServices();
   const loaded = useBoard((s) => s.loaded);
   const isEmpty = useBoard((s) => Object.keys(s.items).length === 0);
   const [failed, setFailed] = useState(false);
@@ -99,7 +77,7 @@ function Board() {
   const pickerRef = useRef<HTMLInputElement>(null);
 
   useShortcuts();
-  useFlushOnClose();
+  const { trayNoticeOpen, acknowledgeTrayNotice } = useWindowLifecycle(saver);
 
   useEffect(() => {
     // Media first: image items render as soon as the board loads.
@@ -148,6 +126,17 @@ function Board() {
           importFiles([...(e.target.files ?? [])]);
           e.target.value = "";
         }}
+      />
+      <Dialog
+        open={trayNoticeOpen}
+        onOpenChange={(open) => !open && void acknowledgeTrayNotice()}
+        title={t("board.trayNotice.title")}
+        description={t("board.trayNotice.body")}
+        actions={
+          <Button variant="primary" onClick={() => void acknowledgeTrayNotice()}>
+            {t("board.trayNotice.ok")}
+          </Button>
+        }
       />
       <Notices notices={notices} onDismiss={dismiss} dismissLabel={t("common.dismiss")} />
       <AddQuoteDialog
