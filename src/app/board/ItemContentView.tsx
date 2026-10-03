@@ -12,14 +12,24 @@ interface Props {
   item: Item;
   editing: boolean;
   onEditDone: (edit: TextEdit | null) => void;
+  /** Rendered width in CSS pixels, to pick an image size that is sharp but not wasteful. */
+  screenWidth: number;
 }
 
+/** Thumbnails are 480 px on their longest side (domain::media::THUMB_EDGE). */
+const THUMB_EDGE = 480;
+
 /** Renders what an item shows. Quotes and texts can be edited in place. */
-export function ItemContentView({ item, editing, onEditDone }: Props) {
+export function ItemContentView({ item, editing, onEditDone, screenWidth }: Props) {
   const { content } = item;
   switch (content.kind) {
     case "image":
-      return <ImageView mediaId={content.mediaId} />;
+      return (
+        <ImageView
+          mediaId={content.mediaId}
+          variant={screenWidth * window.devicePixelRatio <= THUMB_EDGE ? "thumb" : "full"}
+        />
+      );
     case "quote":
       return (
         <blockquote className={`${styles.card} ${styles.quote}`}>
@@ -51,10 +61,10 @@ export function ItemContentView({ item, editing, onEditDone }: Props) {
   }
 }
 
-function ImageView({ mediaId }: { mediaId: string }) {
-  const src = useMediaUrl(mediaId, "full");
+function ImageView({ mediaId, variant }: { mediaId: string; variant: "full" | "thumb" }) {
+  const src = useMediaUrl(mediaId, variant);
   return src ? (
-    <img className={styles.image} src={src} alt="" draggable={false} />
+    <img className={styles.image} src={src} alt="" draggable={false} decoding="async" />
   ) : (
     <div className={`${styles.image} ${styles.placeholder}`} />
   );

@@ -94,3 +94,34 @@ test.describe("restart", () => {
     expect(await img.evaluate((el: HTMLImageElement) => el.naturalWidth)).toBe(800);
   });
 });
+
+test("critical flow: add an image, move it, restart, it is still there", async ({ page }) => {
+  await page.goto("/");
+  await page.locator("input[type=file]").setInputFiles({
+    name: "dum-snu.jpg",
+    mimeType: "image/jpeg",
+    buffer: Buffer.from([0xff, 0xd8, 0xff, 0xe0]),
+  });
+  const image = images(page).first();
+  await expect(image).toBeVisible();
+  await expect.poll(async () => (await storedItems(page)).length).toBe(1);
+  const before = (await storedItems(page))[0].x;
+
+  const box = await image.boundingBox();
+  if (!box) throw new Error("image not visible");
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width / 2 + 150, box.y + box.height / 2 - 80, { steps: 10 });
+  await page.mouse.up();
+  const moved = await image.boundingBox();
+
+  // Wait until the move is stored, then "restart" (reload keeps the mocked database).
+  await expect.poll(async () => (await storedItems(page))[0].x).not.toBe(before);
+  await page.reload();
+
+  const after = images(page).first();
+  await expect(after).toBeVisible();
+  const restored = await after.boundingBox();
+  expect(restored?.x).toBeCloseTo(moved?.x ?? NaN, 0);
+  expect(restored?.y).toBeCloseTo(moved?.y ?? NaN, 0);
+});

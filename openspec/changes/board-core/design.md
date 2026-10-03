@@ -54,3 +54,12 @@ Tauri tray API (feature `tray-icon`). `CloseRequested` hlavního okna → `windo
 - [Webview po `destroy()` na Windows nemusí uvolnit všechnu paměť] → měření v úkolu na klidovou zátěž; fallback – restart „lehkého“ režimu není potřeba řešit předem.
 - [Velké množství položek zpomalí DOM] → cíl 100 položek; náhledy místo plných obrázků při zoomu < 50 %.
 - [Schránka na macOS/Windows vrací různé formáty] → frontend `paste` event (stejné API ve WebView2 i WKWebView), Rust přijme bytes.
+
+## Odchylky při implementaci
+
+- **EXIF orientace:** místo `kamadak-exif` stačí `image` 0.25 (`ImageDecoder::orientation` + `apply_orientation`), takže je o jednu závislost méně.
+- **Výběr souborů:** místo `tauri-plugin-dialog` stačí skrytý `<input type="file">`. WebView otevře nativní dialog a soubory jdou do Rustu jako base64 přes `media_import_bytes`, stejně jako vložení ze schránky. Přetažení z OS posílá cesty (`media_import_paths`). Velké soubory z dialogu tak putují přes IPC jako base64, což je při limitu 50 MB přijatelné.
+- **Tažení:** během pohybu se položka posouvá přes `transform` na vlastní kompoziční vrstvě (`will-change`), `left/top` se zapíší až po puštění. Obrázky menší než 480 px na obrazovce se vykreslují z náhledu.
+- **Ukončení:** kromě tray nabídky existuje command `app_quit` se stejným průběhem (využije ho nastavení ve fázi 2 a automatické testy).
+- **První zavření okna:** upozornění „poběží dál v tray“ je dialog v okně (okno se zavře až po potvrzení), takže není potřeba plugin pro systémové notifikace.
+- **Vývojový profil:** závislosti se kompilují s `opt-level = 2`, protože dekódování fotek v neoptimalizovaném buildu trvalo přes minutu.

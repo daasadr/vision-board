@@ -1,22 +1,27 @@
 # Architektura
 
-Stav po fázi 0 (bootstrap-project). Každá další fáze sem doplní svou část.
+Stav po fázi 1 (board-core). Každá další fáze sem doplní svou část.
 
 ## Přehled
 
 ```
 ┌─────────────────────────── proces vision-board (Rust, Tauri 2) ───────────────────────────┐
-│  lib.rs            pluginy (single-instance, window-state), registrace commandů, setup      │
+│  lib.rs            pluginy, setup (DB, úklid médií, tray, okno), běh v tray (ExitRequested) │
 │  window_manager    vytváření / obnova / zaostření oken (okna na vyžádání, po zavření zrušená)│
+│  tray              ikona a nabídka „Otevřít nástěnku / Ukončit“ (jazyk systému)             │
+│  lifecycle         Ukončit: uložení z frontendu → dokončení importů (max 5 s) → úklid → exit │
+│  state             sdílený stav: Db (SQLite), MediaDir                                     │
 │  commands/         tenká IPC vrstva, tauri-specta → src/lib/bindings.ts                    │
-│  domain/           doménová logika bez závislosti na Tauri (cargo test)                    │
+│  domain/           doménová logika bez závislosti na Tauri (cargo test):                   │
+│                    db, board, media, entitlements, app_state, locale, window_placement     │
 │  platform/         jediné místo pro FFI a unsafe (Win32 / AppKit / X11), zatím prázdné      │
 └──────────────┬─────────────────────────────────────────────────────────────────────────────┘
-               │ IPC (invoke)
+               │ IPC (invoke, události) · asset protokol pro obrázky z media/
 ┌──────────────┴────────── WebView2 / WKWebView (msedgewebview2 procesy) ────────────────────┐
 │  src/main.tsx      téma + jazyk před prvním vykreslením → <Root>                            │
-│  src/app/          kořeny oken (board; /design = ukázka design systému)                     │
+│  src/app/board/    nástěnka: store, ukládání, plátno, položky, import, životní cyklus okna  │
 │  src/lib/ipc.ts    jediný přístup k Rustu (typovaný, v E2E mockovaný)                       │
+│  src/lib/entitlements.ts  dostupnost prémiových funkcí (useEntitlement)                     │
 │  src/design/       tokeny, témata Galerie/Noc, fonty, komponenty                            │
 │  src/i18n/         cs/en/de, detekce jazyka, formáty data a času                            │
 └────────────────────────────────────────────────────────────────────────────────────────────┘
@@ -24,26 +29,81 @@ Stav po fázi 0 (bootstrap-project). Každá další fáze sem doplní svou čá
 
 ## Klíčová rozhodnutí
 
-Podrobné zdůvodnění je v `openspec/changes/bootstrap-project/design.md`. Tady je jen shrnutí.
+Podrobné zdůvodnění je v `openspec/changes/archive/*/design.md` a `openspec/changes/board-core/design.md`. Tady je jen shrnutí.
 
-- **Jeden proces a okna na vyžádání.** Okno `board` je v `tauri.conf.json` deklarované s `create: false` a vytváří ho `window_manager::open_board`, stejně jako ho později znovu vytvoří tray. Druhé spuštění aplikace (single-instance) zavolá tutéž funkci.
-- **Obnova polohy okna.** Plugin window-state ukládá polohu a velikost (bez viditelnosti). Při otevření se poloha obnoví a `domain::window_placement` zkontroluje, že se titulek okna dá chytit na některém monitoru. Když ne, okno se vycentruje na primárním monitoru.
-- **Typované IPC.** Rust commandy mají `#[specta::specta]` a jsou registrované v `commands::builder()`. Test `export_bindings` generuje `src/lib/bindings.ts` a CI hlídá, že soubor odpovídá aktuálnímu kódu.
+- **Jeden proces a okna na vyžádání.** Okno `board` je v `tauri.conf.json` deklarované s `create: false` a vytváří ho `window_manager::open_board`: při startu, z tray a při druhém spuštění aplikace (single-instance).
+- **Běh v tray.** Zavření okna okno zruší včetně webview. `RunEvent::ExitRequested` bez kódu se zablokuje, takže aplikace běží dál jen s tray ikonou (~5 MB). Ukončit může jen `lifecycle::request_quit` (tray „Ukončit“ nebo command `app_quit`).
+- **Obnova polohy okna.** Plugin window-state ukládá polohu a velikost (bez viditelnosti). `domain::window_placement` zkontroluje, že se titulek okna dá chytit na některém monitoru, jinak okno vycentruje.
+- **Typované IPC.** Rust commandy mají `#[specta::specta]` a jsou registrované v `commands::builder()`. Test `export_bindings` generuje `src/lib/bindings.ts` a CI hlídá jeho aktuálnost. Specta typuje `f64` jako `number | null`, proto `ipc.ts` geometrii položek zužuje na `number` a kontroluje ji.
 - **`domain` místo `core`.** Modul `core` by zastínil standardní crate `core` a rozbíjel makra.
-- **Windows manifest.** `build.rs` vkládá `windows-app-manifest.xml` (Common Controls v6, DPI awareness) do všech binárek, jinak `cargo test` na Windows padá se `STATUS_ENTRYPOINT_NOT_FOUND`.
-- **Bezpečnost.** Přísná CSP (`tauri.conf.json`), capability `default` jen s `core:default` pro okno `board`, `unsafe_code = "deny"` mimo `platform`.
-- **Téma a jazyk.** Obojí se nastaví synchronně před prvním vykreslením, aby okno neproblikla. Výchozí volba se řídí OS (světlý/tmavý režim, jazyk WebView). Ruční volbu přidá fáze 2.
+- **Windows manifest.** `build.rs` vkládá `windows-app-manifest.xml` do všech binárek, jinak `cargo test` na Windows padá se `STATUS_ENTRYPOINT_NOT_FOUND`.
+- **Rychlé vývojové buildy.** Závislosti se i ve vývojovém profilu kompilují s `opt-level = 2`, jinak dekódování fotky trvá přes minutu. Náš crate zůstává na 0.
+- **Bezpečnost.** Přísná CSP. Capability `default` obsahuje jen `core:default` a `core:window:allow-destroy`. Asset protokol obsluhuje jen `$APPDATA/media/*`. `unsafe_code = "deny"` mimo `platform`. Typ souboru se pozná podle obsahu a dekodér má limity rozměrů a paměti.
 
-## Data
+## Nástěnka
 
-Zatím žádná perzistentní data aplikace. Plugin window-state ukládá `.window-state.json` do adresáře konfigurace aplikace. Databázi nástěnky přidá fáze 1 (`board-core`).
+### Souřadnice
+
+Položky leží na logickém plátně **1920×1080** (`x`, `y`, `w`, `h` v jeho jednotkách, `rotation` ve stupních ±15°, `z` pořadí vrstev). Plátno se škáluje do okna přes `transform: scale()` a mezery doplní letterbox (`geometry.fitCanvas`). Stejné rozložení tak půjde použít v pop-upu i na tapetě na libovolném monitoru.
+
+Změna velikosti vždy zachová poměr stran. Text se škáluje s šířkou položky: velikost písma v CSS je `var(--item-w) * k`, takže se nepřeskládává a výška textové položky je určená obsahem. Změřenou výšku ukládá `store.amend` bez kroku zpět. Položka musí z 10 % plochy zůstat na plátně (`keepOnCanvas`).
+
+### Datový model (SQLite, `board.db` v app data, WAL)
+
+| Tabulka     | Obsah                                                                                                    |
+| ----------- | -------------------------------------------------------------------------------------------------------- |
+| `boards`    | nástěnky; migrace vytvoří `default` (UI zatím ukazuje jednu)                                             |
+| `items`     | položky: geometrie, `kind` (`image` / `quote` / `text`), `payload` (JSON obsahu), `style` (JSON, fáze 2) |
+| `media`     | uložené obrázky: `file_name`, `thumb_name`, rozměry, velikost                                            |
+| `app_state` | příznaky aplikace (např. zda už bylo zobrazeno upozornění o tray)                                        |
+
+Migrace: `rusqlite_migration` (verze ve `user_version`). Obsah položky je v Rustu tagovaný enum `ItemContent` a frontend dostává stejný tvar.
+
+### Tok úprav
+
+```
+uživatel → BoardItemView (pointer, klávesnice) → store (zustand, příkazy before/after)
+         → saver (300 ms nečinnosti, max 1 s, slučuje podle položky) → board_apply_ops (transakce)
+```
+
+- **Store** (`store.ts`) je synchronní a o backendu neví. Každá úprava je příkaz se stavem `before` a `after` každé dotčené položky. Zpět aplikuje stavy `before` a znovu stavy `after`, historie má 50 kroků.
+- **Tažení** zapisuje přímo do stylu elementu (`transform` na vlastní vrstvě), bez renderu Reactu. Do storu jde jen výsledek po puštění.
+- **Ukládání** (`saver.ts`) poskytuje `flush()` pro zavření okna a pro Ukončit. Nezdařená dávka se zopakuje a novější úprava stejné položky má přednost.
+- **Backend** dávku validuje (rozměry, rotace, délka textu, existence média) a zapíše ji celou, nebo vůbec.
+
+### Média
+
+```
+zdroj (přetažení z OS / schránka / dialog) → media_import_paths | media_import_bytes (base64)
+  → spawn_blocking: limit 50 MB → typ podle magických bajtů → dekódování s limity → EXIF orientace
+  → zmenšení na 2560 px (Lanczos3) → WebP q80 + náhled 480 px q75 → atomický zápis (tmp + rename)
+  → řádek v media → frontend přidá položky obrázků (jeden krok zpět na dávku)
+```
+
+- Originály se neukládají a překódování odstraní všechna metadata (EXIF, GPS). Alfa kanál zůstane.
+- Frontend sestaví URL přes `convertFileSrc(dir + fileName)`. Pokud je obrázek na obrazovce menší než 480 px, použije náhled.
+- **Úklid** (`media::remove_unreferenced`) maže média bez položky a soubory bez záznamu. Běží jen při startu a po uložení při ukončení, protože jindy může historie zpět ještě odkazovat na smazaný obrázek.
+
+### Životní cyklus okna
+
+- **Zavření okna:** frontend uloží rozpracované změny. Při prvním zavření zobrazí dialog „Vision Board poběží dál“ (příznak `trayNoticeShown`) a potom okno zruší.
+- **Ukončit:** Rust pošle oknu událost `app://quit-requested`, frontend uloží změny a zavolá `app_ready_to_quit`. Rust počká na doběhnutí importů (celkem max 5 s), uklidí média a ukončí aplikaci.
+
+### Oprávnění (Entitlements)
+
+Prémiové funkce (`premiumFrames`, `wallpaper`, `scheduledPopup`) se ověřují výhradně přes `useEntitlement(feature)` a `domain::entitlements`. Do fáze 6 je všechno odemčené. Funkce mimo seznam jsou vždy zdarma.
 
 ## Kde co najít
 
-| Chci změnit…             | Soubor                                               |
-| ------------------------ | ---------------------------------------------------- |
-| barvy, stíny, typografii | `src/design/tokens.css`                              |
-| texty UI                 | `src/i18n/locales/{cs,en,de}.json`                   |
-| přidat Rust command      | `src-tauri/src/commands/`, pak `pnpm bindings`       |
-| chování oken             | `src-tauri/src/window_manager.rs`, `tauri.conf.json` |
-| oprávnění webview        | `src-tauri/capabilities/default.json`                |
+| Chci změnit…                   | Soubor                                                       |
+| ------------------------------ | ------------------------------------------------------------ |
+| barvy, stíny, typografii       | `src/design/tokens.css`                                      |
+| texty UI                       | `src/i18n/locales/{cs,en,de}.json`                           |
+| texty tray nabídky             | `src-tauri/src/domain/locale.rs`                             |
+| vzhled položek nástěnky        | `src/app/board/ItemContentView.*`, `BoardItemView.*`         |
+| geometrii (plátno, přichycení) | `src/app/board/geometry.ts`                                  |
+| validaci a ukládání položek    | `src-tauri/src/domain/board.rs`                              |
+| zpracování obrázků             | `src-tauri/src/domain/media.rs`                              |
+| přidat Rust command            | `src-tauri/src/commands/`, pak `pnpm bindings`               |
+| chování oken a tray            | `src-tauri/src/window_manager.rs`, `tray.rs`, `lifecycle.rs` |
+| oprávnění webview, CSP, assety | `src-tauri/capabilities/default.json`, `tauri.conf.json`     |

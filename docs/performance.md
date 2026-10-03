@@ -29,3 +29,21 @@ Vyzkoušené a nezavedené: `--renderer-process-limit=1` a vypnutí funkcí Edge
 ### 2026-10-03 – fáze 1, jen tray (bez okna)
 
 Debug build, Windows 11, 60 s po zavření okna: **4,9 MB** (vlastní proces), žádné procesy msedgewebview2. Cíl < 40 MB. Okno se po zavření ruší (`destroy`), WebView2 se ukončí spolu s ním.
+
+### 2026-10-03 – fáze 1, tažení se 100 položkami
+
+Měřeno ve skutečné aplikaci (WebView2) přes CDP: nástěnka naplněná 40 obrázky, 40 citáty a 20 texty, okno v popředí. Tažení jedné položky bylo simulované přes `Input.dispatchMouseEvent` a pro kontrolu i čistě animací bez vstupu. Zaznamenávaly se mezery mezi snímky `requestAnimationFrame` a dlouhé úlohy.
+
+| Nástěnka    | Klid (max) | Tažení medián | Tažení p95 | Dlouhé úlohy |
+| ----------- | ---------- | ------------- | ---------- | ------------ |
+| 3 položky   | 17 ms      | 16,7 ms       | 50 ms      | 0            |
+| 30 položek  | 17 ms      | 16,7 ms       | 50 ms      | 0            |
+| 100 položek | 17 ms      | 16,7 ms       | 50 ms      | 0            |
+
+Závěry:
+
+- **Počet položek výkon neovlivňuje.** 100 položek je stejně plynulých jako 3 a hlavní vlákno není nikdy blokované (žádné dlouhé úlohy).
+- Občasné vynechané snímky (p95 ~50 ms) se objevují při jakékoli animaci i na téměř prázdné nástěnce. Vypnutí stínů, skrytí obrázků ani CSS containment na tom nic nezměnily. Jde o vlastnost prostředí: integrovaná grafika AMD Radeon Vega 11 a dva monitory (2560×1440 + 1280×720), GPU kompozice WebView2 je zapnutá. **Přeměřit na jiném počítači** (`scratchpad` skript `cdp-perf.mjs` je popsaný níže).
+- Optimalizace, které zůstaly: tažení posouvá položku přes `transform` na vlastní kompoziční vrstvě (`will-change`) a do stylu se zapisuje přímo, bez renderu Reactu. Obrázky menší než 480 px na obrazovce se vykreslují z náhledu místo plné verze.
+
+Postup měření: spustit aplikaci s `WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--remote-debugging-port=9223`, okno dát do popředí (zakrytá okna Chromium zpomaluje), přes CDP vložit položky `board_apply_ops`, znovu načíst stránku a měřit `requestAnimationFrame` během tažení.

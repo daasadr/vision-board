@@ -104,6 +104,19 @@ export const BoardItemView = memo(function BoardItemView({
     el.style.height = isText ? "" : `${rect.h}px`;
     el.style.setProperty("--item-w", String(rect.w));
     el.style.transform = `rotate(${rect.rotation}deg)`;
+    el.style.willChange = "";
+  }
+
+  /**
+   * Moves the item with a transform on its own compositor layer, so dragging over other
+   * items (photos, soft shadows) only re-composites instead of repainting them every frame.
+   */
+  function renderMove(origin: Rect, x: number, y: number) {
+    const el = ref.current;
+    if (!el) return;
+    live.current = { ...live.current, x, y };
+    el.style.willChange = "transform";
+    el.style.transform = `translate(${x - origin.x}px, ${y - origin.y}px) rotate(${live.current.rotation}deg)`;
   }
 
   function begin(event: ReactPointerEvent, next: Gesture) {
@@ -157,7 +170,7 @@ export const BoardItemView = memo(function BoardItemView({
         g.moved = true;
         onInteraction(true);
       }
-      render({ ...current, x: g.origin.x + dx / scale, y: g.origin.y + dy / scale });
+      renderMove(g.origin, g.origin.x + dx / scale, g.origin.y + dy / scale);
     } else if (g.kind === "resize") {
       const dx = (event.clientX - g.startX) / scale;
       const dy = (event.clientY - g.startY) / scale;
@@ -246,7 +259,12 @@ export const BoardItemView = memo(function BoardItemView({
       onKeyDown={onKeyDown}
     >
       <div ref={contentRef} className={styles.content}>
-        <ItemContentView item={item} editing={editing} onEditDone={onEditDone} />
+        <ItemContentView
+          item={item}
+          editing={editing}
+          onEditDone={onEditDone}
+          screenWidth={item.w * scale}
+        />
       </div>
       {selected && !editing && (
         <>

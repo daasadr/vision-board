@@ -38,6 +38,6 @@
 
 ## 6. Integrace a dokumentace
 
-- [ ] 6.1 Playwright E2E kritického flow „vložit obrázek → přesunout → restart (reload s perzistentním mockem) → pozice zachována“
-- [ ] 6.2 Výkon: 100 položek, tažení 60 fps (Performance panel), zapsat do docs/performance.md
-- [ ] 6.3 Aktualizovat docs/architecture.md (datový model, souřadnice, pipeline médií) a uživatelskou dokumentaci docs/user/board.md (cs)
+- [x] 6.1 Playwright E2E kritického flow „vložit obrázek → přesunout → restart (reload s perzistentním mockem) → pozice zachována“
+- [x] 6.2 Výkon: 100 položek, tažení 60 fps (Performance panel), zapsat do docs/performance.md
+- [x] 6.3 Aktualizovat docs/architecture.md (datový model, souřadnice, pipeline médií) a uživatelskou dokumentaci docs/user/board.md (cs)
