@@ -1,5 +1,59 @@
 {
   "app": {
     "title": "Vision Board"
+  },
+  "common": {
+    "cancel": "Zrušit",
+    "add": "Přidat",
+    "save": "Uložit"
+  },
+  "board": {
+    "loadError": "Nástěnku se nepodařilo načíst. Zkuste aplikaci spustit znovu.",
+    "label": "Nástěnka",
+    "empty": {
+      "title": "Vaše vize začíná tady",
+      "body": "Přidejte fotku svého cíle, citát, který vás žene dopředu, nebo pár slov o tom, kam míříte. Obrázky můžete také přetáhnout přímo sem."
+    },
+    "add": {
+      "image": "Obrázek",
+      "quote": "Citát",
+      "text": "Text"
+    },
+    "toolbar": {
+      "label": "Přidat na nástěnku",
+      "undo": "Zpět",
+      "redo": "Znovu"
+    },
+    "quoteDialog": {
+      "title": "Přidat citát",
+      "description": "Citát se objeví uprostřed nástěnky. Později ho můžete přesunout.",
+      "text": "Citát",
+      "textPlaceholder": "Co vás žene dopředu?",
+      "author": "Autor",
+      "authorHint": "Nepovinné"
+    },
+    "textDialog": {
+      "title": "Přidat text",
+      "description": "Nadpis pro velké cíle, poznámka pro detaily.",
+      "text": "Text",
+      "textPlaceholder": "Například: Rok 2027",
+      "variant": "Styl",
+      "heading": "Nadpis",
+      "note": "Poznámka"
+    },
+    "item": {
+      "role": "položka nástěnky",
+      "quote": "Citát: {{text}}",
+      "text": "Text: {{text}}",
+      "image": "Obrázek",
+      "actions": "Úpravy položky",
+      "bringToFront": "Do popředí",
+      "sendToBack": "Do pozadí",
+      "edit": "Upravit text",
+      "delete": "Smazat",
+      "move": "Posunout",
+      "resize": "Změnit velikost",
+      "rotate": "Otočit"
+    }
   }
 }

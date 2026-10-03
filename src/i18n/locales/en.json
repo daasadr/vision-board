@@ -1,5 +1,59 @@
 {
   "app": {
     "title": "Vision Board"
+  },
+  "common": {
+    "cancel": "Cancel",
+    "add": "Add",
+    "save": "Save"
+  },
+  "board": {
+    "loadError": "The board could not be loaded. Please restart the app.",
+    "label": "Board",
+    "empty": {
+      "title": "Your vision starts here",
+      "body": "Add a photo of your goal, a quote that keeps you going, or a few words about where you are headed. You can also drop images right here."
+    },
+    "add": {
+      "image": "Image",
+      "quote": "Quote",
+      "text": "Text"
+    },
+    "toolbar": {
+      "label": "Add to board",
+      "undo": "Undo",
+      "redo": "Redo"
+    },
+    "quoteDialog": {
+      "title": "Add a quote",
+      "description": "The quote appears in the middle of the board. You can move it later.",
+      "text": "Quote",
+      "textPlaceholder": "What keeps you going?",
+      "author": "Author",
+      "authorHint": "Optional"
+    },
+    "textDialog": {
+      "title": "Add text",
+      "description": "A heading for big goals, a note for the details.",
+      "text": "Text",
+      "textPlaceholder": "For example: The year 2027",
+      "variant": "Style",
+      "heading": "Heading",
+      "note": "Note"
+    },
+    "item": {
+      "role": "board item",
+      "quote": "Quote: {{text}}",
+      "text": "Text: {{text}}",
+      "image": "Image",
+      "actions": "Item actions",
+      "bringToFront": "Bring to front",
+      "sendToBack": "Send to back",
+      "edit": "Edit text",
+      "delete": "Delete",
+      "move": "Move",
+      "resize": "Resize",
+      "rotate": "Rotate"
+    }
   }
 }

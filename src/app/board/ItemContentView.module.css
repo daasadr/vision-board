@@ -1,0 +1,90 @@
+/*
+ * Item content is laid out in logical canvas units. Font sizes and padding scale with the
+ * item width (--item-w, unitless), so resizing an item scales its text without reflowing it.
+ */
+
+.card {
+  margin: 0;
+  padding: calc(var(--item-w) * 0.06px);
+  border-radius: var(--radius-sm);
+  background: var(--color-frame);
+  box-shadow: var(--shadow-item);
+}
+
+.quote {
+  position: relative;
+  color: var(--color-ink);
+}
+
+.quoteMark {
+  position: absolute;
+  top: calc(var(--item-w) * -0.01px);
+  left: calc(var(--item-w) * 0.025px);
+  font-family: var(--font-quote);
+  font-size: calc(var(--item-w) * 0.16px);
+  line-height: 1;
+  color: var(--color-accent);
+  opacity: 0.55;
+  user-select: none;
+}
+
+.quoteText {
+  position: relative;
+  margin: 0;
+  font-family: var(--font-quote);
+  font-style: var(--quote-style);
+  font-size: calc(var(--item-w) * 0.062px);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.author {
+  margin-top: calc(var(--item-w) * 0.03px);
+  font-family: var(--font-ui);
+  font-size: calc(var(--item-w) * 0.028px);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+}
+
+.heading {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: var(--display-weight);
+  font-size: calc(var(--item-w) * 0.115px);
+  letter-spacing: var(--tracking-display);
+  line-height: 1.05;
+  color: var(--color-ink);
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.note {
+  font-family: var(--font-ui);
+  font-size: calc(var(--item-w) * 0.05px);
+  line-height: var(--leading-normal);
+  color: var(--color-ink);
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.editing {
+  outline: none;
+  cursor: text;
+  user-select: text;
+}
+
+.image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-item);
+  user-select: none;
+}
+
+.placeholder {
+  background: var(--color-surface-sunken);
+}

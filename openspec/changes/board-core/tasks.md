@@ -8,15 +8,15 @@
 
 ## 2. Plátno a položky
 
-- [ ] 2.1 Komponenta plátna s logickými souřadnicemi 1920×1080 a škálováním do okna a ověřit unit testem převodu souřadnic + ručně změnou velikosti okna
-- [ ] 2.2 Renderery položek image/quote/text stylované tokeny obou témat a ověřit na stránce `/design` v Galerii i Noci
-- [ ] 2.3 Prázdný stav s výzvou a akcemi (lokalizovaný cs/en/de) a ověřit E2E „první spuštění“
-- [ ] 2.4 Přidání citátu a textu (dialog, validace prázdného obsahu) a ověřit E2E scénáře „Přidání citátu“ a „Prázdný text“
-- [ ] 2.5 Přesun tažením (pointer events, rAF, přichycení 10 % na plátně) a ověřit unit testem clampingu a E2E tažením
-- [ ] 2.6 Změna velikosti (poměr stran u obrázků) a natočení ±15° a ověřit unit testy geometrie
-- [ ] 2.7 Výběr, pořadí vrstev, úprava textu na místě, smazání, ovládání klávesnicí a ověřit E2E + axe kontrolou
-- [ ] 2.8 Zustand store s historií příkazů (zpět/znovu, 50 kroků) a ověřit Vitest testy inverzí všech typů příkazů
-- [ ] 2.9 Debounced ukládání dávek (300 ms / max 1 s) a flush při ukončení a ověřit unit testem s fake timery
+- [x] 2.1 Komponenta plátna s logickými souřadnicemi 1920×1080 a škálováním do okna a ověřit unit testem převodu souřadnic + ručně změnou velikosti okna
+- [x] 2.2 Renderery položek image/quote/text stylované tokeny obou témat a ověřit na stránce `/design` v Galerii i Noci
+- [x] 2.3 Prázdný stav s výzvou a akcemi (lokalizovaný cs/en/de) a ověřit E2E „první spuštění“
+- [x] 2.4 Přidání citátu a textu (dialog, validace prázdného obsahu) a ověřit E2E scénáře „Přidání citátu“ a „Prázdný text“
+- [x] 2.5 Přesun tažením (pointer events, rAF, přichycení 10 % na plátně) a ověřit unit testem clampingu a E2E tažením
+- [x] 2.6 Změna velikosti (poměr stran u obrázků) a natočení ±15° a ověřit unit testy geometrie
+- [x] 2.7 Výběr, pořadí vrstev, úprava textu na místě, smazání, ovládání klávesnicí a ověřit E2E + axe kontrolou
+- [x] 2.8 Zustand store s historií příkazů (zpět/znovu, 50 kroků) a ověřit Vitest testy inverzí všech typů příkazů
+- [x] 2.9 Debounced ukládání dávek (300 ms / max 1 s) a flush při ukončení a ověřit unit testem s fake timery
 
 ## 3. Import médií
 

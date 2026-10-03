@@ -21,6 +21,14 @@
   transition: border-color var(--duration-fast) var(--ease-standard);
 }
 
+.textarea {
+  height: auto;
+  min-height: 96px;
+  padding: var(--space-2) var(--space-3);
+  resize: vertical;
+  line-height: var(--leading-normal);
+}
+
 .input::placeholder {
   color: var(--color-ink-subtle);
 }

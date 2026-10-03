@@ -1,0 +1,19 @@
+.bar {
+  display: flex;
+  align-items: center;
+  justify-self: center;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-raised);
+  backdrop-filter: blur(var(--blur-surface));
+  box-shadow: var(--shadow-md);
+}
+
+.divider {
+  width: var(--border-width);
+  height: 20px;
+  margin: 0 var(--space-1);
+  background: var(--color-border);
+}

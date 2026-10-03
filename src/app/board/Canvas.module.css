@@ -1,0 +1,19 @@
+.viewport {
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.stage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+
+  /* Own stacking context, so items with negative z still paint above the stage background. */
+  isolation: isolate;
+  background: var(--gradient-surface);
+  border-radius: var(--radius-lg);
+  border: var(--border-width) solid var(--color-border);
+  box-shadow: var(--shadow-md);
+}

@@ -1,0 +1,93 @@
+.item {
+  position: absolute;
+  transform-origin: center;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.item:active {
+  cursor: grabbing;
+}
+
+.item:focus-visible {
+  outline: none;
+}
+
+.content {
+  width: 100%;
+  height: 100%;
+}
+
+/* Selection ring drawn outside the item so it never covers content. Widths use --handle,
+   which is pre-divided by the canvas scale, so they look the same at any zoom. */
+.selected::after,
+.item:focus-visible::after {
+  content: "";
+  position: absolute;
+  inset: calc(var(--handle) * -0.5);
+  border: calc(var(--handle) * 0.16) solid var(--color-focus);
+  border-radius: var(--radius-sm);
+  pointer-events: none;
+}
+
+.handle {
+  position: absolute;
+  width: var(--handle);
+  height: var(--handle);
+  border: calc(var(--handle) * 0.16) solid var(--color-focus);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-raised);
+  box-shadow: var(--shadow-sm);
+  z-index: 1;
+}
+
+.nw {
+  top: calc(var(--handle) * -1);
+  left: calc(var(--handle) * -1);
+  cursor: nwse-resize;
+}
+
+.ne {
+  top: calc(var(--handle) * -1);
+  right: calc(var(--handle) * -1);
+  cursor: nesw-resize;
+}
+
+.sw {
+  bottom: calc(var(--handle) * -1);
+  left: calc(var(--handle) * -1);
+  cursor: nesw-resize;
+}
+
+.se {
+  bottom: calc(var(--handle) * -1);
+  right: calc(var(--handle) * -1);
+  cursor: nwse-resize;
+}
+
+.rotate {
+  position: absolute;
+  top: calc(var(--handle) * -3);
+  left: 50%;
+  width: var(--handle);
+  height: var(--handle);
+  margin-left: calc(var(--handle) * -0.5);
+  border-radius: var(--radius-pill);
+  background: var(--color-focus);
+  box-shadow: var(--shadow-sm);
+  cursor: grab;
+  z-index: 1;
+}
+
+/* Stem connecting the rotate handle to the item. */
+.rotate::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  width: calc(var(--handle) * 0.16);
+  height: calc(var(--handle) * 1.5);
+  margin-left: calc(var(--handle) * -0.08);
+  background: var(--color-focus);
+}

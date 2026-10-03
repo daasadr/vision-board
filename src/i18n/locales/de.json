@@ -1,5 +1,59 @@
 {
   "app": {
     "title": "Vision Board"
+  },
+  "common": {
+    "cancel": "Abbrechen",
+    "add": "Hinzufügen",
+    "save": "Speichern"
+  },
+  "board": {
+    "loadError": "Die Pinnwand konnte nicht geladen werden. Bitte starten Sie die App neu.",
+    "label": "Pinnwand",
+    "empty": {
+      "title": "Hier beginnt Ihre Vision",
+      "body": "Fügen Sie ein Foto Ihres Ziels hinzu, ein Zitat, das Sie antreibt, oder ein paar Worte darüber, wohin Sie wollen. Bilder können Sie auch direkt hierher ziehen."
+    },
+    "add": {
+      "image": "Bild",
+      "quote": "Zitat",
+      "text": "Text"
+    },
+    "toolbar": {
+      "label": "Zur Pinnwand hinzufügen",
+      "undo": "Rückgängig",
+      "redo": "Wiederholen"
+    },
+    "quoteDialog": {
+      "title": "Zitat hinzufügen",
+      "description": "Das Zitat erscheint in der Mitte der Pinnwand. Sie können es später verschieben.",
+      "text": "Zitat",
+      "textPlaceholder": "Was treibt Sie an?",
+      "author": "Autor",
+      "authorHint": "Optional"
+    },
+    "textDialog": {
+      "title": "Text hinzufügen",
+      "description": "Eine Überschrift für große Ziele, eine Notiz für die Details.",
+      "text": "Text",
+      "textPlaceholder": "Zum Beispiel: Das Jahr 2027",
+      "variant": "Stil",
+      "heading": "Überschrift",
+      "note": "Notiz"
+    },
+    "item": {
+      "role": "Pinnwand-Element",
+      "quote": "Zitat: {{text}}",
+      "text": "Text: {{text}}",
+      "image": "Bild",
+      "actions": "Element bearbeiten",
+      "bringToFront": "In den Vordergrund",
+      "sendToBack": "In den Hintergrund",
+      "edit": "Text bearbeiten",
+      "delete": "Löschen",
+      "move": "Verschieben",
+      "resize": "Größe ändern",
+      "rotate": "Drehen"
+    }
   }
 }

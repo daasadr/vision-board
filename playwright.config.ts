@@ -11,6 +11,8 @@ export default defineConfig({
   use: {
     baseURL: `http://localhost:${PORT}`,
     trace: "retain-on-failure",
+    // Czech UI by default (the app follows the browser language); tests can override it.
+    locale: "cs-CZ",
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   // Runs the production frontend without Tauri; the Rust backend is replaced by e2e/support/ipc.ts.

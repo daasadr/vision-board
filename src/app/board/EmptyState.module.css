@@ -1,0 +1,42 @@
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: var(--space-6);
+  pointer-events: none;
+}
+
+.card {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-4);
+  max-width: 460px;
+  text-align: center;
+  pointer-events: auto;
+  animation: rise var(--duration-slow) var(--ease-standard);
+}
+
+.title {
+  font-size: var(--text-3xl);
+}
+
+.body {
+  margin: 0;
+  color: var(--color-ink-muted);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}

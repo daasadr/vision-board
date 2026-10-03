@@ -77,11 +77,17 @@ export async function storedItems(page: Page): Promise<Item[]> {
   return page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? "[]"), BOARD_STORAGE_KEY);
 }
 
-export const test = base.extend<{ ipc: IpcHandlers; seedItems: Item[] }>({
+/** Board contents to start with. An object, because Playwright reads an array option value as
+ *  a [value, options] tuple. */
+export interface BoardSeed {
+  items: Item[];
+}
+
+export const test = base.extend<{ ipc: IpcHandlers; board: BoardSeed }>({
   ipc: [{}, { option: true }],
-  seedItems: [[], { option: true }],
-  page: async ({ page, ipc, seedItems }, use) => {
-    await mockIpc(page, { handlers: ipc, seedItems });
+  board: [{ items: [] }, { option: true }],
+  page: async ({ page, ipc, board }, use) => {
+    await mockIpc(page, { handlers: ipc, seedItems: board.items });
     await use(page);
   },
 });

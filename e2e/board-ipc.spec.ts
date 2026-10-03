@@ -13,10 +13,11 @@ const quote: Item = {
 };
 
 test.describe("board backend mock", () => {
-  test.use({ seedItems: [quote] });
+  test.use({ board: { items: [quote] } });
 
   test("loads seeded items and keeps edits across a reload", async ({ page }) => {
-    await page.goto("/");
+    // /design does not load the board, so the app cannot write to the mock behind our back.
+    await page.goto("/design");
     const invoke = (cmd: string, args?: unknown) =>
       page.evaluate(
         ([c, a]) =>
