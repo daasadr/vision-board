@@ -1,0 +1,117 @@
+Zadání pro Claude Code: Vision Board App (pracovní název)
+1. Kontext a cíl
+
+Desktopová aplikace (Windows + macOS, Linux jako druhá priorita) sloužící jako osobní vision/dream board. Uživatel na ni ukládá obrázky, citáty a texty reprezentující jeho cíle a vize a appka mu je připomíná — buď pasivně jako tapeta plochy, nebo aktivně jako naplánovaný pop-up přes všechna okna.
+
+Appka je zamýšlená jako dárek pro uživatele Almost-there.eu (existující aplikace na plánování a plnění dlouhodobých cílů — Node.js/PostgreSQL/Prisma backend, React/Next.js frontend, viz samostatný repo). Vision board je samostatný desktopový projekt/repo, propojení s Almost-there.eu bude jen přes licenční/aktivační vrstvu (viz bod 5.4) — ne sdílený kód.
+
+Priorita: prémiový pocit i při jednoduchosti — vizuálně i funkčně. Nesmí to působit jako typický "vibecoded" nástroj, i když v základu bude vibecoded. Co nejmíň zatěžující pro systém, žádné zbytečné procesy na pozadí.
+2. Funkční požadavky
+2.1 Spouštěcí módy (dají se kombinovat)
+
+    Automaticky při startu PC jako tapeta plochy (za ikonami), pokud to uživatel povolí v nastavení
+    Ikonka na ploše — klasický spouštěč pro ty, kdo appku nemají spuštěnou defaultně
+    Naplánované zobrazení přes všechna okna v konkrétní čas, na X sekund/minut — s detekcí aktivity uživatele (např. aktivní psaní) a čekáním, až dokončí rozdělanou činnost, než se pop-up zobrazí
+
+Režimy 1 a 3 musí jít nastavit současně.
+2.2 Persistentní ovládací prvek
+
+V pravém horním rohu appky trvale viditelný objekt — podlouhlejší 3D obdélníkový tvar (ne klasická ikona), dokud ho uživatel neskryje/neodinstaluje appku. Klik otevírá nastavení.
+2.3 Nastavení
+
+    Časování zobrazení (kdy, jak dlouho, jak často)
+    Vzhled: rámování (víc stylů) / bez rámování, jen obrázky / s texty
+    Umístění: celá obrazovka / částečné umístění
+    Zapnutí/vypnutí jednotlivých spouštěcích módů, jejich kombinace
+
+2.4 Samotná nástěnka
+
+    Ukládání, editace a přetahování (drag & drop) obrázků, citátů a textu na plátno
+    Automatická komprese vkládaných souborů (appka musí zůstat lightweight)
+    Volitelný split-screen režim: jedna půlka motivace/vize, druhá půlka úkoly na další den
+
+2.5 Interaktivní prvky na obrázcích
+
+Malá tlačítka na obrázku, která:
+
+    otevřou malé okno s dalšími fotkami/detaily k danému snu/cíli, NEBO
+    otevřou odkaz ve výchozím prohlížeči
+
+2.6 Distribuce
+
+Instalační balíček ke stažení z webu, bezpečný, transparentní, snadno odinstalovatelný.
+3. Technické rozhodnutí a proč
+
+Framework: Tauri (Rust backend + React frontend), ne čistě nativní dvojice appek (C#/WinUI + Swift/AppKit) ani Electron.
+
+Odůvodnění:
+
+    Nejtěžší části appky (tapeta za ikonami plochy, idle detekce) vyžadují nativní OS volání bez ohledu na zvolený framework — takže "nativnost" tady neřeší framework, ale malé, izolované platformně specifické moduly.
+    Dvě čistě oddělené nativní appky (C# a Swift) by pro sólo tým (ty + Claude Code) znamenaly dvojí údržbu navždy — každá nová funkce, styl rámování nebo nastavení by se muselo naimplementovat a udržovat synchronizované ve dvou různých jazycích/frameworcích. To je vysoká dlouhodobá režie na produkční appku, kterou bude primárně udržovat agent s tvým dohledem, ne velký tým.
+    Tauri dává sdílenou codebase (React UI + veškerá business logika) napříč Windows/macOS/Linux, s tenkou nativní Rust vrstvou jen pro skutečně platformně specifické kusy (WorkerW trik, idle API). Instalační balíček v jednotkách MB, klidová paměť řádově desítky MB — splňuje požadavek na lightweight výrazně lépe než Electron.
+    Dá se s tím reálně naučit Rust, jak jsi zmínila, že by se ti líbilo.
+
+3.1 Wallpaper mód (za ikonami plochy)
+
+    Windows: tzv. WorkerW trik (najít/vytvořit WorkerW okno za ikonami plochy a připojit do něj náš render) — stejný princip používá open-source Lively Wallpaper, dá se z jeho zdrojáku inspirovat pro Win32 volání
+    macOS: NSWindow na úrovni pod ikonami plochy (desktop window level)
+    Linux: fragmentované (X11 vs Wayland, různá DE) — v první verzi jen fallback (appka nabídne export aktuální nástěnky jako statický obrázek tapety), plná live-tapeta až později pokud bude poptávka
+
+3.2 Naplánovaný pop-up + idle detekce
+
+    OS idle-time API (Windows: GetLastInputInfo, macOS: CGEventSourceSecondsSinceLastEventType, Linux: XScreenSaverQueryInfo) — sleduje se jen čas od poslední aktivity, ne obsah psaní (důležité kvůli soukromí a důvěře uživatelů)
+    Vzor chování podobný appkám na připomínání přestávek (Stretchly, EyeLeo) — čekání na pauzu v aktivitě, zobrazení přes všechny monitory, možnost odložit
+
+3.3 Komprese obrázků
+
+Rust crate image (případně WASM alternativa na frontendu) — lokálně, bez závislosti na síti.
+3.4 Licenční/aktivační vrstva (příprava na gift feature)
+
+I když se gifting bude řešit hlavně na straně Almost-there.eu (viz bod 4), vision board appka potřebuje umět:
+
+    Přijmout aktivační token (zadaný ručně nebo předvyplněný v instalačním odkazu)
+    Ověřit ho voláním na Almost-there.eu API při prvním spuštění
+    Uložit lokálně podepsaný license soubor (např. JWT), aby appka fungovala offline po aktivaci a nemusela se při každém spuštění dotazovat serveru — odpovídá požadavku na lightweight a "bez zbytečných procesů na pozadí"
+
+4. Gift mechanika (implementace hlavně v Almost-there.eu, ne v tomto repu)
+
+Návrh mechanismu — pro rozhodnutí a implementaci v Almost-there.eu:
+
+    Aktivní platící předplatitel dostává (např. při aktivaci předplatného, nebo obnovitelně za fakturační cyklo) alotment např. 3 "dárkových" aktivačních kódů/odkazů
+    V UI Almost-there.eu panel "Darovat vision board" — vygeneruje odkaz/kód ke sdílení
+    Obdarovaný odkaz otevře (nemusí mít účet Almost-there.eu), dostane instalátor appky s předvyplněným/odkazovaným tokenem
+    Vision board appka token při prvním spuštění ověří přes Almost-there.eu API a aktivuje se
+
+Otevřená rozhodnutí (na tobě):
+
+    Obnovuje se alotment 3 kódů každý fakturační cyklus, nebo je to jednorázová výhoda za tarif?
+    Potřebuje obdarovaný vlastní účet Almost-there.eu, nebo appka funguje čistě anonymně po aktivaci?
+    Je celá appka zdarma pro každého a "dárek" odemyká jen prémiové styly/wallpaper mód, nebo je gated celá appka?
+
+5. Fázový plán
+
+    Základ: nástěnka (drag&drop, ukládání, editace, komprese), tray ikonka, spouštění kliknutím — samostatně použitelný produkt
+    Nastavení: auto-start, vzhled (rámování, styly), umístění, časování
+    Naplánovaný pop-up mód s idle detekcí (jako obyčejné okno navrch, zatím ne tapeta)
+    Wallpaper mód za ikonami — nejdřív jen Windows, pak macOS
+    Interaktivní hotspoty na obrázcích (detail okno / web odkaz), split-screen s úkoly
+    Licenční/aktivační vrstva pro napojení na gift mechaniku z Almost-there.eu
+
+6. Jak na projektu pracovat (AI-first workflow)
+
+Tenhle projekt je i příležitost procvičit profesionální AI-first vývoj, stejným postupem, jaký běžně používáš:
+
+    Tenhle dokument je startovní "intent" popis — projdi ho se mnou/Claude Code a doiteruj, než půjdeme do plánovacího režimu
+    V plánovacím režimu ať se Claude Code doptá na chybějící rozhodnutí (viz otevřené otázky výš) a z dohodnutého zadání vytvoří OpenSpec, rozbitý na Beads úkoly v grafu závislostí — teprve pak implementace
+    Testování: E2E scénáře v Playwright pro kritické flow (drag&drop uložení, aktivace licence, spuštění při startu), unit testy a linter za běhu vývoje přes Lefthook; learning fáze předává poznatky dalším epicům
+    Lefthook navíc před pushnutím spustí agentické code + security review
+    CI pipeline po pushi: Trivy, Gitleaks, Semgrep, libyear
+    Citlivé části (nativní OS integrace přes Rust FFI, ověřování licenčního tokenu) nechat zkontrolovat Codexem
+    Dokumentace se píše průběžně během vývoje
+
+7. Co nezapomenout
+
+    Appka musí zůstat lightweight — žádné zbytečné procesy, minimální paměťová stopa i při zapnutém wallpaper módu
+    Vizuál nesmí působit "vibecoded" — konzistentní, unikátní, vkusný design systém od začátku (ne defaultní komponenty bez úprav)
+    Bezpečná a transparentní instalace/odinstalace
+    Idle detekce sleduje jen časování aktivity, nikdy obsah psaní — důležité pro důvěru uživatelů

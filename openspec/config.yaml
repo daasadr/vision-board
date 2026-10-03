@@ -1,0 +1,34 @@
+schema: spec-driven
+
+context: |
+  Language: cs
+  All artifacts must be written in cs.
+  Keep OpenSpec structural headings and SHALL/MUST keywords in English.
+
+  Projekt: Vision Board – desktopová aplikace (Tauri 2: Rust + React/TypeScript) pro osobní
+  vision/dream board. Windows a macOS primárně, Linux sekundárně. Zadání: zadani.txt,
+  odsouhlasená rozhodnutí: docs/rozhodnuti.md (mají přednost před zadani.txt).
+
+  Tvrdá omezení:
+  - Lightweight: jeden proces, okna vznikají na vyžádání, žádné zbytečné procesy/timery na pozadí,
+    obrázky se vždy komprimují.
+  - Soukromí: detekce aktivity sleduje jen čas od posledního vstupu, nikdy obsah. Žádná telemetrie.
+    Appka funguje offline (síť jen pro aktivaci licence a aktualizace).
+  - Prémiový, nevibecoded vzhled: vlastní design systém se dvěma tématy (Galerie, Noc), žádné
+    defaultní komponenty bez úprav.
+  - UI v češtině, angličtině a němčině.
+  - Freemium: základní nástěnka zdarma; prémiové funkce (styly rámování, wallpaper, pop-upy)
+    odemyká licence z Almost-there.eu. Do fáze licencí je vše odemčené přes vrstvu Entitlements.
+  - Kód, identifikátory a komentáře anglicky; specifikace a projektová dokumentace česky.
+
+rules:
+  proposal:
+    - Vždy uveď sekci "Non-goals".
+    - Odkazuj na fázi z docs/rozhodnuti.md / zadani.txt bod 5.
+  design:
+    - Platformně specifický kód (Win32, AppKit, X11) patří jen do izolovaných modulů src-tauri/src/platform/.
+    - U každé nové závislosti uveď dopad na velikost balíčku a paměť.
+  tasks:
+    - Úkol max. ~2 hodiny práce.
+    - Každý úkol uvádí způsob ověření (test, příkaz nebo pozorovatelné chování).
+    - Úkoly dotýkající se nativního FFI nebo ověřování licence mají navazující úkol "Codex review".

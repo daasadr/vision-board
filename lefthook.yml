@@ -1,0 +1,57 @@
+# Git hooks. Installed by `pnpm install` (the `prepare` script runs `lefthook install`).
+# Skip in an emergency with LEFTHOOK=0 git commit ... (see docs/development.md).
+#
+# Beads also needs git hooks; instead of its own core.hooksPath, every hook below runs
+# `bd hooks run <hook>`, so both tools coexist.
+
+pre-commit:
+  parallel: true
+  commands:
+    eslint:
+      glob: "*.{ts,tsx,js}"
+      run: pnpm exec eslint --max-warnings 0 --no-warn-ignored {staged_files}
+    prettier:
+      glob: "*.{ts,tsx,js,json,css,md,yml,yaml}"
+      run: pnpm exec prettier --check --ignore-unknown {staged_files}
+    stylelint:
+      glob: "src/**/*.css"
+      run: pnpm exec stylelint {staged_files}
+    typecheck:
+      glob: "*.{ts,tsx}"
+      run: pnpm typecheck
+    rustfmt:
+      glob: "src-tauri/**/*.rs"
+      run: pnpm rust:fmt
+    clippy:
+      glob: "src-tauri/**/*.{rs,toml}"
+      run: pnpm rust:lint
+    beads:
+      run: command -v bd >/dev/null 2>&1 && bd hooks run pre-commit || true
+
+pre-push:
+  # Sequential: the agent review runs only when tests pass.
+  piped: true
+  commands:
+    1_test:
+      run: pnpm test
+    2_rust-test:
+      run: pnpm rust:test
+    3_agent-review:
+      run: sh scripts/agent-review.sh {push_files}
+    4_beads:
+      run: command -v bd >/dev/null 2>&1 && bd hooks run pre-push || true
+
+prepare-commit-msg:
+  commands:
+    beads:
+      run: command -v bd >/dev/null 2>&1 && bd hooks run prepare-commit-msg {1} {2} {3} || true
+
+post-checkout:
+  commands:
+    beads:
+      run: command -v bd >/dev/null 2>&1 && bd hooks run post-checkout {1} {2} {3} || true
+
+post-merge:
+  commands:
+    beads:
+      run: command -v bd >/dev/null 2>&1 && bd hooks run post-merge {1} || true

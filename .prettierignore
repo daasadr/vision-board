@@ -1,0 +1,7 @@
+dist
+src-tauri/target
+src-tauri/gen
+src/lib/bindings.ts
+pnpm-lock.yaml
+.beads
+openspec

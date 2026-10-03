@@ -1,0 +1,60 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+  background: var(--color-scrim);
+  animation: fade-in var(--duration-normal) var(--ease-standard);
+}
+
+.content {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: var(--z-dialog);
+  display: grid;
+  gap: var(--space-4);
+  width: min(480px, calc(100vw - var(--space-6)));
+  max-height: calc(100vh - var(--space-7));
+  overflow: auto;
+  padding: var(--space-6);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-raised);
+  backdrop-filter: blur(var(--blur-surface));
+  box-shadow: var(--shadow-lg);
+  transform: translate(-50%, -50%);
+  animation: rise-in var(--duration-normal) var(--ease-emphasized);
+}
+
+.content:focus {
+  outline: none;
+}
+
+.title {
+  font-size: var(--text-xl);
+}
+
+.description {
+  margin: 0;
+  color: var(--color-ink-muted);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + 8px)) scale(0.98);
+  }
+}

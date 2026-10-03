@@ -1,0 +1,3 @@
+allowBuilds:
+  # Hooks are installed by the "prepare" script instead.
+  lefthook: false
