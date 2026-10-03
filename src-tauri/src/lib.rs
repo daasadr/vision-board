@@ -27,7 +27,13 @@ pub fn run() {
             let data_dir = app.path().app_data_dir()?;
             std::fs::create_dir_all(&data_dir)?;
             let conn = domain::db::open(&data_dir.join("board.db"))?;
+            // Startup is the one moment no undo history can still refer to deleted images.
+            let media_dir = data_dir.join("media");
+            if let Err(e) = domain::media::remove_unreferenced(&conn, &media_dir) {
+                eprintln!("media cleanup failed: {e}");
+            }
             app.manage(state::Db::new(conn));
+            app.manage(state::MediaDir(media_dir));
 
             window_manager::open_board(app.handle())?;
             Ok(())

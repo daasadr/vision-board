@@ -1,6 +1,6 @@
 import { useEffect, useRef, type KeyboardEvent } from "react";
 import type { Item } from "../../lib/ipc";
-import { useBoardServices } from "./boardContext";
+import { useMediaUrl } from "./boardContext";
 import styles from "./ItemContentView.module.css";
 
 export interface TextEdit {
@@ -52,8 +52,7 @@ export function ItemContentView({ item, editing, onEditDone }: Props) {
 }
 
 function ImageView({ mediaId }: { mediaId: string }) {
-  const { mediaUrl } = useBoardServices();
-  const src = mediaUrl(mediaId, "full");
+  const src = useMediaUrl(mediaId, "full");
   return src ? (
     <img className={styles.image} src={src} alt="" draggable={false} />
   ) : (

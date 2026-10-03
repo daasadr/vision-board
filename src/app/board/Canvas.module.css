@@ -17,3 +17,24 @@
   border: var(--border-width) solid var(--color-border);
   box-shadow: var(--shadow-md);
 }
+
+.placeholder {
+  position: absolute;
+  z-index: 100000;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-sunken);
+  box-shadow: var(--shadow-item);
+  animation: pulse 1.2s var(--ease-standard) infinite alternate;
+}
+
+@keyframes pulse {
+  to {
+    opacity: 0.55;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .placeholder {
+    animation: none;
+  }
+}

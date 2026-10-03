@@ -21,3 +21,6 @@ impl Db {
             .unwrap_or_else(|poisoned| poisoned.into_inner())
     }
 }
+
+/// Directory holding imported images (`<app data>/media`).
+pub struct MediaDir(pub std::path::PathBuf);

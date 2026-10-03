@@ -5,7 +5,8 @@
   "common": {
     "cancel": "Abbrechen",
     "add": "Hinzufügen",
-    "save": "Speichern"
+    "save": "Speichern",
+    "dismiss": "Benachrichtigung schließen"
   },
   "board": {
     "loadError": "Die Pinnwand konnte nicht geladen werden. Bitte starten Sie die App neu.",
@@ -51,9 +52,16 @@
       "sendToBack": "In den Hintergrund",
       "edit": "Text bearbeiten",
       "delete": "Löschen",
-      "move": "Verschieben",
       "resize": "Größe ändern",
       "rotate": "Drehen"
+    },
+    "import": {
+      "tooLarge": "„{{name}}“ ist größer als 50 MB.",
+      "unsupported": "„{{name}}“ ist kein unterstütztes Bild. Verwenden Sie JPEG, PNG, WebP oder GIF.",
+      "unreadable": "„{{name}}“ konnte nicht gelesen werden.",
+      "pasted": "Eingefügtes Bild",
+      "failed": "Die Bilder konnten nicht hinzugefügt werden. Bitte versuchen Sie es erneut.",
+      "processing": "Bild wird verarbeitet"
     }
   }
 }

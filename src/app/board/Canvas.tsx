@@ -7,6 +7,7 @@ import styles from "./Canvas.module.css";
 import { CANVAS_HEIGHT, CANVAS_WIDTH, fitCanvas, type Fit } from "./geometry";
 import { ItemToolbar } from "./ItemToolbar";
 import { itemsInOrder } from "./store";
+import type { Placeholder } from "./useImageImport";
 
 /** Tracks an element's size and the canvas fit for it. */
 function useFit() {
@@ -25,7 +26,14 @@ function useFit() {
 }
 
 /** The board: a fixed 1920×1080 logical stage scaled to fit the available space. */
-export function Canvas({ overlay }: { overlay?: ReactNode }) {
+export function Canvas({
+  overlay,
+  placeholders = [],
+}: {
+  overlay?: ReactNode;
+  /** Images being processed, shown where they will appear. */
+  placeholders?: Placeholder[];
+}) {
   const { t } = useTranslation();
   const { ref, fit } = useFit();
   const items = useBoard(useShallow(itemsInOrder));
@@ -63,6 +71,7 @@ export function Canvas({ overlay }: { overlay?: ReactNode }) {
       <section
         className={styles.stage}
         aria-label={t("board.label")}
+        data-board-stage
         style={{
           width: CANVAS_WIDTH,
           height: CANVAS_HEIGHT,
@@ -80,6 +89,15 @@ export function Canvas({ overlay }: { overlay?: ReactNode }) {
             editing={item.id === editingId}
             scale={fit.scale}
             {...callbacks}
+          />
+        ))}
+        {placeholders.map((p) => (
+          <div
+            key={p.id}
+            className={styles.placeholder}
+            style={{ left: p.x, top: p.y, width: p.w, height: p.h }}
+            role="img"
+            aria-label={t("board.import.processing")}
           />
         ))}
       </section>

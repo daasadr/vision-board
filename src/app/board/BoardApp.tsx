@@ -1,6 +1,7 @@
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Notices, type Notice } from "../../design/components";
 import { ipc } from "../../lib/ipc";
 import { AddQuoteDialog, AddTextDialog } from "./AddItemDialogs";
 import styles from "./BoardApp.module.css";
@@ -8,9 +9,11 @@ import { BoardContext, useBoard, useBoardServices, type BoardServices } from "./
 import { BoardToolbar } from "./BoardToolbar";
 import { Canvas } from "./Canvas";
 import { EmptyState, type AddActions } from "./EmptyState";
+import { createMediaStore } from "./mediaStore";
 import { newQuote, newText } from "./newItems";
 import { createSaver } from "./saver";
 import { createBoardStore, topZ } from "./store";
+import { useImageImport } from "./useImageImport";
 
 function createServices(): BoardServices {
   const saver = createSaver(ipc.applyBoardOps, {
@@ -19,8 +22,7 @@ function createServices(): BoardServices {
   return {
     saver,
     store: createBoardStore(saver.enqueue),
-    // Replaced by the media store in the image import tasks.
-    mediaUrl: () => null,
+    media: createMediaStore(),
   };
 }
 
@@ -78,26 +80,42 @@ function useFlushOnClose() {
 
 function Board() {
   const { t } = useTranslation();
-  const { store } = useBoardServices();
+  const { store, media } = useBoardServices();
   const loaded = useBoard((s) => s.loaded);
   const isEmpty = useBoard((s) => Object.keys(s.items).length === 0);
   const [failed, setFailed] = useState(false);
   const [dialog, setDialog] = useState<"quote" | "text" | null>(null);
+  const [notices, setNotices] = useState<Notice[]>([]);
+  const notify = useCallback(
+    (notice: Omit<Notice, "id">) =>
+      setNotices((list) => [...list, { ...notice, id: crypto.randomUUID() }]),
+    [],
+  );
+  const dismiss = useCallback(
+    (id: string) => setNotices((list) => list.filter((n) => n.id !== id)),
+    [],
+  );
+  const { placeholders, importFiles } = useImageImport(store, media, notify);
+  const pickerRef = useRef<HTMLInputElement>(null);
 
   useShortcuts();
   useFlushOnClose();
 
   useEffect(() => {
-    ipc
-      .loadBoard()
-      .then((items) => store.getState().load(items))
+    // Media first: image items render as soon as the board loads.
+    Promise.all([ipc.mediaLibrary(), ipc.loadBoard()])
+      .then(([library, items]) => {
+        media.getState().setLibrary(library.dir, library.items);
+        store.getState().load(items);
+      })
       .catch((error: unknown) => {
         console.error("Loading the board failed", error);
         setFailed(true);
       });
-  }, [store]);
+  }, [store, media]);
 
   const add: AddActions = {
+    onAddImage: () => pickerRef.current?.click(),
     onAddQuote: () => setDialog("quote"),
     onAddText: () => setDialog("text"),
   };
@@ -111,10 +129,27 @@ function Board() {
         </p>
       ) : (
         <>
-          <Canvas overlay={loaded && isEmpty ? <EmptyState {...add} /> : null} />
+          <Canvas
+            overlay={
+              loaded && isEmpty && placeholders.length === 0 ? <EmptyState {...add} /> : null
+            }
+            placeholders={placeholders}
+          />
           {loaded && !isEmpty && <BoardToolbar {...add} />}
         </>
       )}
+      <input
+        ref={pickerRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/gif"
+        multiple
+        hidden
+        onChange={(e) => {
+          importFiles([...(e.target.files ?? [])]);
+          e.target.value = "";
+        }}
+      />
+      <Notices notices={notices} onDismiss={dismiss} dismissLabel={t("common.dismiss")} />
       <AddQuoteDialog
         open={dialog === "quote"}
         onOpenChange={(open) => setDialog(open ? "quote" : null)}

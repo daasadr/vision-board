@@ -52,6 +52,7 @@ describe("board store", () => {
   // Every command type must round-trip through undo and redo.
   const commands: [name: string, run: (s: ReturnType<typeof setup>["state"]) => void][] = [
     ["add", (s) => s().add(quote("new", 5))],
+    ["add many", (s) => s().addMany([quote("n1", 5), quote("n2", 6)])],
     ["move", (s) => s().update("a", { x: 900, y: 400 })],
     ["resize", (s) => s().update("a", { w: 800, h: 320 })],
     ["rotate", (s) => s().update("a", { rotation: -12 })],

@@ -3,12 +3,26 @@
 import {
   commands,
   type BoardOp,
+  type Entitlement,
+  type Feature,
+  type ImportResult,
+  type Media,
+  type MediaLibrary,
   type Item as RawItem,
   type ItemContent,
   type TextVariant,
 } from "./bindings";
 
-export type { BoardOp, ItemContent, TextVariant };
+export type {
+  BoardOp,
+  Entitlement,
+  Feature,
+  ImportResult,
+  ItemContent,
+  Media,
+  MediaLibrary,
+  TextVariant,
+};
 
 /**
  * A board item with finite geometry. The generated binding types floats as `number | null`
@@ -54,8 +68,26 @@ export const ipc = {
     return board.items.map((item) => finite("board_load", item));
   },
 
+  /** Availability of every premium feature; features not listed are free. */
+  entitlements: () => commands.entitlementsGet(),
+
   /** Stores a batch of edits atomically; rejects with IpcError when nothing was stored. */
   async applyBoardOps(ops: BoardOp[]): Promise<void> {
     unwrap("board_apply_ops", await commands.boardApplyOps(ops));
+  },
+
+  /** Imports image files by path; one result per file. */
+  async importImagePaths(paths: string[]): Promise<ImportResult[]> {
+    return unwrap("media_import_paths", await commands.mediaImportPaths(paths));
+  },
+
+  /** Imports one image from bytes (clipboard, file picker), sent as base64. */
+  async importImageBytes(base64: string): Promise<ImportResult> {
+    return unwrap("media_import_bytes", await commands.mediaImportBytes(base64));
+  },
+
+  /** The media directory and all stored images. */
+  async mediaLibrary(): Promise<MediaLibrary> {
+    return unwrap("media_list", await commands.mediaList());
   },
 };

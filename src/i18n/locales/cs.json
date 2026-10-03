@@ -5,7 +5,8 @@
   "common": {
     "cancel": "Zrušit",
     "add": "Přidat",
-    "save": "Uložit"
+    "save": "Uložit",
+    "dismiss": "Zavřít oznámení"
   },
   "board": {
     "loadError": "Nástěnku se nepodařilo načíst. Zkuste aplikaci spustit znovu.",
@@ -51,9 +52,16 @@
       "sendToBack": "Do pozadí",
       "edit": "Upravit text",
       "delete": "Smazat",
-      "move": "Posunout",
       "resize": "Změnit velikost",
       "rotate": "Otočit"
+    },
+    "import": {
+      "tooLarge": "„{{name}}“ je větší než 50 MB.",
+      "unsupported": "„{{name}}“ není podporovaný obrázek. Použijte JPEG, PNG, WebP nebo GIF.",
+      "unreadable": "„{{name}}“ se nepodařilo načíst.",
+      "pasted": "Vložený obrázek",
+      "failed": "Obrázky se nepodařilo přidat. Zkuste to prosím znovu.",
+      "processing": "Zpracovávám obrázek"
     }
   }
 }

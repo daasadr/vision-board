@@ -23,6 +23,8 @@ export interface BoardState {
   load(items: Item[]): void;
   select(id: string | null): void;
   add(item: Item): void;
+  /** Adds several items as one undo step, e.g. a batch of dropped photos. */
+  addMany(items: Item[]): void;
   update(id: string, patch: Partial<Omit<Item, "id">>): void;
   remove(id: string): void;
   bringToFront(id: string): void;
@@ -105,6 +107,12 @@ export function createBoardStore(persist: (ops: BoardOp[]) => void) {
       add(item) {
         commit([{ id: item.id, before: null, after: item }]);
         set({ selectedId: item.id });
+      },
+
+      addMany(items) {
+        if (items.length === 0) return;
+        commit(items.map((item) => ({ id: item.id, before: null, after: item })));
+        set({ selectedId: items[items.length - 1].id });
       },
 
       update(id, patch) {

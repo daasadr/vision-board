@@ -5,7 +5,8 @@
   "common": {
     "cancel": "Cancel",
     "add": "Add",
-    "save": "Save"
+    "save": "Save",
+    "dismiss": "Dismiss notification"
   },
   "board": {
     "loadError": "The board could not be loaded. Please restart the app.",
@@ -51,9 +52,16 @@
       "sendToBack": "Send to back",
       "edit": "Edit text",
       "delete": "Delete",
-      "move": "Move",
       "resize": "Resize",
       "rotate": "Rotate"
+    },
+    "import": {
+      "tooLarge": "“{{name}}” is larger than 50 MB.",
+      "unsupported": "“{{name}}” is not a supported image. Use JPEG, PNG, WebP or GIF.",
+      "unreadable": "“{{name}}” could not be read.",
+      "pasted": "Pasted image",
+      "failed": "The images could not be added. Please try again.",
+      "processing": "Processing image"
     }
   }
 }

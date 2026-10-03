@@ -2,4 +2,6 @@
 
 pub mod board;
 pub mod db;
+pub mod entitlements;
+pub mod media;
 pub mod window_placement;

@@ -5,6 +5,10 @@
 
 mod app;
 mod board;
+mod entitlements;
+mod media;
+
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use tauri_specta::{collect_commands, Builder};
 
@@ -13,7 +17,18 @@ pub fn builder() -> Builder<tauri::Wry> {
         app::app_version,
         board::board_load,
         board::board_apply_ops,
+        entitlements::entitlements_get,
+        media::media_import_paths,
+        media::media_import_bytes,
+        media::media_list,
     ])
+}
+
+/// Wall-clock time in milliseconds since the Unix epoch, for created/updated timestamps.
+fn now_ms() -> i64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map_or(0, |d| i64::try_from(d.as_millis()).unwrap_or(i64::MAX))
 }
 
 #[cfg(test)]
