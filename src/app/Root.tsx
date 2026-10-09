@@ -1,17 +1,32 @@
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import { lazy, Suspense } from "react";
-import { BoardApp } from "./board/BoardApp";
+import { viewFor, type View } from "./view";
 
-// Design system specimen, reachable only by URL (dev server, E2E). Loaded lazily so it stays
-// out of the main bundle.
-const DesignPage = lazy(() => import("./design/DesignPage"));
+// Each window loads only its own code: the control widget runs all the time and stays light.
+const views: Record<View, ReturnType<typeof lazy>> = {
+  board: lazy(() => import("./board/BoardApp")),
+  settings: lazy(() => import("./settings/SettingsApp")),
+  control: lazy(() => import("./control/ControlApp")),
+  // Design system specimen, reachable only by URL (dev server, E2E).
+  design: lazy(() => import("./design/DesignPage")),
+};
+
+function windowLabel(): string | null {
+  try {
+    return getCurrentWindow().label;
+  } catch {
+    return null; // Not running inside Tauri.
+  }
+}
 
 export function Root() {
-  if (window.location.pathname === "/design") {
-    return (
-      <Suspense>
-        <DesignPage />
-      </Suspense>
-    );
-  }
-  return <BoardApp />;
+  const view = viewFor(window.location.pathname, windowLabel());
+  // The control widget is a shape floating on the desktop, without a window background.
+  document.documentElement.toggleAttribute("data-transparent", view === "control");
+  const View = views[view];
+  return (
+    <Suspense>
+      <View />
+    </Suspense>
+  );
 }

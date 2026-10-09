@@ -178,3 +178,25 @@
   color: var(--color-on-accent);
   font-weight: 600;
 }
+
+.frames {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+}
+
+.frameSample {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  justify-items: center;
+}
+
+.frameBox {
+  width: 200px;
+  height: 150px;
+}
+
+.framePhoto {
+  background: var(--gradient-accent);
+}

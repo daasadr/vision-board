@@ -27,6 +27,12 @@ body {
     color var(--duration-slow) var(--ease-standard);
 }
 
+/* Windows without a page background (the control widget). */
+html[data-transparent] body {
+  background: transparent;
+  transition: none;
+}
+
 h1,
 h2,
 h3 {

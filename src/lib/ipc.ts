@@ -2,27 +2,41 @@
 // which keeps IPC typed in one place and lets E2E tests swap it for a mock.
 import {
   commands,
+  type Anchor,
   type AppFlag,
   type BoardOp,
   type Entitlement,
   type Feature,
+  type FrameStyle,
   type ImportResult,
+  type ItemContent,
+  type LanguagePreference,
   type Media,
   type MediaLibrary,
+  type Placement,
+  type PlacementMode,
   type Item as RawItem,
-  type ItemContent,
+  type Settings,
   type TextVariant,
+  type ThemePreference,
 } from "./bindings";
 
 export type {
+  Anchor,
   BoardOp,
   Entitlement,
   Feature,
+  FrameStyle,
   ImportResult,
   ItemContent,
+  LanguagePreference,
   Media,
   MediaLibrary,
+  Placement,
+  PlacementMode,
+  Settings,
   TextVariant,
+  ThemePreference,
 };
 
 /**
@@ -102,4 +116,36 @@ export const ipc = {
 
   /** Tells the backend this window saved its edits, so quitting can continue. */
   readyToQuit: () => commands.appReadyToQuit(),
+
+  async settings(): Promise<Settings> {
+    return unwrap("settings_get", await commands.settingsGet());
+  },
+
+  /** Stores the settings; resolves with the stored (validated) value. */
+  async saveSettings(settings: Settings): Promise<Settings> {
+    return unwrap("settings_set", await commands.settingsSet(settings));
+  },
+
+  async resetSettings(): Promise<Settings> {
+    return unwrap("settings_reset", await commands.settingsReset());
+  },
+
+  /** Whether the app starts at login (as registered in the OS). */
+  async autostart(): Promise<boolean> {
+    return unwrap("autostart_get", await commands.autostartGet());
+  },
+
+  /** Turns starting at login on or off; resolves with the resulting state. */
+  async setAutostart(enabled: boolean): Promise<boolean> {
+    return unwrap("autostart_set", await commands.autostartSet(enabled));
+  },
+
+  async openSettings(): Promise<void> {
+    unwrap("window_open_settings", await commands.windowOpenSettings());
+  },
+
+  /** Native context menu of the control widget. */
+  async controlMenu(): Promise<void> {
+    unwrap("control_context_menu", await commands.controlContextMenu());
+  },
 };

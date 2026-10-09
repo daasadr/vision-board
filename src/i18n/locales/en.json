@@ -23,7 +23,9 @@
     "toolbar": {
       "label": "Add to board",
       "undo": "Undo",
-      "redo": "Redo"
+      "redo": "Redo",
+      "settings": "Settings",
+      "imagesOnly": "Images only"
     },
     "quoteDialog": {
       "title": "Add a quote",
@@ -53,7 +55,9 @@
       "edit": "Edit text",
       "delete": "Delete",
       "resize": "Resize",
-      "rotate": "Rotate"
+      "rotate": "Rotate",
+      "frame": "Frame",
+      "frameDefault": "Board default ({{name}})"
     },
     "import": {
       "tooLarge": "“{{name}}” is larger than 50 MB.",
@@ -67,6 +71,80 @@
       "title": "Vision Board keeps running",
       "body": "The window closes, but Vision Board stays in the notification area next to the clock (in the menu bar on macOS). Open your board or quit the app from there at any time.",
       "ok": "Got it"
+    }
+  },
+  "control": {
+    "label": "Open Vision Board settings"
+  },
+  "settings": {
+    "title": "Settings",
+    "saveError": "The change could not be saved. Please try again.",
+    "sections": {
+      "label": "Settings sections",
+      "general": "General",
+      "appearance": "Appearance",
+      "display": "Display"
+    },
+    "language": {
+      "label": "Language",
+      "system": "System default",
+      "names": {
+        "cs": "Čeština",
+        "en": "English",
+        "de": "Deutsch"
+      }
+    },
+    "theme": {
+      "label": "Theme",
+      "system": "System default",
+      "galerie": "Galerie",
+      "noc": "Noc"
+    },
+    "autostart": {
+      "label": "Start when I sign in",
+      "hint": "Vision Board starts in the notification area, without opening a window.",
+      "error": "Starting with the system could not be changed."
+    },
+    "control": {
+      "label": "Desktop control",
+      "hint": "A small bar in the top right corner of the screen. Click it to open the settings."
+    },
+    "reset": {
+      "button": "Restore default settings",
+      "title": "Restore default settings?",
+      "body": "All settings return to their defaults and starting with the system is turned off. Your board stays as it is.",
+      "confirm": "Restore"
+    },
+    "frames": {
+      "label": "Default image frame",
+      "hint": "You can change it for a single image in its menu.",
+      "none": "No frame",
+      "line": "Line",
+      "passepartout": "Passe-partout",
+      "polaroid": "Polaroid",
+      "glass": "Glass",
+      "premium": "Premium",
+      "locked": "The “{{name}}” frame is part of the Almost-there.eu gift. Unlock it with your gift code."
+    },
+    "imagesOnly": {
+      "label": "Images only",
+      "hint": "Quotes and texts are hidden, not deleted."
+    },
+    "placement": {
+      "label": "Board placement",
+      "hint": "Used by the scheduled display and the wallpaper, the same on every monitor.",
+      "mode": "Display size",
+      "full": "Full screen",
+      "partial": "Part of the screen",
+      "size": "Width",
+      "sizeValue": "{{value}} % of the screen width",
+      "anchor": "Anchor",
+      "center": "Center",
+      "topLeft": "Top left",
+      "topRight": "Top right",
+      "bottomLeft": "Bottom left",
+      "bottomRight": "Bottom right",
+      "preview": "Preview of the placement on the screen"
     }
   }
 }

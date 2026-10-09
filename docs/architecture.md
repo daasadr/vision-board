@@ -1,25 +1,30 @@
 # Architektura
 
-Stav po fázi 1 (board-core). Každá další fáze sem doplní svou část.
+Stav po fázi 2 (settings-appearance). Každá další fáze sem doplní svou část.
 
 ## Přehled
 
 ```
 ┌─────────────────────────── proces vision-board (Rust, Tauri 2) ───────────────────────────┐
-│  lib.rs            pluginy, setup (DB, úklid médií, tray, okno), běh v tray (ExitRequested) │
-│  window_manager    vytváření / obnova / zaostření oken (okna na vyžádání, po zavření zrušená)│
-│  tray              ikona a nabídka „Otevřít nástěnku / Ukončit“ (jazyk systému)             │
+│  lib.rs            pluginy, setup (DB, úklid médií, tray, okna), běh v tray (ExitRequested) │
+│  window_manager    okna board / settings / control: vytvoření, obnova, zaostření, zrušení   │
+│  tray              ikona a nabídka (nástěnka, nastavení, ovládací prvek, ukončit)           │
+│  preferences       uložení nastavení → tray, ovládací prvek, událost settings://changed     │
 │  lifecycle         Ukončit: uložení z frontendu → dokončení importů (max 5 s) → úklid → exit │
 │  state             sdílený stav: Db (SQLite), MediaDir                                     │
 │  commands/         tenká IPC vrstva, tauri-specta → src/lib/bindings.ts                    │
 │  domain/           doménová logika bez závislosti na Tauri (cargo test):                   │
-│                    db, board, media, entitlements, app_state, locale, window_placement     │
-│  platform/         jediné místo pro FFI a unsafe (Win32 / AppKit / X11), zatím prázdné      │
+│                    db, board, media, entitlements, app_state, locale, settings, placement, │
+│                    window_placement, control_look                                          │
+│  platform/         jediné místo pro FFI a unsafe (Win32: nativní ovládací prvek, téma OS)   │
 └──────────────┬─────────────────────────────────────────────────────────────────────────────┘
                │ IPC (invoke, události) · asset protokol pro obrázky z media/
 ┌──────────────┴────────── WebView2 / WKWebView (msedgewebview2 procesy) ────────────────────┐
-│  src/main.tsx      téma + jazyk před prvním vykreslením → <Root>                            │
+│  src/main.tsx      nastavení → téma + jazyk před prvním vykreslením → <Root> (podle okna)   │
 │  src/app/board/    nástěnka: store, ukládání, plátno, položky, import, životní cyklus okna  │
+│  src/app/settings/ okno nastavení (Obecné, Vzhled, Zobrazení)                               │
+│  src/app/control/  ovládací prvek (3D obdélník v rohu obrazovky)                            │
+│  src/lib/settings.ts  store nastavení, aplikace tématu a jazyka, poslech změn               │
 │  src/lib/ipc.ts    jediný přístup k Rustu (typovaný, v E2E mockovaný)                       │
 │  src/lib/entitlements.ts  dostupnost prémiových funkcí (useEntitlement)                     │
 │  src/design/       tokeny, témata Galerie/Noc, fonty, komponenty                            │
@@ -29,7 +34,7 @@ Stav po fázi 1 (board-core). Každá další fáze sem doplní svou část.
 
 ## Klíčová rozhodnutí
 
-Podrobné zdůvodnění je v `openspec/changes/archive/*/design.md` a `openspec/changes/board-core/design.md`. Tady je jen shrnutí.
+Podrobné zdůvodnění je v `design.md` jednotlivých změn v `openspec/changes/archive/` a `openspec/changes/settings-appearance/design.md`. Tady je jen shrnutí.
 
 - **Jeden proces a okna na vyžádání.** Okno `board` je v `tauri.conf.json` deklarované s `create: false` a vytváří ho `window_manager::open_board`: při startu, z tray a při druhém spuštění aplikace (single-instance).
 - **Běh v tray.** Zavření okna okno zruší včetně webview. `RunEvent::ExitRequested` bez kódu se zablokuje, takže aplikace běží dál jen s tray ikonou (~5 MB). Ukončit může jen `lifecycle::request_quit` (tray „Ukončit“ nebo command `app_quit`).
@@ -38,7 +43,7 @@ Podrobné zdůvodnění je v `openspec/changes/archive/*/design.md` a `openspec/
 - **`domain` místo `core`.** Modul `core` by zastínil standardní crate `core` a rozbíjel makra.
 - **Windows manifest.** `build.rs` vkládá `windows-app-manifest.xml` do všech binárek, jinak `cargo test` na Windows padá se `STATUS_ENTRYPOINT_NOT_FOUND`.
 - **Rychlé vývojové buildy.** Závislosti se i ve vývojovém profilu kompilují s `opt-level = 2`, jinak dekódování fotky trvá přes minutu. Náš crate zůstává na 0.
-- **Bezpečnost.** Přísná CSP. Capability `default` obsahuje jen `core:default` a `core:window:allow-destroy`. Asset protokol obsluhuje jen `$APPDATA/media/*`. `unsafe_code = "deny"` mimo `platform`. Typ souboru se pozná podle obsahu a dekodér má limity rozměrů a paměti.
+- **Bezpečnost.** Přísná CSP. Capability `default` (okna `board`, `settings`, `control`) obsahuje jen `core:default` a `core:window:allow-destroy`. Pluginy (autostart) se volají jen z Rustu, jejich JS oprávnění nejsou povolená. Asset protokol obsluhuje jen `$APPDATA/media/*`. `unsafe_code = "deny"` mimo `platform`. Typ souboru se pozná podle obsahu a dekodér má limity rozměrů a paměti.
 
 ## Nástěnka
 
@@ -50,12 +55,13 @@ Změna velikosti vždy zachová poměr stran. Text se škáluje s šířkou polo
 
 ### Datový model (SQLite, `board.db` v app data, WAL)
 
-| Tabulka     | Obsah                                                                                                    |
-| ----------- | -------------------------------------------------------------------------------------------------------- |
-| `boards`    | nástěnky; migrace vytvoří `default` (UI zatím ukazuje jednu)                                             |
-| `items`     | položky: geometrie, `kind` (`image` / `quote` / `text`), `payload` (JSON obsahu), `style` (JSON, fáze 2) |
-| `media`     | uložené obrázky: `file_name`, `thumb_name`, rozměry, velikost                                            |
-| `app_state` | příznaky aplikace (např. zda už bylo zobrazeno upozornění o tray)                                        |
+| Tabulka     | Obsah                                                                                                 |
+| ----------- | ----------------------------------------------------------------------------------------------------- |
+| `boards`    | nástěnky; migrace vytvoří `default` (UI zatím ukazuje jednu)                                          |
+| `items`     | položky: geometrie, `kind` (`image` / `quote` / `text`), `payload` (JSON obsahu), `style` (JSON: rám) |
+| `media`     | uložené obrázky: `file_name`, `thumb_name`, rozměry, velikost                                         |
+| `app_state` | příznaky aplikace (např. zda už bylo zobrazeno upozornění o tray)                                     |
+| `settings`  | jeden řádek s nastavením jako JSON (migrace v2)                                                       |
 
 Migrace: `rusqlite_migration` (verze ve `user_version`). Obsah položky je v Rustu tagovaný enum `ItemContent` a frontend dostává stejný tvar.
 
@@ -93,13 +99,46 @@ zdroj (přetažení z OS / schránka / dialog) → media_import_paths | media_im
 
 Prémiové funkce (`premiumFrames`, `wallpaper`, `scheduledPopup`) se ověřují výhradně přes `useEntitlement(feature)` a `domain::entitlements`. Do fáze 6 je všechno odemčené. Funkce mimo seznam jsou vždy zdarma.
 
+## Nastavení a vzhled
+
+### Nastavení
+
+```
+okno nastavení → settingsStore.update (hned se projeví v okně) → settings_set
+  → domain::settings::save (normalizace, např. šířka 30–90 %) → preferences::apply:
+      tray (jazyk, zaškrtnutí ovládacího prvku) · ovládací prvek (vytvořit / zrušit)
+      · událost settings://changed → každé okno přepne téma a jazyk
+```
+
+- **Jeden zdroj pravdy v Rustu.** Tabulka `settings` drží jeden JSON. Načítání je tolerantní: chybějící pole (starší verze) dostanou výchozí hodnotu, neznámá hodnota jednoho pole se nahradí výchozí a ostatní zůstanou.
+- **Bez probliknutí.** `window_manager` vkládá do každého nového okna `initialization_script` s `window.__VB_SETTINGS__`, takže `main.tsx` zná téma a jazyk ještě před prvním vykreslením. Bez něj (prohlížeč, E2E) počká na `settings_get`.
+- **Autostart** není v `Settings`. Zdrojem pravdy je registrace v OS (`tauri-plugin-autostart`, na Windows `HKCU\…\Run`), commands `autostart_get/set`. Při spuštění s `--autostart` se neotevře nástěnka. NSIS hook (`src-tauri/windows/hooks.nsh`) registraci při odinstalaci smaže, při aktualizaci ne. Windows se balí jen jako NSIS, MSI by hook neumělo.
+
+### Okna
+
+- Každé okno načte stejný `index.html`. `Root` vybere kořen podle štítku okna (v prohlížeči podle cesty `/settings`, `/control`, `/design`) a kořeny se načítají líně, takže ovládací prvek nestahuje kód nástěnky.
+- **`settings`** se vytváří na vyžádání (tray, ovládací prvek, lišta nástěnky) a při zavření se zruší.
+- **Ovládací prvek** (120×40 logických px) sedí v pravém horním rohu pracovní plochy primárního monitoru, vlevo od systémových tlačítek maximalizovaných oken (`window_placement::control_position`). Skrytí okno zruší a uloží `controlWidget = false`.
+  - **Windows:** nativní vrstvené okno bez webview (`platform::windows::control`). Je vždy navrch, chybí v Alt+Tab i na hlavním panelu a nebere fokus. Ukazuje bitmapy z `src-tauri/assets/control/*.png`, které `pnpm control:render` vyrenderuje z CSS návrhu v `src/app/control`. `domain::control_look` je zmenší na měřítko monitoru. Kontextová nabídka je Win32 `TrackPopupMenu` a klik i volby jdou přes `window_manager::native_control`. Změna tématu, měřítka nebo monitorů (`WM_SETTINGCHANGE`, `WM_DPICHANGED`, `WM_DISPLAYCHANGE`) prvek překreslí. Důvod: webview prvek přidával ~80 MB.
+  - **macOS, Linux:** webview okno `control` (`ControlApp`) s nativní kontextovou nabídkou (`control_context_menu`), jejíž události obsluhuje `window_manager::on_menu_event`.
+
+### Rámy a režim jen obrázky
+
+- `ItemStyle.frame` (`null` = podle nástěnky) a `Settings.frame` (výchozí rám nástěnky). Rámy platí jen pro obrázky. Komponenta `Frame` (`src/design/components`) je kreslí uvnitř rozměru položky, takže přepnutí rámu nemění geometrii. Obrázek se ořízne (`object-fit: cover`).
+- Prémiové rámy (polaroid, sklo) bez oprávnění `premiumFrames` se vykreslí bez rámu, ale v datech zůstanou (`lib/frames.ts::effectiveFrame`). V nastavení jsou vidět se zámkem a jejich volba jen vysvětlí, jak je odemknout.
+- `imagesOnly` filtruje citáty a texty v `Canvas` jen při vykreslení. Přidání citátu nebo textu režim vypne, jinak by nová položka hned zmizela.
+
+### Umístění zobrazení
+
+`domain::placement::rect_in` spočítá obdélník nástěnky na monitoru (celá pracovní plocha, nebo 30–90 % šířky v poměru 16:9 u jednoho z pěti ukotvení, 2 % od okraje). Použije ho pop-up (fáze 3) a tapeta (fáze 4). Náhled v nastavení počítá totéž v `src/app/settings/placement.ts`. Shodu hlídají stejné testovací případy v Rustu i ve Vitestu.
+
 ## Kde co najít
 
 | Chci změnit…                   | Soubor                                                       |
 | ------------------------------ | ------------------------------------------------------------ |
 | barvy, stíny, typografii       | `src/design/tokens.css`                                      |
 | texty UI                       | `src/i18n/locales/{cs,en,de}.json`                           |
-| texty tray nabídky             | `src-tauri/src/domain/locale.rs`                             |
+| texty tray a nativních nabídek | `src-tauri/src/domain/locale.rs`                             |
 | vzhled položek nástěnky        | `src/app/board/ItemContentView.*`, `BoardItemView.*`         |
 | geometrii (plátno, přichycení) | `src/app/board/geometry.ts`                                  |
 | validaci a ukládání položek    | `src-tauri/src/domain/board.rs`                              |
@@ -107,3 +146,7 @@ Prémiové funkce (`premiumFrames`, `wallpaper`, `scheduledPopup`) se ověřují
 | přidat Rust command            | `src-tauri/src/commands/`, pak `pnpm bindings`               |
 | chování oken a tray            | `src-tauri/src/window_manager.rs`, `tray.rs`, `lifecycle.rs` |
 | oprávnění webview, CSP, assety | `src-tauri/capabilities/default.json`, `tauri.conf.json`     |
+| nastavení (model, výchozí)     | `src-tauri/src/domain/settings.rs`, `src/lib/settings.ts`    |
+| okno nastavení                 | `src/app/settings/`                                          |
+| ovládací prvek                 | `src/app/control/` + `pnpm control:render`, `platform/`      |
+| styly rámů                     | `src/design/components/Frame.*`, tokeny `--frame-*`          |

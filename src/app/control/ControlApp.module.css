@@ -1,0 +1,72 @@
+/*
+ * The window is 120×40 and transparent; the bar leaves a few pixels for its shadow.
+ * Depth comes from the darker bottom edge (a shadow without blur) under the lit face.
+ */
+
+.stage {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  perspective: 240px;
+  overflow: hidden;
+}
+
+.bar {
+  position: relative;
+  width: 112px;
+  height: 30px;
+  margin-top: -3px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: var(--control-face);
+  box-shadow: var(--shadow-control);
+  color: var(--control-ink);
+  cursor: pointer;
+  overflow: hidden;
+  transform: rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
+  transition:
+    transform var(--duration-fast) var(--ease-standard),
+    box-shadow var(--duration-fast) var(--ease-standard);
+}
+
+/* Highlight along the top edge that slides with the pointer (--glare-x: -50%…50%). */
+.bar::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--control-glare);
+  transform: translateX(var(--glare-x, -20%));
+  transition: transform var(--duration-fast) var(--ease-standard);
+  pointer-events: none;
+}
+
+.bar:active {
+  box-shadow: var(--shadow-control-pressed);
+  transform: translateY(2px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
+}
+
+.bar:focus-visible {
+  outline-offset: -3px;
+}
+
+.label {
+  position: relative;
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: var(--display-weight);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  user-select: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bar,
+  .bar::before {
+    transform: none;
+  }
+
+  .bar:active {
+    transform: translateY(2px);
+  }
+}

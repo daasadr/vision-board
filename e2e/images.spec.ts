@@ -4,6 +4,18 @@ import { emitTauriEvent, expect, storedItems, test } from "./support/ipc";
 
 /** Drops files onto the board at a point in CSS pixels, the way Tauri reports an OS drop. */
 async function dropFiles(page: Page, paths: string[], at: { x: number; y: number }) {
+  // The board loads lazily and subscribes to drops once it is there.
+  await expect
+    .poll(() =>
+      page.evaluate(() =>
+        (
+          window as unknown as { __E2E_IPC_CALLS__: { cmd: string; args: { event?: string } }[] }
+        ).__E2E_IPC_CALLS__.some(
+          (c) => c.cmd === "plugin:event|listen" && c.args.event === "tauri://drag-drop",
+        ),
+      ),
+    )
+    .toBe(true);
   const ratio = await page.evaluate(() => window.devicePixelRatio);
   await emitTauriEvent(page, "tauri://drag-drop", {
     paths,
@@ -43,6 +55,8 @@ test("a PDF in the batch is reported while the PNG is added", async ({ page }) =
 
 test("pastes an image from the clipboard", async ({ page }) => {
   await page.goto("/");
+  // The board loads lazily; paste is handled once it is there.
+  await expect(page.getByRole("region", { name: "Nástěnka" })).toBeVisible();
   await page.evaluate(() => {
     const data = new DataTransfer();
     data.items.add(

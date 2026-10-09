@@ -75,13 +75,8 @@
   user-select: text;
 }
 
+/* Size, fit and shadow come from the Frame around the image. */
 .image {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: var(--radius-sm);
-  box-shadow: var(--shadow-item);
   user-select: none;
 }
 

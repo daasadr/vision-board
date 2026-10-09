@@ -1,5 +1,7 @@
-//! UI strings the native side shows itself (tray menu). Everything else is translated in the
-//! frontend; keep these in sync with src/i18n/locales.
+//! UI strings the native side shows itself (tray menu, control widget menu, window titles).
+//! Everything else is translated in the frontend; keep these in sync with src/i18n/locales.
+
+use super::settings::LanguagePreference;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Language {
@@ -20,28 +22,54 @@ pub fn detect(tag: Option<&str>) -> Language {
     }
 }
 
-pub struct TrayText {
-    pub tooltip: &'static str,
-    pub open: &'static str,
-    pub quit: &'static str,
+/// The language chosen in the settings; "system" uses the OS locale tag.
+pub fn resolve(preference: LanguagePreference, system_tag: Option<&str>) -> Language {
+    match preference {
+        LanguagePreference::System => detect(system_tag),
+        LanguagePreference::Cs => Language::Cs,
+        LanguagePreference::En => Language::En,
+        LanguagePreference::De => Language::De,
+    }
 }
 
-pub fn tray_text(language: Language) -> TrayText {
+pub struct Texts {
+    pub tooltip: &'static str,
+    pub open: &'static str,
+    pub settings: &'static str,
+    pub control_widget: &'static str,
+    pub hide_control: &'static str,
+    pub quit: &'static str,
+    pub settings_title: &'static str,
+}
+
+pub fn texts(language: Language) -> Texts {
     match language {
-        Language::Cs => TrayText {
+        Language::Cs => Texts {
             tooltip: "Vision Board",
             open: "Otevřít nástěnku",
+            settings: "Nastavení…",
+            control_widget: "Ovládací prvek na ploše",
+            hide_control: "Skrýt",
             quit: "Ukončit",
+            settings_title: "Nastavení – Vision Board",
         },
-        Language::En => TrayText {
+        Language::En => Texts {
             tooltip: "Vision Board",
             open: "Open board",
+            settings: "Settings…",
+            control_widget: "Desktop control",
+            hide_control: "Hide",
             quit: "Quit",
+            settings_title: "Settings – Vision Board",
         },
-        Language::De => TrayText {
+        Language::De => Texts {
             tooltip: "Vision Board",
             open: "Pinnwand öffnen",
+            settings: "Einstellungen…",
+            control_widget: "Bedienelement auf dem Desktop",
+            hide_control: "Ausblenden",
             quit: "Beenden",
+            settings_title: "Einstellungen – Vision Board",
         },
     }
 }
@@ -65,8 +93,19 @@ mod tests {
     }
 
     #[test]
-    fn tray_menu_is_translated() {
-        assert_eq!(tray_text(Language::Cs).open, "Otevřít nástěnku");
-        assert_eq!(tray_text(Language::De).quit, "Beenden");
+    fn a_chosen_language_overrides_the_system() {
+        assert_eq!(resolve(LanguagePreference::De, Some("cs-CZ")), Language::De);
+        assert_eq!(
+            resolve(LanguagePreference::System, Some("cs-CZ")),
+            Language::Cs
+        );
+    }
+
+    #[test]
+    fn menus_are_translated() {
+        assert_eq!(texts(Language::Cs).open, "Otevřít nástěnku");
+        assert_eq!(texts(Language::De).quit, "Beenden");
+        assert_eq!(texts(Language::De).settings, "Einstellungen…");
+        assert_eq!(texts(Language::En).hide_control, "Hide");
     }
 }

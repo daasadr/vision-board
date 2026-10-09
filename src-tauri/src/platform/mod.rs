@@ -10,3 +10,36 @@ mod linux;
 mod macos;
 #[cfg(target_os = "windows")]
 mod windows;
+
+#[cfg(target_os = "windows")]
+pub use windows::{control, system_prefers_dark};
+
+/// What the native control widget shows and where (physical pixels, top-left corner).
+#[cfg(target_os = "windows")]
+#[derive(Debug, Clone)]
+pub struct ControlLook {
+    pub x: i32,
+    pub y: i32,
+    pub normal: crate::domain::control_look::Bitmap,
+    pub hover: crate::domain::control_look::Bitmap,
+    /// Labels of the context menu: open board, settings, hide.
+    pub menu: [String; 3],
+}
+
+/// Something the user did with the native control widget, or a display change that may need
+/// a new look (theme, scaling, monitor layout).
+#[cfg(target_os = "windows")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ControlEvent {
+    Click,
+    Menu(ControlMenuItem),
+    Refresh,
+}
+
+#[cfg(target_os = "windows")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ControlMenuItem {
+    OpenBoard,
+    Settings,
+    Hide,
+}

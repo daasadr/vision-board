@@ -18,6 +18,14 @@ test.describe("first window close", () => {
 
   test("explains that the app keeps running in the tray", async ({ page }) => {
     await page.goto("/");
+    // The board loads lazily and then subscribes; a close request before that would be lost.
+    await expect
+      .poll(async () =>
+        (await calls(page)).some(
+          (c) => c.cmd === "plugin:event|listen" && c.args.event === "tauri://close-requested",
+        ),
+      )
+      .toBe(true);
     await emitTauriEvent(page, "tauri://close-requested", {});
 
     const notice = page.getByRole("dialog", { name: "Vision Board poběží dál" });

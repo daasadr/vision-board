@@ -1,6 +1,15 @@
-import { useCallback, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { useTranslation } from "react-i18next";
 import { useShallow } from "zustand/react/shallow";
+import { useSettings } from "../../lib/settings";
 import { useBoard, useBoardActions } from "./boardContext";
 import { BoardItemView, type ItemCallbacks } from "./BoardItemView";
 import styles from "./Canvas.module.css";
@@ -36,7 +45,13 @@ export function Canvas({
 }) {
   const { t } = useTranslation();
   const { ref, fit } = useFit();
-  const items = useBoard(useShallow(itemsInOrder));
+  const allItems = useBoard(useShallow(itemsInOrder));
+  const imagesOnly = useSettings((s) => s.settings.imagesOnly);
+  // "Images only" hides quotes and texts; they stay in the store and the database.
+  const items = useMemo(
+    () => (imagesOnly ? allItems.filter((i) => i.content.kind === "image") : allItems),
+    [allItems, imagesOnly],
+  );
   const selectedId = useBoard((s) => s.selectedId);
   const actions = useBoardActions();
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -65,6 +80,10 @@ export function Canvas({
   );
 
   const selected = items.find((i) => i.id === selectedId);
+  // A selection that just got hidden must not stay selected (keyboard actions would hit it).
+  useEffect(() => {
+    if (selectedId && !selected) actions.select(null);
+  }, [selectedId, selected, actions]);
 
   return (
     <div ref={ref} className={styles.viewport}>

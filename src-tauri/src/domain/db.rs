@@ -18,8 +18,9 @@ pub enum DbError {
 }
 
 fn migrations() -> Migrations<'static> {
-    Migrations::new(vec![M::up(
-        "CREATE TABLE boards (
+    Migrations::new(vec![
+        M::up(
+            "CREATE TABLE boards (
             id          TEXT PRIMARY KEY,
             name        TEXT NOT NULL,
             created_at  INTEGER NOT NULL,
@@ -62,7 +63,15 @@ fn migrations() -> Migrations<'static> {
 
         INSERT INTO boards (id, name, created_at, updated_at)
         VALUES ('default', '', unixepoch('subsec') * 1000, unixepoch('subsec') * 1000);",
-    )])
+        ),
+        // v2: user preferences as one JSON document (domain::settings).
+        M::up(
+            "CREATE TABLE settings (
+            id          INTEGER PRIMARY KEY CHECK (id = 1),
+            data        TEXT NOT NULL
+        );",
+        ),
+    ])
 }
 
 /// Opens (creating if needed) the database at `path` and migrates it to the latest schema.
@@ -109,7 +118,10 @@ mod tests {
             .prepare("SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name")
             .and_then(|mut s| s.query_map([], |r| r.get(0))?.collect())
             .expect("list tables");
-        assert_eq!(tables, ["app_state", "boards", "items", "media"]);
+        assert_eq!(
+            tables,
+            ["app_state", "boards", "items", "media", "settings"]
+        );
 
         let boards: i64 = conn
             .query_row(

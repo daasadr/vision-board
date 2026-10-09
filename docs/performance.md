@@ -47,3 +47,17 @@ Závěry:
 - Optimalizace, které zůstaly: tažení posouvá položku přes `transform` na vlastní kompoziční vrstvě (`will-change`) a do stylu se zapisuje přímo, bez renderu Reactu. Obrázky menší než 480 px na obrazovce se vykreslují z náhledu místo plné verze.
 
 Postup měření: spustit aplikaci s `WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--remote-debugging-port=9223`, okno dát do popředí (zakrytá okna Chromium zpomaluje), přes CDP vložit položky `board_apply_ops`, znovu načíst stránku a měřit `requestAnimationFrame` během tažení.
+
+### 2026-10-08 – fáze 2, ovládací prvek na ploše
+
+Release build, Windows 11, hlavní okno a nastavení zavřené, měřeno po ukončení procesů WebView2 (ty po zavření posledního webview okna doběhnou do ~1 min).
+
+| Stav                                  | Paměť (privátní pracovní sady) | CPU za 60 s | Procesy               |
+| ------------------------------------- | ------------------------------ | ----------- | --------------------- |
+| jen tray (prvek skrytý)               | 4,5 MB                         | 0 s         | 1                     |
+| prvek jako webview (první verze)      | 86,7 MB                        | 0 s         | 1 + 6× msedgewebview2 |
+| prvek nativní (`UpdateLayeredWindow`) | 4,6 MB                         | 0 s         | 1                     |
+
+Webview varianta překročila limit specifikace (+30 MB), protože jako jediné okno drží celý WebView2 (prohlížeč, GPU, renderer). Na Windows je proto prvek nativní okno s předem vyrenderovanými bitmapami (`pnpm control:render`). Binárka: 7,4 MB po fázi 1 → 8,2 MB (nastavení, autostart, obrázky prvku). Na macOS a Linuxu zůstává webview prvek, změřit před vydáním.
+
+Postup: `scratchpad` skript `measure.ps1` sčítá `WorkingSetPrivate` z `Win32_PerfFormattedData_PerfProc_Process` pro proces aplikace a jeho potomky (WebView2) a CPU čas z `Get-Process` na začátku a na konci okna.

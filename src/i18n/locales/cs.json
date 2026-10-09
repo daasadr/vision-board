@@ -23,7 +23,9 @@
     "toolbar": {
       "label": "Přidat na nástěnku",
       "undo": "Zpět",
-      "redo": "Znovu"
+      "redo": "Znovu",
+      "settings": "Nastavení",
+      "imagesOnly": "Jen obrázky"
     },
     "quoteDialog": {
       "title": "Přidat citát",
@@ -53,7 +55,9 @@
       "edit": "Upravit text",
       "delete": "Smazat",
       "resize": "Změnit velikost",
-      "rotate": "Otočit"
+      "rotate": "Otočit",
+      "frame": "Rám",
+      "frameDefault": "Podle nástěnky ({{name}})"
     },
     "import": {
       "tooLarge": "„{{name}}“ je větší než 50 MB.",
@@ -67,6 +71,80 @@
       "title": "Vision Board poběží dál",
       "body": "Okno se zavře, ale Vision Board zůstane v oznamovací oblasti vedle hodin (na macOS v řádku nabídek). Odtud nástěnku kdykoli otevřete nebo aplikaci ukončíte.",
       "ok": "Rozumím"
+    }
+  },
+  "control": {
+    "label": "Otevřít nastavení Vision Board"
+  },
+  "settings": {
+    "title": "Nastavení",
+    "saveError": "Změnu se nepodařilo uložit. Zkuste to prosím znovu.",
+    "sections": {
+      "label": "Sekce nastavení",
+      "general": "Obecné",
+      "appearance": "Vzhled",
+      "display": "Zobrazení"
+    },
+    "language": {
+      "label": "Jazyk",
+      "system": "Podle systému",
+      "names": {
+        "cs": "Čeština",
+        "en": "English",
+        "de": "Deutsch"
+      }
+    },
+    "theme": {
+      "label": "Téma",
+      "system": "Podle systému",
+      "galerie": "Galerie",
+      "noc": "Noc"
+    },
+    "autostart": {
+      "label": "Spouštět po přihlášení",
+      "hint": "Vision Board se spustí do oznamovací oblasti, bez otevřeného okna.",
+      "error": "Spouštění se systémem se nepodařilo změnit."
+    },
+    "control": {
+      "label": "Ovládací prvek na ploše",
+      "hint": "Malý obdélník v pravém horním rohu obrazovky. Kliknutím otevřete nastavení."
+    },
+    "reset": {
+      "button": "Obnovit výchozí nastavení",
+      "title": "Obnovit výchozí nastavení?",
+      "body": "Všechna nastavení se vrátí na výchozí hodnoty a spouštění se systémem se vypne. Obsah nástěnky zůstane beze změny.",
+      "confirm": "Obnovit"
+    },
+    "frames": {
+      "label": "Výchozí rám obrázků",
+      "hint": "U jednotlivého obrázku ho můžete změnit v jeho nabídce.",
+      "none": "Bez rámu",
+      "line": "Linka",
+      "passepartout": "Paspartá",
+      "polaroid": "Polaroid",
+      "glass": "Sklo",
+      "premium": "Prémiový",
+      "locked": "Rám „{{name}}“ je součástí dárku od Almost-there.eu. Odemknete ho dárkovým kódem."
+    },
+    "imagesOnly": {
+      "label": "Jen obrázky",
+      "hint": "Citáty a texty se skryjí, ale nesmažou."
+    },
+    "placement": {
+      "label": "Umístění nástěnky",
+      "hint": "Platí pro naplánované zobrazení a tapetu, stejně na všech monitorech.",
+      "mode": "Velikost zobrazení",
+      "full": "Celá obrazovka",
+      "partial": "Část obrazovky",
+      "size": "Šířka",
+      "sizeValue": "{{value}} % šířky obrazovky",
+      "anchor": "Ukotvení",
+      "center": "Uprostřed",
+      "topLeft": "Vlevo nahoře",
+      "topRight": "Vpravo nahoře",
+      "bottomLeft": "Vlevo dole",
+      "bottomRight": "Vpravo dole",
+      "preview": "Náhled umístění na obrazovce"
     }
   }
 }

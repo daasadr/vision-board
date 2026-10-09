@@ -1,5 +1,9 @@
 import { useEffect, useRef, type KeyboardEvent } from "react";
-import type { Item } from "../../lib/ipc";
+import { Frame } from "../../design/components";
+import { useEntitlement } from "../../lib/entitlements";
+import { effectiveFrame } from "../../lib/frames";
+import type { FrameStyle, Item } from "../../lib/ipc";
+import { useSettings } from "../../lib/settings";
 import { useMediaUrl } from "./boardContext";
 import styles from "./ItemContentView.module.css";
 
@@ -27,6 +31,8 @@ export function ItemContentView({ item, editing, onEditDone, screenWidth }: Prop
       return (
         <ImageView
           mediaId={content.mediaId}
+          frame={item.style?.frame}
+          width={item.w}
           variant={screenWidth * window.devicePixelRatio <= THUMB_EDGE ? "thumb" : "full"}
         />
       );
@@ -61,12 +67,28 @@ export function ItemContentView({ item, editing, onEditDone, screenWidth }: Prop
   }
 }
 
-function ImageView({ mediaId, variant }: { mediaId: string; variant: "full" | "thumb" }) {
+function ImageView({
+  mediaId,
+  frame,
+  width,
+  variant,
+}: {
+  mediaId: string;
+  frame: FrameStyle | null | undefined;
+  width: number;
+  variant: "full" | "thumb";
+}) {
   const src = useMediaUrl(mediaId, variant);
-  return src ? (
-    <img className={styles.image} src={src} alt="" draggable={false} decoding="async" />
-  ) : (
-    <div className={`${styles.image} ${styles.placeholder}`} />
+  const boardFrame = useSettings((s) => s.settings.frame);
+  const premium = useEntitlement("premiumFrames");
+  return (
+    <Frame frame={effectiveFrame(frame, boardFrame, premium)} width={width}>
+      {src ? (
+        <img className={styles.image} src={src} alt="" draggable={false} decoding="async" />
+      ) : (
+        <div className={styles.placeholder} />
+      )}
+    </Frame>
   );
 }
 

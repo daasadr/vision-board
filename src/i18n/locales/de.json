@@ -23,7 +23,9 @@
     "toolbar": {
       "label": "Zur Pinnwand hinzufügen",
       "undo": "Rückgängig",
-      "redo": "Wiederholen"
+      "redo": "Wiederholen",
+      "settings": "Einstellungen",
+      "imagesOnly": "Nur Bilder"
     },
     "quoteDialog": {
       "title": "Zitat hinzufügen",
@@ -53,7 +55,9 @@
       "edit": "Text bearbeiten",
       "delete": "Löschen",
       "resize": "Größe ändern",
-      "rotate": "Drehen"
+      "rotate": "Drehen",
+      "frame": "Rahmen",
+      "frameDefault": "Wie die Pinnwand ({{name}})"
     },
     "import": {
       "tooLarge": "„{{name}}“ ist größer als 50 MB.",
@@ -67,6 +71,80 @@
       "title": "Vision Board läuft weiter",
       "body": "Das Fenster wird geschlossen, aber Vision Board bleibt im Infobereich neben der Uhr (unter macOS in der Menüleiste). Von dort öffnen Sie Ihre Pinnwand oder beenden die App jederzeit.",
       "ok": "Verstanden"
+    }
+  },
+  "control": {
+    "label": "Vision-Board-Einstellungen öffnen"
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "saveError": "Die Änderung konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.",
+    "sections": {
+      "label": "Bereiche der Einstellungen",
+      "general": "Allgemein",
+      "appearance": "Darstellung",
+      "display": "Anzeige"
+    },
+    "language": {
+      "label": "Sprache",
+      "system": "Wie das System",
+      "names": {
+        "cs": "Čeština",
+        "en": "English",
+        "de": "Deutsch"
+      }
+    },
+    "theme": {
+      "label": "Design",
+      "system": "Wie das System",
+      "galerie": "Galerie",
+      "noc": "Noc"
+    },
+    "autostart": {
+      "label": "Beim Anmelden starten",
+      "hint": "Vision Board startet im Infobereich, ohne ein Fenster zu öffnen.",
+      "error": "Der Start mit dem System konnte nicht geändert werden."
+    },
+    "control": {
+      "label": "Bedienelement auf dem Desktop",
+      "hint": "Eine kleine Leiste oben rechts auf dem Bildschirm. Ein Klick öffnet die Einstellungen."
+    },
+    "reset": {
+      "button": "Standardeinstellungen wiederherstellen",
+      "title": "Standardeinstellungen wiederherstellen?",
+      "body": "Alle Einstellungen werden zurückgesetzt und der Start mit dem System wird ausgeschaltet. Ihre Pinnwand bleibt unverändert.",
+      "confirm": "Wiederherstellen"
+    },
+    "frames": {
+      "label": "Standardrahmen für Bilder",
+      "hint": "Für ein einzelnes Bild können Sie ihn in dessen Menü ändern.",
+      "none": "Ohne Rahmen",
+      "line": "Linie",
+      "passepartout": "Passepartout",
+      "polaroid": "Polaroid",
+      "glass": "Glas",
+      "premium": "Premium",
+      "locked": "Der Rahmen „{{name}}“ gehört zum Geschenk von Almost-there.eu. Schalten Sie ihn mit Ihrem Geschenkcode frei."
+    },
+    "imagesOnly": {
+      "label": "Nur Bilder",
+      "hint": "Zitate und Texte werden ausgeblendet, nicht gelöscht."
+    },
+    "placement": {
+      "label": "Platzierung der Pinnwand",
+      "hint": "Gilt für die geplante Anzeige und das Hintergrundbild, auf allen Monitoren gleich.",
+      "mode": "Anzeigegröße",
+      "full": "Ganzer Bildschirm",
+      "partial": "Teil des Bildschirms",
+      "size": "Breite",
+      "sizeValue": "{{value}} % der Bildschirmbreite",
+      "anchor": "Ausrichtung",
+      "center": "Mitte",
+      "topLeft": "Oben links",
+      "topRight": "Oben rechts",
+      "bottomLeft": "Unten links",
+      "bottomRight": "Unten rechts",
+      "preview": "Vorschau der Platzierung auf dem Bildschirm"
     }
   }
 }

@@ -19,6 +19,7 @@
     "rust:lint": "cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings",
     "rust:test": "cargo test --manifest-path src-tauri/Cargo.toml",
     "e2e": "vite build && playwright test",
+    "control:render": "vite build && playwright test --config scripts/render-control.config.ts",
     "lint:css": "stylelint \"src/**/*.css\"",
     "lint:js": "eslint . --max-warnings 0",
     "prepare": "lefthook install"

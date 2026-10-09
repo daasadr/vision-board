@@ -1,0 +1,68 @@
+/*
+ * Frame borders scale with --frame-w (unitless width of the framed box), like item text does,
+ * so a frame looks the same on a small and a large image.
+ */
+
+.frame {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-item);
+}
+
+.frame > * {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.none {
+  overflow: hidden;
+}
+
+.line {
+  padding: calc(var(--frame-w) * 0.022px);
+  border: max(1px, calc(var(--frame-w) * 0.003px)) solid var(--frame-line);
+  border-radius: 0;
+  background: var(--frame-line-bg);
+}
+
+.passepartout {
+  padding: calc(var(--frame-w) * 0.085px);
+  border-radius: 0;
+  background: var(--frame-mat);
+}
+
+.passepartout > * {
+  box-shadow: var(--frame-mat-bevel);
+}
+
+.polaroid {
+  padding: calc(var(--frame-w) * 0.045px) calc(var(--frame-w) * 0.045px)
+    calc(var(--frame-w) * 0.17px);
+  border-radius: 1px;
+  background: var(--frame-polaroid);
+}
+
+.glass {
+  padding: calc(var(--frame-w) * 0.05px);
+  border: 1px solid var(--frame-glass-edge);
+  border-radius: var(--radius-md);
+  background: var(--frame-glass);
+  backdrop-filter: blur(10px) saturate(1.3);
+}
+
+.glass > * {
+  border-radius: var(--radius-sm);
+}
+
+.glass::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--frame-glass-glare);
+  pointer-events: none;
+}

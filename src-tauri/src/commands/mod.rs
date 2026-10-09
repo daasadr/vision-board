@@ -7,6 +7,8 @@ mod app;
 mod board;
 mod entitlements;
 mod media;
+mod settings;
+mod windows;
 
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -25,6 +27,13 @@ pub fn builder() -> Builder<tauri::Wry> {
         media::media_import_paths,
         media::media_import_bytes,
         media::media_list,
+        settings::settings_get,
+        settings::settings_set,
+        settings::settings_reset,
+        settings::autostart_get,
+        settings::autostart_set,
+        windows::window_open_settings,
+        windows::control_context_menu,
     ])
 }
 

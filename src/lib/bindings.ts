@@ -30,9 +30,33 @@ export const commands = {
 	mediaImportBytes: (base64: string) => typedError<ImportResult, string>(__TAURI_INVOKE("media_import_bytes", { base64 })),
 	/**  The media directory and every stored image. */
 	mediaList: () => typedError<MediaLibrary, string>(__TAURI_INVOKE("media_list")),
+	settingsGet: () => typedError<Settings, string>(__TAURI_INVOKE("settings_get")),
+	/**
+	 *  Stores the whole settings document and applies it in every window. Returns the stored value,
+	 *  which may differ from the input (values are brought into their allowed ranges).
+	 */
+	settingsSet: (settings: Settings) => typedError<Settings, string>(__TAURI_INVOKE("settings_set", { settings })),
+	/**
+	 *  Restores the default settings, which includes not starting at login. The board itself is
+	 *  not touched.
+	 */
+	settingsReset: () => typedError<Settings, string>(__TAURI_INVOKE("settings_reset")),
+	/**
+	 *  Whether the app is registered to start at login. The OS registration is the source of
+	 *  truth, so a change made in the OS tools shows here too.
+	 */
+	autostartGet: () => typedError<boolean, string>(__TAURI_INVOKE("autostart_get")),
+	/**  Registers or unregisters the app to start at login (in the tray, without a window). */
+	autostartSet: (enabled: boolean) => typedError<boolean, string>(__TAURI_INVOKE("autostart_set", { enabled })),
+	/**  Opens (or focuses) the settings window. */
+	windowOpenSettings: () => typedError<null, string>(__TAURI_INVOKE("window_open_settings")),
+	/**  Shows the native context menu of the control widget at the pointer. */
+	controlContextMenu: () => typedError<null, string>(__TAURI_INVOKE("control_context_menu")),
 };
 
 /* Types */
+export type Anchor = "center" | "topLeft" | "topRight" | "bottomLeft" | "bottomRight";
+
 /**  Known flags. An enum, so the frontend cannot write arbitrary keys. */
 export type AppFlag = 
 /**  The user was told that closing the window keeps the app running in the tray. */
@@ -57,6 +81,9 @@ export type Entitlement = {
 
 /**  Features unlocked by an Almost-there.eu gift. Everything else is free. */
 export type Feature = "premiumFrames" | "wallpaper" | "scheduledPopup";
+
+/**  How images are framed. Polaroid and glass are premium (entitlement PremiumFrames). */
+export type FrameStyle = "none" | "line" | "passepartout" | "polaroid" | "glass";
 
 /**  Why one file could not be imported; the UI shows a localized message per kind. */
 export type ImportErrorKind = "tooLarge" | "unsupported" | "unreadable";
@@ -83,8 +110,16 @@ export type Item = {
 /**  What an item shows. The tag doubles as the item kind stored in the database. */
 export type ItemContent = { kind: "image"; mediaId: string } | { kind: "quote"; text: string; author: string | null } | { kind: "text"; text: string; variant: TextVariant };
 
-/**  Per-item visual overrides. Empty until frame styles arrive in phase 2. */
-export type ItemStyle = Record<string, never>;
+/**  Per-item visual overrides. */
+export type ItemStyle = {
+	/**
+	 *  Frame of an image; none follows the board default (settings). A frame this version does
+	 *  not know makes the stored style unreadable, which `load` treats as the default style.
+	 */
+	frame?: FrameStyle | null,
+};
+
+export type LanguagePreference = "system" | "cs" | "en" | "de";
 
 export type Media = {
 	id: string,
@@ -102,7 +137,38 @@ export type MediaLibrary = {
 	items: Media[],
 };
 
+/**  Where the board shows outside the main window (pop-up, wallpaper). */
+export type Placement = {
+	mode: PlacementMode,
+	/**  Percent of the screen width (30–90); used by the partial mode. */
+	size: number,
+	anchor: Anchor,
+};
+
+export type PlacementMode = "full" | "partial";
+
+export type Settings = {
+	theme: ThemePreference,
+	language: LanguagePreference,
+	/**  Frame of images that do not set their own. */
+	frame: FrameStyle,
+	/**  Hide quotes and texts (they stay stored). */
+	imagesOnly: boolean,
+	placement: Placement,
+	/**  The always-on-top control widget is shown. */
+	controlWidget: boolean,
+	startup: Startup,
+};
+
+/**  Modes that start with the app. Phases 3 and 4 act on them. */
+export type Startup = {
+	wallpaper: boolean,
+	scheduledPopup: boolean,
+};
+
 export type TextVariant = "heading" | "note";
+
+export type ThemePreference = "system" | "galerie" | "noc";
 
 /* Tauri Specta runtime */
 async function typedError<T, E>(result: Promise<T>): Promise<{ status: "ok"; data: T } | { status: "error"; error: E }> {

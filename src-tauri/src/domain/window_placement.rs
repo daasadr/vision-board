@@ -66,9 +66,41 @@ pub fn centered_in(width: u32, height: u32, area: Rect) -> Rect {
     Rect::new(x as i32, y as i32, width, height)
 }
 
+/// Size of the control widget window in logical pixels (the spec allows at most 120×40).
+pub const CONTROL_WIDTH: f64 = 120.0;
+pub const CONTROL_HEIGHT: f64 = 40.0;
+/// Room kept free at the right for the minimize/maximize/close buttons of maximized windows.
+const CAPTION_BUTTONS_WIDTH: f64 = 150.0;
+const CONTROL_TOP_GAP: f64 = 2.0;
+
+/// Top-left position of the control widget in the top right corner of a work area, left of
+/// where maximized windows have their caption buttons. `scale` is the monitor's scale factor.
+pub fn control_position(area: Rect, scale: f64) -> (i32, i32) {
+    let from_right = ((CAPTION_BUTTONS_WIDTH + CONTROL_WIDTH) * scale).round() as i64;
+    let x = (i64::from(area.x) + i64::from(area.width) - from_right).max(i64::from(area.x));
+    let y = i64::from(area.y) + (CONTROL_TOP_GAP * scale).round() as i64;
+    // Both values lie inside `area`, whose coordinates are i32.
+    (x as i32, y as i32)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn control_sits_left_of_the_caption_buttons() {
+        assert_eq!(control_position(PRIMARY, 1.0), (1650, 2));
+        // 150 % scaling: everything in physical pixels grows with it.
+        assert_eq!(
+            control_position(Rect::new(0, 0, 2880, 1560), 1.5),
+            (2475, 3)
+        );
+        // A monitor left of and above the primary one.
+        assert_eq!(
+            control_position(Rect::new(-1920, -200, 1920, 1040), 1.0),
+            (-270, -198)
+        );
+    }
 
     const PRIMARY: Rect = Rect::new(0, 0, 1920, 1040);
     const SECONDARY: Rect = Rect::new(1920, 0, 2560, 1400);

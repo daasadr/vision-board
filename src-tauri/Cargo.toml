@@ -1,7 +1,7 @@
 [package]
 name = "vision-board"
 version = "0.1.0"
-description = "Vision Board – personal vision board desktop app"
+description = "Vision Board â€“ personal vision board desktop app"
 authors = ["Almost-there.eu"]
 edition = "2021"
 rust-version = "1.85"
@@ -19,7 +19,7 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
-tauri = { version = "2", features = ["protocol-asset", "tray-icon"] }
+tauri = { version = "2", features = ["protocol-asset", "tray-icon", "macos-private-api"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tauri-plugin-single-instance = "2.4.5"
@@ -36,6 +36,20 @@ uuid = { version = "1", features = ["v4"] }
 base64 = "0.22"
 sys-locale = "0.3"
 tokio = { version = "1", features = ["sync", "time"] }
+# Start at login through the OS mechanism (HKCU Run, LaunchAgent, XDG autostart); adds only
+# auto-launch + winreg. Pinned: newer releases require Tauri 2.12.
+tauri-plugin-autostart = "=2.5.1"
+
+# Already compiled for tao/wry (same version and features), so this adds no code of its own.
+[target.'cfg(windows)'.dependencies]
+windows = { version = "0.61", features = [
+  "Win32_Foundation",
+  "Win32_Graphics_Gdi",
+  "Win32_System_LibraryLoader",
+  "Win32_System_Registry",
+  "Win32_UI_Input_KeyboardAndMouse",
+  "Win32_UI_WindowsAndMessaging",
+] }
 
 
 # Read the optimization guideline for more details: https://tauri.app/concept/size/#cargo-configuration
@@ -43,6 +57,9 @@ tokio = { version = "1", features = ["sync", "time"] }
 codegen-units = 1
 lto = true
 opt-level = 3
+# Abort keeps the binary small: unwinding costs +4.3 MB (7.4 â†’ 11.8 MB, measured 2026-10-08).
+# The price is that a decoder panic on a malformed image ends the app (the board loses at most
+# the last second of edits); the pure-Rust decoders are fuzzed upstream.
 panic = "abort"
 strip = true
 

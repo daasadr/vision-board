@@ -98,6 +98,24 @@
 
   --blur-surface: 0px;
   --border-width: 1px;
+
+  /* Image frames: ink line, warm paper mat, white polaroid, frosted glass */
+  --frame-line: #2a2420;
+  --frame-line-bg: #fffdf9;
+  --frame-mat: #f7f2ea;
+  --frame-mat-bevel: 0 0 0 1px rgb(42 36 32 / 0.22), 0 1px 2px rgb(42 36 32 / 0.18);
+  --frame-polaroid: #fdfcf8;
+  --frame-glass: rgb(255 253 249 / 0.38);
+  --frame-glass-edge: rgb(255 255 255 / 0.75);
+  --frame-glass-glare: linear-gradient(135deg, rgb(255 255 255 / 0.55) 0%, transparent 45%);
+
+  /* Control widget: a burnt-sienna bar with a darker edge for depth */
+  --control-face: linear-gradient(180deg, #b8694a 0%, #97462c 55%, #86391f 100%);
+  --control-ink: #fff8f0;
+  --control-glare: radial-gradient(ellipse 45% 90% at 50% 0%, rgb(255 240 225 / 0.5), transparent);
+  --shadow-control:
+    0 3px 0 #5e2815, 0 5px 4px rgb(74 52 34 / 0.3), 0 8px 10px -4px rgb(74 52 34 / 0.4);
+  --shadow-control-pressed: 0 1px 0 #5e2815, 0 2px 3px rgb(74 52 34 / 0.3);
 }
 
 /*
@@ -152,4 +170,21 @@
 
   --blur-surface: 18px;
   --border-width: 1px;
+
+  /* Image frames: brass line, dark mat with a brass bevel, dimmed polaroid, smoked glass */
+  --frame-line: #d2b27a;
+  --frame-line-bg: #15161a;
+  --frame-mat: #1b1d22;
+  --frame-mat-bevel: 0 0 0 1px rgb(210 178 122 / 0.55), 0 1px 3px rgb(0 0 0 / 0.6);
+  --frame-polaroid: #ebe8e1;
+  --frame-glass: rgb(255 255 255 / 0.08);
+  --frame-glass-edge: rgb(255 255 255 / 0.2);
+  --frame-glass-glare: linear-gradient(135deg, rgb(255 255 255 / 0.2) 0%, transparent 45%);
+
+  /* Control widget: a brushed-brass bar */
+  --control-face: linear-gradient(180deg, #eedcb2 0%, #c9a66a 50%, #a8854f 100%);
+  --control-ink: #17140e;
+  --control-glare: radial-gradient(ellipse 45% 90% at 50% 0%, rgb(255 250 235 / 0.65), transparent);
+  --shadow-control: 0 3px 0 #5f4a2a, 0 5px 4px rgb(0 0 0 / 0.55), 0 8px 10px -4px rgb(0 0 0 / 0.7);
+  --shadow-control-pressed: 0 1px 0 #5f4a2a, 0 2px 3px rgb(0 0 0 / 0.55);
 }

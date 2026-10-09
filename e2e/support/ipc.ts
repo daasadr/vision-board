@@ -1,11 +1,23 @@
 import { test as base, type Page } from "@playwright/test";
-import type { BoardOp, Item, Media } from "../../src/lib/bindings";
+import type { BoardOp, Item, Media, Settings } from "../../src/lib/bindings";
 
 /** Return values of mocked Rust commands, keyed by command name as invoked (snake_case). */
 export type IpcHandlers = Record<string, unknown>;
 
 const BOARD_STORAGE_KEY = "__e2e_board_items__";
 const MEDIA_STORAGE_KEY = "__e2e_media__";
+const SETTINGS_STORAGE_KEY = "__e2e_settings__";
+
+/** Same as Settings::default() in Rust. */
+export const DEFAULT_SETTINGS: Settings = {
+  theme: "system",
+  language: "system",
+  frame: "none",
+  imagesOnly: false,
+  placement: { mode: "full", size: 60, anchor: "center" },
+  controlWidget: true,
+  startup: { wallpaper: false, scheduledPopup: false },
+};
 
 const defaultHandlers: IpcHandlers = {
   app_version: "0.0.0-e2e",
@@ -23,12 +35,15 @@ interface MockOptions {
    *  reload keeps whatever the test changed (that is how E2E simulates an app restart). */
   seedItems: Item[];
   seedMedia: Media[];
+  /** Stored settings to start with (merged over the defaults); kept across reloads. */
+  seedSettings: Partial<Settings>;
 }
 
 /**
  * Installs a fake `window.__TAURI_INTERNALS__` before the app loads, so the frontend runs in a
  * plain browser:
- * - board and media commands are backed by localStorage,
+ * - board, media and settings commands are backed by localStorage (storing settings emits
+ *   `settings://changed` in this page, as the backend does for every window),
  * - Tauri events work (`window.__E2E_EMIT__(event, payload)` fires them),
  * - other commands answer from `handlers`; unknown commands reject like unregistered ones.
  *
@@ -36,13 +51,14 @@ interface MockOptions {
  * 800×600 image; image URLs resolve to an inline SVG.
  */
 export async function mockIpc(page: Page, options: Partial<MockOptions> = {}) {
-  const { handlers = {}, seedItems = [], seedMedia = [] } = options;
+  const { handlers = {}, seedItems = [], seedMedia = [], seedSettings = {} } = options;
   await page.addInitScript(
     ({ responses, seed, keys }) => {
       const calls: { cmd: string; args: unknown }[] = [];
       if (localStorage.getItem(keys.board) === null) {
         localStorage.setItem(keys.board, JSON.stringify(seed.items));
         localStorage.setItem(keys.media, JSON.stringify(seed.media));
+        localStorage.setItem(keys.settings, JSON.stringify(seed.settings));
       }
       const read = <T>(key: string): T[] => JSON.parse(localStorage.getItem(key) ?? "[]");
       const write = (key: string, value: unknown) =>
@@ -86,7 +102,38 @@ export async function mockIpc(page: Page, options: Partial<MockOptions> = {}) {
               : { status: "ok", media: newMedia() };
           }),
         media_import_bytes: () => ({ status: "ok", media: newMedia() }),
+        settings_get: () => readSettings(),
+        settings_set: ({ settings }) => storeSettings(settings as Settings),
+        settings_reset: () => {
+          localStorage.removeItem(keys.autostart);
+          return storeSettings(seed.defaultSettings);
+        },
+        autostart_get: () => localStorage.getItem(keys.autostart) === "1",
+        autostart_set: ({ enabled }) => {
+          if (enabled) localStorage.setItem(keys.autostart, "1");
+          else localStorage.removeItem(keys.autostart);
+          return enabled;
+        },
+        window_open_settings: () => null,
+        control_context_menu: () => null,
       };
+
+      function readSettings(): Settings {
+        return JSON.parse(localStorage.getItem(keys.settings) ?? "null") ?? seed.defaultSettings;
+      }
+
+      /** Like the Rust side: normalize, store, and tell every window. */
+      function storeSettings(settings: Settings): Settings {
+        const size = Math.min(90, Math.max(30, settings.placement.size));
+        const stored = { ...settings, placement: { ...settings.placement, size } };
+        write(keys.settings, stored);
+        emit("settings://changed", stored);
+        return stored;
+      }
+
+      function emit(event: string, payload: unknown) {
+        for (const id of listeners.get(event) ?? []) callbacks.get(id)?.({ event, id, payload });
+      }
 
       // Minimal Tauri event system, enough for listen/unlisten and emitting from tests.
       const callbacks = new Map<number, (data: unknown) => void>();
@@ -114,9 +161,7 @@ export async function mockIpc(page: Page, options: Partial<MockOptions> = {}) {
 
       Object.assign(window, {
         __E2E_IPC_CALLS__: calls,
-        __E2E_EMIT__: (event: string, payload: unknown) => {
-          for (const id of listeners.get(event) ?? []) callbacks.get(id)?.({ event, id, payload });
-        },
+        __E2E_EMIT__: emit,
         __TAURI_EVENT_PLUGIN_INTERNALS__: { unregisterListener: () => {} },
         __TAURI_INTERNALS__: {
           metadata: { currentWindow: { label: "board" }, currentWebview: { label: "board" } },
@@ -139,9 +184,36 @@ export async function mockIpc(page: Page, options: Partial<MockOptions> = {}) {
     },
     {
       responses: { ...defaultHandlers, ...handlers },
-      seed: { items: seedItems, media: seedMedia },
-      keys: { board: BOARD_STORAGE_KEY, media: MEDIA_STORAGE_KEY },
+      seed: {
+        items: seedItems,
+        media: seedMedia,
+        settings: { ...DEFAULT_SETTINGS, ...seedSettings },
+        defaultSettings: DEFAULT_SETTINGS,
+      },
+      keys: {
+        board: BOARD_STORAGE_KEY,
+        media: MEDIA_STORAGE_KEY,
+        settings: SETTINGS_STORAGE_KEY,
+        autostart: "__e2e_autostart__",
+      },
     },
+  );
+}
+
+/** Settings currently stored by the mocked backend. */
+export async function storedSettings(page: Page): Promise<Settings> {
+  return page.evaluate(
+    (key) => JSON.parse(localStorage.getItem(key) ?? "null"),
+    SETTINGS_STORAGE_KEY,
+  );
+}
+
+/** Commands the page has invoked so far, in order. */
+export async function invokedCommands(page: Page): Promise<string[]> {
+  return page.evaluate(() =>
+    (window as unknown as { __E2E_IPC_CALLS__: { cmd: string }[] }).__E2E_IPC_CALLS__.map(
+      (c) => c.cmd,
+    ),
   );
 }
 
@@ -166,11 +238,21 @@ export interface BoardSeed {
   media?: Media[];
 }
 
-export const test = base.extend<{ ipc: IpcHandlers; board: BoardSeed }>({
+export const test = base.extend<{
+  ipc: IpcHandlers;
+  board: BoardSeed;
+  settings: Partial<Settings>;
+}>({
   ipc: [{}, { option: true }],
   board: [{ items: [] }, { option: true }],
-  page: async ({ page, ipc, board }, use) => {
-    await mockIpc(page, { handlers: ipc, seedItems: board.items, seedMedia: board.media ?? [] });
+  settings: [{}, { option: true }],
+  page: async ({ page, ipc, board, settings }, use) => {
+    await mockIpc(page, {
+      handlers: ipc,
+      seedItems: board.items,
+      seedMedia: board.media ?? [],
+      seedSettings: settings,
+    });
     await use(page);
   },
 });

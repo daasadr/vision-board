@@ -28,7 +28,7 @@ Fáze 2 „Nastavení“ ze zadani.txt bod 5 a body 2.2–2.3: uživatel si pot�
 - `control-widget`: persistentní 3D ovládací prvek na ploše.
 
 ### Modified Capabilities
-<!-- žádné -->
+- `tray`: klidová zátěž bez okna počítá se zobrazeným ovládacím prvkem (webview prvku je povolené, s vlastním limitem).
 
 ## Impact
 

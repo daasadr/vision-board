@@ -2,12 +2,16 @@ mod commands;
 mod domain;
 mod lifecycle;
 mod platform;
+mod preferences;
 mod state;
 mod tray;
 mod window_manager;
 
 use tauri::{Manager, RunEvent};
 use tauri_plugin_window_state::StateFlags;
+
+/// Argument the OS passes when it starts the app at login.
+const AUTOSTART_ARG: &str = "--autostart";
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -24,6 +28,10 @@ pub fn run() {
                 .skip_initial_state(window_manager::BOARD)
                 .build(),
         )
+        .plugin(tauri_plugin_autostart::init(
+            tauri_plugin_autostart::MacosLauncher::LaunchAgent,
+            Some(vec![AUTOSTART_ARG]),
+        ))
         .invoke_handler(commands.invoke_handler())
         .setup(|app| {
             let data_dir = app.path().app_data_dir()?;
@@ -38,8 +46,14 @@ pub fn run() {
             app.manage(state::MediaDir(media_dir));
             app.manage(lifecycle::Lifecycle::default());
 
-            tray::create(app.handle())?;
-            window_manager::open_board(app.handle())?;
+            let settings = preferences::current(app.handle()).unwrap_or_default();
+            tray::create(app.handle(), &settings)?;
+            app.on_menu_event(window_manager::on_menu_event);
+            // Started at login: stay in the tray (and the control widget) without a window.
+            if !std::env::args().any(|arg| arg == AUTOSTART_ARG) {
+                window_manager::open_board(app.handle())?;
+            }
+            window_manager::sync_control(app.handle(), settings.control_widget)?;
             Ok(())
         })
         .build(tauri::generate_context!())

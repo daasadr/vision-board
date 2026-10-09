@@ -17,19 +17,20 @@ pnpm dev              # jen frontend v prohlížeči (http://localhost:1420, /de
 
 ## Příkazy
 
-| Příkaz             | Co dělá                                                         |
-| ------------------ | --------------------------------------------------------------- |
-| `pnpm tauri dev`   | spustí aplikaci ve vývojovém režimu                             |
-| `pnpm tauri build` | release build a instalátory (`src-tauri/target/release/bundle`) |
-| `pnpm lint`        | ESLint + Stylelint (tokeny místo pevných hodnot)                |
-| `pnpm typecheck`   | TypeScript: aplikace, testy, konfigurace                        |
-| `pnpm format`      | Prettier (`format:check` jen kontroluje)                        |
-| `pnpm test`        | Vitest (unit a komponenty)                                      |
-| `pnpm e2e`         | Playwright proti produkčnímu buildu frontendu s mockovaným IPC  |
-| `pnpm rust:fmt`    | kontrola formátu Rustu                                          |
-| `pnpm rust:lint`   | clippy s `-D warnings`                                          |
-| `pnpm rust:test`   | `cargo test` (vygeneruje i TS bindings)                         |
-| `pnpm bindings`    | přegeneruje `src/lib/bindings.ts` z Rust commandů               |
+| Příkaz                | Co dělá                                                                                                                                                       |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm tauri dev`      | spustí aplikaci ve vývojovém režimu                                                                                                                           |
+| `pnpm tauri build`    | release build a instalátory (`src-tauri/target/release/bundle`)                                                                                               |
+| `pnpm lint`           | ESLint + Stylelint (tokeny místo pevných hodnot)                                                                                                              |
+| `pnpm typecheck`      | TypeScript: aplikace, testy, konfigurace                                                                                                                      |
+| `pnpm format`         | Prettier (`format:check` jen kontroluje)                                                                                                                      |
+| `pnpm test`           | Vitest (unit a komponenty)                                                                                                                                    |
+| `pnpm e2e`            | Playwright proti produkčnímu buildu frontendu s mockovaným IPC                                                                                                |
+| `pnpm rust:fmt`       | kontrola formátu Rustu                                                                                                                                        |
+| `pnpm rust:lint`      | clippy s `-D warnings`                                                                                                                                        |
+| `pnpm rust:test`      | `cargo test` (vygeneruje i TS bindings)                                                                                                                       |
+| `pnpm bindings`       | přegeneruje `src/lib/bindings.ts` z Rust commandů                                                                                                             |
+| `pnpm control:render` | vyrenderuje vzhled ovládacího prvku (`src/app/control`) do PNG pro nativní prvek na Windows (`src-tauri/assets/control`); spustit po každé změně jeho vzhledu |
 
 Podrobnosti o testech: [testing.md](testing.md). Výkon a jak ho měřit: [performance.md](performance.md).
 

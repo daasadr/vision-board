@@ -1,0 +1,122 @@
+.controls {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: start;
+  gap: var(--space-6);
+  max-width: 560px;
+}
+
+.anchors {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.legend {
+  padding: 0;
+  margin-bottom: var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: 560;
+  color: var(--color-ink);
+}
+
+/* A miniature 16:9 screen with the anchors at its corners and center. */
+.anchorGrid {
+  display: grid;
+  grid-template: repeat(3, 1fr) / repeat(3, 1fr);
+  width: 96px;
+  height: 54px;
+  padding: var(--space-1);
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-sunken);
+}
+
+.anchor {
+  position: relative;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.anchor[data-anchor="topLeft"] {
+  grid-area: 1 / 1;
+}
+
+.anchor[data-anchor="topRight"] {
+  grid-area: 1 / 3;
+}
+
+.anchor[data-anchor="center"] {
+  grid-area: 2 / 2;
+}
+
+.anchor[data-anchor="bottomLeft"] {
+  grid-area: 3 / 1;
+}
+
+.anchor[data-anchor="bottomRight"] {
+  grid-area: 3 / 3;
+}
+
+.anchorRadio {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.anchorDot {
+  width: 8px;
+  height: 8px;
+  border: var(--border-width) solid var(--color-ink-subtle);
+  border-radius: var(--radius-pill);
+  transition:
+    transform var(--duration-fast) var(--ease-standard),
+    background var(--duration-fast) var(--ease-standard);
+}
+
+.anchorRadio:checked + .anchorDot {
+  border-color: transparent;
+  background: var(--gradient-accent);
+  transform: scale(1.4);
+}
+
+.anchorRadio:focus-visible + .anchorDot {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.anchorName {
+  margin: var(--space-1) 0 0;
+  font-size: var(--text-xs);
+  color: var(--color-ink-muted);
+}
+
+.preview {
+  margin: 0;
+  max-width: 420px;
+}
+
+.screen {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border: 6px solid var(--color-ink);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-sunken);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.board {
+  position: absolute;
+  border-radius: var(--radius-sm);
+  background: var(--gradient-accent);
+  box-shadow: var(--shadow-sm);
+  transition:
+    left var(--duration-normal) var(--ease-standard),
+    top var(--duration-normal) var(--ease-standard),
+    width var(--duration-normal) var(--ease-standard),
+    height var(--duration-normal) var(--ease-standard);
+}

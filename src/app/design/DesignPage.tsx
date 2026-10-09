@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Button, Dialog, DialogClose, Field, Switch } from "../../design/components";
+import { Button, Dialog, DialogClose, Field, Frame, Slider, Switch } from "../../design/components";
 import { applyTheme, THEMES, type ThemeName } from "../../design/theme";
+import { FRAMES } from "../../lib/frames";
 import styles from "./DesignPage.module.css";
 
 const COLOR_TOKENS = [
@@ -26,6 +27,8 @@ export default function DesignPage() {
   const [theme, setTheme] = useState<ThemeName>(
     (document.documentElement.dataset.theme as ThemeName) ?? "galerie",
   );
+
+  const [size, setSize] = useState(60);
 
   function switchTheme(next: ThemeName) {
     applyTheme(next);
@@ -101,6 +104,35 @@ export default function DesignPage() {
           >
             <Field label="Text citátu" />
           </Dialog>
+        </div>
+      </section>
+
+      <section className={styles.section} aria-labelledby="frames-heading">
+        <h2 id="frames-heading" className={styles.sectionTitle}>
+          Frames
+        </h2>
+        <div className={styles.frames}>
+          {FRAMES.map((frame) => (
+            <figure key={frame} className={styles.frameSample}>
+              <div className={styles.frameBox}>
+                <Frame frame={frame} width={200}>
+                  <span className={styles.framePhoto} />
+                </Frame>
+              </div>
+              <figcaption className={styles.muted}>{frame}</figcaption>
+            </figure>
+          ))}
+        </div>
+        <div className={styles.form}>
+          <Slider
+            label="Šířka"
+            min={30}
+            max={90}
+            step={5}
+            value={size}
+            valueText={`${size} % šířky obrazovky`}
+            onChange={setSize}
+          />
         </div>
       </section>
 

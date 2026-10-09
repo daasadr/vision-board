@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button, Dialog, Notices, type Notice } from "../../design/components";
 import { ipc } from "../../lib/ipc";
+import { settingsStore } from "../../lib/settings";
 import { AddQuoteDialog, AddTextDialog } from "./AddItemDialogs";
 import styles from "./BoardApp.module.css";
 import { BoardContext, useBoard, useBoardServices, type BoardServices } from "./boardContext";
@@ -54,6 +55,13 @@ function useShortcuts() {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [store]);
+}
+
+/** A quote or text added in "images only" mode would vanish at once, so the mode turns off. */
+function showTexts() {
+  if (settingsStore.getState().settings.imagesOnly) {
+    void settingsStore.getState().update({ imagesOnly: false });
+  }
 }
 
 function Board() {
@@ -142,16 +150,18 @@ function Board() {
       <AddQuoteDialog
         open={dialog === "quote"}
         onOpenChange={(open) => setDialog(open ? "quote" : null)}
-        onSubmit={({ text, author }) =>
-          store.getState().add(newQuote(text, author, topZ(store.getState()) + 1))
-        }
+        onSubmit={({ text, author }) => {
+          showTexts();
+          store.getState().add(newQuote(text, author, topZ(store.getState()) + 1));
+        }}
       />
       <AddTextDialog
         open={dialog === "text"}
         onOpenChange={(open) => setDialog(open ? "text" : null)}
-        onSubmit={({ text, variant }) =>
-          store.getState().add(newText(text, variant, topZ(store.getState()) + 1))
-        }
+        onSubmit={({ text, variant }) => {
+          showTexts();
+          store.getState().add(newText(text, variant, topZ(store.getState()) + 1));
+        }}
       />
     </main>
   );
@@ -165,3 +175,5 @@ export function BoardApp() {
     </BoardContext.Provider>
   );
 }
+
+export default BoardApp;

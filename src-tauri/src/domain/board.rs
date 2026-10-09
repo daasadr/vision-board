@@ -4,6 +4,8 @@ use rusqlite::{params, Connection, OptionalExtension, Transaction};
 use serde::{Deserialize, Serialize};
 use specta::Type;
 
+use super::settings::FrameStyle;
+
 /// Logical canvas size. Item geometry is stored in these units and scaled by the renderer.
 pub const CANVAS_WIDTH: f64 = 1920.0;
 pub const CANVAS_HEIGHT: f64 = 1080.0;
@@ -47,10 +49,15 @@ impl ItemContent {
     }
 }
 
-/// Per-item visual overrides. Empty until frame styles arrive in phase 2.
+/// Per-item visual overrides.
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, Type)]
 #[serde(rename_all = "camelCase")]
-pub struct ItemStyle {}
+pub struct ItemStyle {
+    /// Frame of an image; none follows the board default (settings). A frame this version does
+    /// not know makes the stored style unreadable, which `load` treats as the default style.
+    #[serde(default)]
+    pub frame: Option<FrameStyle>,
+}
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type)]
 #[serde(rename_all = "camelCase")]
@@ -355,6 +362,36 @@ mod tests {
 
         let board = load(&conn, DEFAULT_BOARD_ID).expect("load");
         assert_eq!(board.items, vec![text, image, quote("a", 2)]);
+    }
+
+    #[test]
+    fn stores_the_frame_of_an_item() {
+        let mut conn = open_in_memory();
+        add_media(&conn, "m1");
+        let framed = Item {
+            content: ItemContent::Image {
+                media_id: "m1".into(),
+            },
+            style: ItemStyle {
+                frame: Some(FrameStyle::Polaroid),
+            },
+            ..quote("a", 0)
+        };
+        apply_ops(&mut conn, DEFAULT_BOARD_ID, &[upsert(framed.clone())], 1).expect("apply");
+        assert_eq!(
+            load(&conn, DEFAULT_BOARD_ID).expect("load").items,
+            vec![framed]
+        );
+    }
+
+    #[test]
+    fn unknown_frame_reads_as_board_default() {
+        let mut conn = open_in_memory();
+        apply_ops(&mut conn, DEFAULT_BOARD_ID, &[upsert(quote("a", 0))], 1).expect("add");
+        conn.execute("UPDATE items SET style = '{\"frame\":\"neon\"}'", [])
+            .expect("style from a newer version");
+        let items = load(&conn, DEFAULT_BOARD_ID).expect("load").items;
+        assert_eq!(items[0].style.frame, None);
     }
 
     #[test]
