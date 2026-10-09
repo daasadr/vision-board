@@ -63,3 +63,22 @@ Tauri tray API (feature `tray-icon`). `CloseRequested` hlavního okna → `windo
 - **Ukončení:** kromě tray nabídky existuje command `app_quit` se stejným průběhem (využije ho nastavení ve fázi 2 a automatické testy).
 - **První zavření okna:** upozornění „poběží dál v tray“ je dialog v okně (okno se zavře až po potvrzení), takže není potřeba plugin pro systémové notifikace.
 - **Vývojový profil:** závislosti se kompilují s `opt-level = 2`, protože dekódování fotek v neoptimalizovaném buildu trvalo přes minutu.
+
+## Review bezpečnosti (úkol 3.5, 2026-10-08)
+
+Review místo Codexu udělal Claude (rozhodnutí uživatelky: malá osobní aplikace). Prošlo parsování souborů (`domain/media.rs`, `commands/media.rs`), asset protokol, CSP, capabilities a cesta souborů z frontendu.
+
+V pořádku:
+- Formát se pozná podle magických bajtů, dekodéry mají limity rozměrů (16 384 px) a alokace (768 MB) proti dekompresním bombám, výstup je vždy znovu zakódovaný WebP bez metadat.
+- Jména uložených souborů jsou UUID, vstup od uživatele se do cest nedostane. Úklid médií maže jen běžné soubory (symlinky přeskočí).
+- Asset protokol vidí jen `$APPDATA/media/*` (stejná složka jako `MediaDir`), CSP nepovoluje cizí skripty ani síť, okno má jen `core:default` a `allow-destroy`. Texty se vykreslují přes React (escapované), `dangerouslySetInnerHTML` se nikde nepoužívá.
+- SQL je všude parametrizované.
+
+Opraveno:
+- `import_file` četl soubor podle velikosti zjištěné předem. Zařízení nebo roura (velikost 0) by se četly donekonečna a soubor, který mezitím narostl, by se načetl celý. Teď se přijímají jen běžné soubory a čte se nejvýš limit + 1 bajt.
+- Obrázek s obří plochou (až 16 384 px) by při Lanczos zmenšení alokoval ~0,7 GB. Nejdřív se proto rychle zmenší na dvojnásobek cíle.
+- Soubory z dialogu se četly a posílaly všechny najednou a i soubory nad 50 MB se celé načetly do paměti, než je Rust odmítl. Teď jdou po jednom a velikost se kontroluje před čtením (`importFilesInTurn`).
+
+Vědomě přijato:
+- `media_import_paths` přijme libovolnou cestu z webview. Webview načítá jen vlastní kód (CSP) a obrázek se jen překóduje do vlastní složky, takže hrozba je zanedbatelná.
+- Release profil má `panic = "abort"`. Případná chyba dekodéru na poškozeném souboru proto ukončí aplikaci (ztratí se nejvýš poslední sekunda úprav). Zachytávání přes `unwind` by zvětšilo binárku o 4,3 MB (7,4 → 11,8 MB, změřeno). Dekodéry jsou v Rustu a upstream se fuzzují.

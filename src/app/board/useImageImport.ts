@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import type { Notice } from "../../design/components";
 import { ipc, type ImportResult, type Media } from "../../lib/ipc";
 import { CANVAS_HEIGHT, CANVAS_WIDTH, type Point, type Rect } from "./geometry";
-import { fileToBase64, imageSize, newImageItems } from "./imageItems";
+import { imageSize, importFilesInTurn, newImageItems } from "./imageItems";
 import type { MediaStore } from "./mediaStore";
 import { topZ, type BoardStore } from "./store";
 
@@ -81,13 +81,7 @@ export function useImageImport(
   const importFiles = useCallback(
     (files: File[], at: Point = CENTER) => {
       if (files.length === 0) return;
-      void run(files.length, at, () =>
-        Promise.all(
-          files.map(async (f) =>
-            withName(await ipc.importImageBytes(await fileToBase64(f)), f.name),
-          ),
-        ),
-      );
+      void run(files.length, at, () => importFilesInTurn(files, ipc.importImageBytes));
     },
     [run],
   );
@@ -139,9 +133,4 @@ export function useImageImport(
   }, [importFiles]);
 
   return { placeholders, importFiles, importPaths };
-}
-
-/** Pasted or picked files are sent as bytes, so the backend does not know their name. */
-function withName(result: ImportResult, name: string): ImportResult {
-  return result.status === "error" ? { ...result, name } : result;
 }

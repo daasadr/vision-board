@@ -1,7 +1,7 @@
-import { describe, expect, it } from "vitest";
-import type { Media } from "../../lib/ipc";
+import { describe, expect, it, vi } from "vitest";
+import type { ImportResult, Media } from "../../lib/ipc";
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from "./geometry";
-import { imageSize, newImageItems } from "./imageItems";
+import { imageSize, importFilesInTurn, MAX_IMAGE_BYTES, newImageItems } from "./imageItems";
 import { mediaUrl } from "./mediaStore";
 
 const media = (id: string, width: number, height: number): Media => ({
@@ -48,6 +48,39 @@ describe("image items", () => {
     );
     expect(item.x).toBeLessThan(CANVAS_WIDTH);
     expect(item.y).toBeLessThan(CANVAS_HEIGHT);
+  });
+});
+
+describe("importFilesInTurn", () => {
+  it("sends files one at a time and names errors", async () => {
+    let running = 0;
+    let maxRunning = 0;
+    const importBytes = vi.fn(async (base64: string): Promise<ImportResult> => {
+      maxRunning = Math.max(maxRunning, ++running);
+      await new Promise((resolve) => setTimeout(resolve, 5));
+      running--;
+      return atob(base64) === "bad"
+        ? { status: "error", kind: "unsupported", name: "" }
+        : { status: "ok", media: media("m", 10, 10) };
+    });
+
+    const results = await importFilesInTurn(
+      [new File(["ok"], "a.jpg"), new File(["bad"], "b.pdf")],
+      importBytes,
+    );
+    expect(maxRunning).toBe(1);
+    expect(results[0].status).toBe("ok");
+    expect(results[1]).toEqual({ status: "error", kind: "unsupported", name: "b.pdf" });
+  });
+
+  it("rejects an oversized file without reading it", async () => {
+    const huge = new File(["x"], "huge.png");
+    Object.defineProperty(huge, "size", { value: MAX_IMAGE_BYTES + 1 });
+    const importBytes = vi.fn();
+
+    const results = await importFilesInTurn([huge], importBytes);
+    expect(importBytes).not.toHaveBeenCalled();
+    expect(results).toEqual([{ status: "error", kind: "tooLarge", name: "huge.png" }]);
   });
 });
 

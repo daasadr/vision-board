@@ -1,4 +1,4 @@
-import type { Item, Media } from "../../lib/ipc";
+import type { ImportResult, Item, Media } from "../../lib/ipc";
 import { keepOnCanvas, type Point } from "./geometry";
 
 /** Longest side of a newly added image, in canvas units. */
@@ -35,6 +35,29 @@ export function newImageItems(media: Media[], center: Point, firstZ: number): It
       content: { kind: "image", mediaId: m.id },
     };
   });
+}
+
+/** Largest accepted file, as in the backend (domain::media::MAX_INPUT_BYTES). */
+export const MAX_IMAGE_BYTES = 50 * 1024 * 1024;
+
+/**
+ * Imports picked or pasted files one at a time, so only one file is held in memory as base64,
+ * and rejects files over the limit without reading them. The backend does not know the names
+ * of files sent as bytes, so errors get them here.
+ */
+export async function importFilesInTurn(
+  files: File[],
+  importBytes: (base64: string) => Promise<ImportResult>,
+): Promise<ImportResult[]> {
+  const results: ImportResult[] = [];
+  for (const file of files) {
+    const result: ImportResult =
+      file.size > MAX_IMAGE_BYTES
+        ? { status: "error", kind: "tooLarge", name: file.name }
+        : await importBytes(await fileToBase64(file));
+    results.push(result.status === "error" ? { ...result, name: file.name } : result);
+  }
+  return results;
 }
 
 /** Reads a File as base64 without the data-URL prefix. */

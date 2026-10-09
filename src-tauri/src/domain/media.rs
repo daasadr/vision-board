@@ -2,7 +2,7 @@
 //! Originals are never kept; re-encoding also drops all metadata (EXIF, GPS).
 
 use std::fs;
-use std::io::{Cursor, Write};
+use std::io::{Cursor, Read, Write};
 use std::path::Path;
 
 use image::imageops::FilterType;
@@ -64,10 +64,19 @@ pub fn sniff_format(bytes: &[u8]) -> Option<ImageFormat> {
 
 /// Reads and imports an image file.
 pub fn import_file(media_dir: &Path, path: &Path) -> Result<Media, MediaError> {
-    if fs::metadata(path)?.len() > MAX_INPUT_BYTES {
+    let file = fs::File::open(path)?;
+    let metadata = file.metadata()?;
+    // A device or pipe can report a size of 0 and never end; accept regular files only.
+    if !metadata.is_file() {
+        return Err(MediaError::Unsupported);
+    }
+    if metadata.len() > MAX_INPUT_BYTES {
         return Err(MediaError::TooLarge);
     }
-    import_bytes(media_dir, &fs::read(path)?)
+    // The file can grow after the size check, so never read more than one byte over the limit.
+    let mut bytes = Vec::new();
+    file.take(MAX_INPUT_BYTES + 1).read_to_end(&mut bytes)?;
+    import_bytes(media_dir, &bytes)
 }
 
 /// Decodes, normalizes and stores an image plus its thumbnail in `media_dir`.
@@ -76,24 +85,14 @@ pub fn import_bytes(media_dir: &Path, bytes: &[u8]) -> Result<Media, MediaError>
         return Err(MediaError::TooLarge);
     }
     let format = sniff_format(bytes).ok_or(MediaError::Unsupported)?;
-    let image = decode(bytes, format)?;
-    let image = if image.width().max(image.height()) > MAX_EDGE {
-        image.resize(MAX_EDGE, MAX_EDGE, FilterType::Lanczos3)
-    } else {
-        image
-    };
-    let thumb = image.thumbnail(THUMB_EDGE, THUMB_EDGE);
+    let processed = process(bytes, format)?;
 
     let id = uuid::Uuid::new_v4().to_string();
     let file_name = format!("{id}.webp");
     let thumb_name = format!("{id}_t.webp");
     fs::create_dir_all(media_dir)?;
-    let encoded = encode_webp(&image, QUALITY)?;
-    write_atomically(&media_dir.join(&file_name), &encoded)?;
-    if let Err(e) = write_atomically(
-        &media_dir.join(&thumb_name),
-        &encode_webp(&thumb, THUMB_QUALITY)?,
-    ) {
+    write_atomically(&media_dir.join(&file_name), &processed.full)?;
+    if let Err(e) = write_atomically(&media_dir.join(&thumb_name), &processed.thumb) {
         let _ = fs::remove_file(media_dir.join(&file_name));
         return Err(e.into());
     }
@@ -102,10 +101,41 @@ pub fn import_bytes(media_dir: &Path, bytes: &[u8]) -> Result<Media, MediaError>
         id,
         file_name,
         thumb_name,
+        width: processed.width,
+        height: processed.height,
+        // Encoded output of an image capped at 2560 px is a few MB at most.
+        bytes: u32::try_from(processed.full.len()).unwrap_or(u32::MAX),
+    })
+}
+
+/// Encoded image and thumbnail, ready to be written.
+struct Processed {
+    full: Vec<u8>,
+    thumb: Vec<u8>,
+    width: u32,
+    height: u32,
+}
+
+fn process(bytes: &[u8], format: ImageFormat) -> Result<Processed, MediaError> {
+    let image = decode(bytes, format)?;
+    // Lanczos on a huge image allocates a float buffer of up to ~0.7 GB; a box filter down to
+    // twice the target first is cheap and looks the same after the final resize.
+    let image = if image.width().max(image.height()) > MAX_EDGE * 2 {
+        image.thumbnail(MAX_EDGE * 2, MAX_EDGE * 2)
+    } else {
+        image
+    };
+    let image = if image.width().max(image.height()) > MAX_EDGE {
+        image.resize(MAX_EDGE, MAX_EDGE, FilterType::Lanczos3)
+    } else {
+        image
+    };
+    let thumb = image.thumbnail(THUMB_EDGE, THUMB_EDGE);
+    Ok(Processed {
+        full: encode_webp(&image, QUALITY)?,
+        thumb: encode_webp(&thumb, THUMB_QUALITY)?,
         width: image.width(),
         height: image.height(),
-        // Encoded output of an image capped at 2560 px is a few MB at most.
-        bytes: u32::try_from(encoded.len()).unwrap_or(u32::MAX),
     })
 }
 
@@ -306,6 +336,19 @@ mod tests {
             .map(|e| e.expect("entry").file_name())
             .collect();
         assert_eq!(names.len(), 2);
+    }
+
+    #[test]
+    fn downscales_a_huge_panorama_in_two_steps() {
+        let dir = tempfile::tempdir().expect("temp dir");
+        let media = import_bytes(dir.path(), &jpeg(7680, 960)).expect("import");
+        assert_eq!((media.width, media.height), (2560, 320));
+    }
+
+    #[test]
+    fn rejects_a_directory_as_input() {
+        let dir = tempfile::tempdir().expect("temp dir");
+        assert!(import_file(&dir.path().join("media"), dir.path()).is_err());
     }
 
     #[test]
