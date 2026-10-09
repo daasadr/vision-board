@@ -17,6 +17,8 @@ export const DEFAULT_SETTINGS: Settings = {
   imagesOnly: false,
   placement: { mode: "full", size: 60, anchor: "center" },
   controlWidget: true,
+  controlLayer: "behind",
+  controlPosition: null,
   startup: { wallpaper: false, scheduledPopup: false },
 };
 

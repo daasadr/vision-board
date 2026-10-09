@@ -13,14 +13,18 @@ use windows::Win32::Graphics::Gdi::{
 };
 use windows::Win32::System::LibraryLoader::GetModuleHandleW;
 use windows::Win32::System::Registry::{RegGetValueW, HKEY_CURRENT_USER, RRF_RT_REG_DWORD};
-use windows::Win32::UI::Input::KeyboardAndMouse::{TrackMouseEvent, TME_LEAVE, TRACKMOUSEEVENT};
+use windows::Win32::UI::Input::KeyboardAndMouse::{
+    ReleaseCapture, SetCapture, TrackMouseEvent, TME_LEAVE, TRACKMOUSEEVENT,
+};
 use windows::Win32::UI::WindowsAndMessaging::{
     AppendMenuW, CreatePopupMenu, CreateWindowExW, DefWindowProcW, DestroyMenu, DestroyWindow,
-    GetCursorPos, LoadCursorW, RegisterClassW, SetCursor, SetForegroundWindow, ShowWindow,
-    TrackPopupMenu, UpdateLayeredWindow, IDC_HAND, MA_NOACTIVATE, MF_STRING, SW_SHOWNOACTIVATE,
-    TPM_RETURNCMD, TPM_RIGHTBUTTON, ULW_ALPHA, WM_DISPLAYCHANGE, WM_DPICHANGED, WM_LBUTTONUP,
-    WM_MOUSEACTIVATE, WM_MOUSEMOVE, WM_RBUTTONUP, WM_SETCURSOR, WM_SETTINGCHANGE, WNDCLASSW,
-    WS_EX_LAYERED, WS_EX_NOACTIVATE, WS_EX_TOOLWINDOW, WS_EX_TOPMOST, WS_POPUP,
+    GetCursorPos, GetSystemMetrics, LoadCursorW, RegisterClassW, SetCursor, SetForegroundWindow,
+    SetWindowPos, ShowWindow, TrackPopupMenu, UpdateLayeredWindow, HWND_BOTTOM, HWND_TOPMOST,
+    IDC_HAND, MA_NOACTIVATE, MF_STRING, SM_CXDRAG, SM_CYDRAG, SWP_NOACTIVATE, SWP_NOMOVE,
+    SWP_NOSIZE, SWP_NOZORDER, SW_SHOWNOACTIVATE, TPM_RETURNCMD, TPM_RIGHTBUTTON, ULW_ALPHA,
+    WINDOWPOS, WM_CAPTURECHANGED, WM_DISPLAYCHANGE, WM_DPICHANGED, WM_LBUTTONDOWN, WM_LBUTTONUP,
+    WM_MOUSEACTIVATE, WM_MOUSEMOVE, WM_RBUTTONUP, WM_SETCURSOR, WM_SETTINGCHANGE,
+    WM_WINDOWPOSCHANGING, WNDCLASSW, WS_EX_LAYERED, WS_EX_NOACTIVATE, WS_EX_TOOLWINDOW, WS_POPUP,
 };
 
 use super::{ControlEvent, ControlLook, ControlMenuItem};
@@ -60,7 +64,8 @@ pub mod control {
     const WM_MOUSELEAVE: u32 = 0x02A3;
     const MENU_OPEN: usize = 1;
     const MENU_SETTINGS: usize = 2;
-    const MENU_HIDE: usize = 3;
+    const MENU_RESET_POSITION: usize = 3;
+    const MENU_HIDE: usize = 4;
 
     /// Receives what the user does with the widget.
     pub type Handler = Rc<dyn Fn(ControlEvent)>;
@@ -69,6 +74,15 @@ pub mod control {
         hwnd: HWND,
         look: ControlLook,
         hovering: bool,
+        drag: Option<Drag>,
+    }
+
+    /// A press of the left button on the widget, which becomes a drag once the pointer moves
+    /// further than the system drag threshold; otherwise it is a click.
+    struct Drag {
+        cursor: POINT,
+        origin: (i32, i32),
+        moving: bool,
     }
 
     thread_local! {
@@ -86,14 +100,119 @@ pub mod control {
             None => create(&look)?,
         };
         paint(hwnd, &look, false)?;
+        let front = look.front;
         CONTROL.with(|c| {
             *c.borrow_mut() = Some(Control {
                 hwnd,
                 look,
                 hovering: false,
+                drag: None,
             });
         });
+        set_layer(hwnd, front);
         Ok(())
+    }
+
+    /// Above all windows, or at the bottom of the z-order (WM_WINDOWPOSCHANGING keeps it there).
+    fn set_layer(hwnd: HWND, front: bool) {
+        let after = if front { HWND_TOPMOST } else { HWND_BOTTOM };
+        // SAFETY: `hwnd` is our live widget window; only its z-order changes.
+        let _ = unsafe {
+            SetWindowPos(
+                hwnd,
+                Some(after),
+                0,
+                0,
+                0,
+                0,
+                SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE,
+            )
+        };
+    }
+
+    fn is_front() -> bool {
+        // try_borrow: z-order messages can arrive while `show` holds the state.
+        CONTROL.with(|c| {
+            c.try_borrow()
+                .ok()
+                .and_then(|c| c.as_ref().map(|c| c.look.front))
+                .unwrap_or(true)
+        })
+    }
+
+    fn cursor() -> POINT {
+        let mut at = POINT::default();
+        // SAFETY: `at` is valid for writes.
+        let _ = unsafe { GetCursorPos(&mut at) };
+        at
+    }
+
+    fn start_drag(hwnd: HWND) {
+        let started = CONTROL.with(|c| {
+            let mut c = c.borrow_mut();
+            let control = c.as_mut()?;
+            control.drag = Some(Drag {
+                cursor: cursor(),
+                origin: (control.look.x, control.look.y),
+                moving: false,
+            });
+            Some(())
+        });
+        if started.is_some() {
+            // SAFETY: capturing the mouse for our own window, so the drag continues outside it.
+            unsafe { SetCapture(hwnd) };
+        }
+    }
+
+    /// Moves the widget with the pointer once the drag threshold is passed.
+    fn continue_drag(hwnd: HWND) {
+        let target = CONTROL.with(|c| {
+            let mut c = c.borrow_mut();
+            let control = c.as_mut()?;
+            let drag = control.drag.as_mut()?;
+            let now = cursor();
+            let (dx, dy) = (now.x - drag.cursor.x, now.y - drag.cursor.y);
+            if !drag.moving {
+                // SAFETY: reading system metrics has no preconditions.
+                let (tx, ty) =
+                    unsafe { (GetSystemMetrics(SM_CXDRAG), GetSystemMetrics(SM_CYDRAG)) };
+                if dx.abs() < tx && dy.abs() < ty {
+                    return None;
+                }
+                drag.moving = true;
+            }
+            control.look.x = drag.origin.0 + dx;
+            control.look.y = drag.origin.1 + dy;
+            Some((control.look.x, control.look.y))
+        });
+        if let Some((x, y)) = target {
+            // SAFETY: `hwnd` is our live widget window; only its position changes.
+            let _ = unsafe {
+                SetWindowPos(
+                    hwnd,
+                    None,
+                    x,
+                    y,
+                    0,
+                    0,
+                    SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE,
+                )
+            };
+        }
+    }
+
+    /// Ends a press: a click when the pointer stayed put, otherwise the end of a drag.
+    fn end_drag() -> Option<ControlEvent> {
+        let drag = CONTROL.with(|c| c.borrow_mut().as_mut().and_then(|c| c.drag.take()))?;
+        if !drag.moving {
+            return Some(ControlEvent::Click);
+        }
+        CONTROL.with(|c| {
+            c.borrow().as_ref().map(|c| ControlEvent::Moved {
+                x: c.look.x,
+                y: c.look.y,
+            })
+        })
     }
 
     /// Destroys the widget, if shown.
@@ -120,7 +239,7 @@ pub mod control {
             // Fails harmlessly when the class is already registered (widget shown again).
             RegisterClassW(&class);
             let hwnd = CreateWindowExW(
-                WS_EX_LAYERED | WS_EX_TOOLWINDOW | WS_EX_TOPMOST | WS_EX_NOACTIVATE,
+                WS_EX_LAYERED | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE,
                 CLASS_NAME,
                 w!("Vision Board"),
                 WS_POPUP,
@@ -242,7 +361,8 @@ pub mod control {
             let Ok(menu) = CreatePopupMenu() else {
                 return;
             };
-            for (id, label) in [MENU_OPEN, MENU_SETTINGS, MENU_HIDE].into_iter().zip(&wide) {
+            let ids = [MENU_OPEN, MENU_SETTINGS, MENU_RESET_POSITION, MENU_HIDE];
+            for (id, label) in ids.into_iter().zip(&wide) {
                 let _ = AppendMenuW(menu, MF_STRING, id, PCWSTR(label.as_ptr()));
             }
             let mut at = POINT::default();
@@ -264,6 +384,7 @@ pub mod control {
         let item = match chosen {
             MENU_OPEN => ControlMenuItem::OpenBoard,
             MENU_SETTINGS => ControlMenuItem::Settings,
+            MENU_RESET_POSITION => ControlMenuItem::ResetPosition,
             MENU_HIDE => ControlMenuItem::Hide,
             _ => return,
         };
@@ -298,15 +419,47 @@ pub mod control {
                 // SAFETY: `track` is a valid, initialized TRACKMOUSEEVENT for our window.
                 let _ = unsafe { TrackMouseEvent(&mut track) };
                 set_hover(hwnd, true);
+                continue_drag(hwnd);
                 LRESULT(0)
             }
             WM_MOUSELEAVE => {
                 set_hover(hwnd, false);
                 LRESULT(0)
             }
-            WM_LBUTTONUP => {
-                emit(ControlEvent::Click);
+            WM_LBUTTONDOWN => {
+                start_drag(hwnd);
                 LRESULT(0)
+            }
+            WM_LBUTTONUP => {
+                // Releasing the capture sends WM_CAPTURECHANGED, which finds the drag ended.
+                let event = end_drag();
+                // SAFETY: releasing the capture this window took in WM_LBUTTONDOWN.
+                let _ = unsafe { ReleaseCapture() };
+                if let Some(event) = event {
+                    emit(event);
+                }
+                LRESULT(0)
+            }
+            // Capture lost mid-drag (e.g. another window grabbed the mouse): keep where it got.
+            WM_CAPTURECHANGED => {
+                if let Some(event @ ControlEvent::Moved { .. }) = end_drag() {
+                    emit(event);
+                }
+                LRESULT(0)
+            }
+            // At the bottom layer, every z-order change is turned into "stay at the bottom",
+            // so clicking the widget or other apps never brings it above windows.
+            WM_WINDOWPOSCHANGING if !is_front() => {
+                let pos = lparam.0 as *mut WINDOWPOS;
+                // SAFETY: for WM_WINDOWPOSCHANGING, lparam points to a WINDOWPOS the system
+                // owns for the duration of this call and lets us modify.
+                unsafe {
+                    if let Some(pos) = pos.as_mut() {
+                        pos.hwndInsertAfter = HWND_BOTTOM;
+                        pos.flags &= !SWP_NOZORDER;
+                    }
+                    DefWindowProcW(hwnd, msg, wparam, lparam)
+                }
             }
             WM_RBUTTONUP => {
                 context_menu(hwnd);

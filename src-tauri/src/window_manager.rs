@@ -9,6 +9,7 @@ use tauri::{
 };
 use tauri_plugin_window_state::{StateFlags, WindowExt};
 
+use crate::domain::settings::Settings;
 use crate::domain::window_placement::{self, Rect};
 #[cfg(not(target_os = "windows"))]
 use crate::domain::window_placement::{CONTROL_HEIGHT, CONTROL_WIDTH};
@@ -86,24 +87,40 @@ pub fn open_settings(app: &AppHandle) -> tauri::Result<()> {
     window.set_focus()
 }
 
-/// Where the control widget goes: the top right corner of the primary monitor's work area,
-/// left of the caption buttons of maximized windows. Returns the position in physical pixels
-/// and the monitor's scale factor.
-fn control_placement(app: &AppHandle) -> tauri::Result<Option<((i32, i32), f64)>> {
-    let Some(monitor) = app.primary_monitor()? else {
+/// Where the control widget goes: where the user dragged it (if that is still on a monitor),
+/// otherwise the top right corner of the primary monitor's work area, left of the caption
+/// buttons of maximized windows. Returns the position in physical pixels and the primary
+/// monitor's scale factor.
+fn control_placement(
+    app: &AppHandle,
+    settings: &Settings,
+) -> tauri::Result<Option<((i32, i32), f64)>> {
+    let Some(primary) = app.primary_monitor()? else {
         return Ok(None);
     };
-    let area = monitor.work_area();
-    let position = window_placement::control_position(
+    let work_area = |m: &tauri::Monitor| {
+        let area = m.work_area();
         Rect::new(
             area.position.x,
             area.position.y,
             area.size.width,
             area.size.height,
-        ),
-        monitor.scale_factor(),
+        )
+    };
+    let areas: Vec<Rect> = app.available_monitors()?.iter().map(work_area).collect();
+    let scale = primary.scale_factor();
+    let size = (
+        (window_placement::CONTROL_WIDTH * scale).round() as u32,
+        (window_placement::CONTROL_HEIGHT * scale).round() as u32,
     );
-    Ok(Some((position, monitor.scale_factor())))
+    let position = window_placement::control_origin(
+        settings.control_position.map(|p| (p.x, p.y)),
+        size,
+        &areas,
+        work_area(&primary),
+        scale,
+    );
+    Ok(Some((position, scale)))
 }
 
 /// Shows, updates (theme, language, monitor) or hides the control widget to match the setting.
@@ -114,14 +131,32 @@ pub fn sync_control(app: &AppHandle, visible: bool) -> tauri::Result<()> {
     app.run_on_main_thread(move || native_control::sync(&app_for_main, visible))
 }
 
-/// Shows or destroys the control widget to match the setting.
+/// Shows, updates (layer, position) or destroys the control widget to match the setting.
 #[cfg(not(target_os = "windows"))]
 pub fn sync_control(app: &AppHandle, visible: bool) -> tauri::Result<()> {
     match (visible, app.get_webview_window(CONTROL)) {
         (true, None) => open_control(app),
+        (true, Some(window)) => {
+            let settings = preferences::current(app).unwrap_or_default();
+            set_control_layer(&window, settings.control_layer)?;
+            if let Some(((x, y), _)) = control_placement(app, &settings)? {
+                window.set_position(PhysicalPosition::new(x, y))?;
+            }
+            Ok(())
+        }
         (false, Some(window)) => window.destroy(),
-        _ => Ok(()),
+        (false, None) => Ok(()),
     }
+}
+
+#[cfg(not(target_os = "windows"))]
+fn set_control_layer(
+    window: &WebviewWindow,
+    layer: crate::domain::settings::ControlLayer,
+) -> tauri::Result<()> {
+    let front = layer == crate::domain::settings::ControlLayer::Front;
+    window.set_always_on_bottom(!front)?;
+    window.set_always_on_top(front)
 }
 
 /// On Windows the control widget is a native layered window showing bitmaps rendered from the
@@ -134,7 +169,7 @@ mod native_control {
 
     use super::{control_placement, open_board, open_settings};
     use crate::domain::control_look;
-    use crate::domain::settings::ThemePreference;
+    use crate::domain::settings::{ControlLayer, ControlPosition, ThemePreference};
     use crate::platform::{self, ControlEvent, ControlLook, ControlMenuItem};
     use crate::{preferences, tray};
 
@@ -155,7 +190,7 @@ mod native_control {
 
     fn look(app: &AppHandle) -> Result<ControlLook, String> {
         let settings = preferences::current(app).unwrap_or_default();
-        let ((x, y), scale) = control_placement(app)
+        let ((x, y), scale) = control_placement(app, &settings)
             .map_err(|e| e.to_string())?
             .ok_or("no monitor")?;
         let dark = match settings.theme {
@@ -170,9 +205,11 @@ mod native_control {
             y,
             normal: bitmap(false)?,
             hover: bitmap(true)?,
+            front: settings.control_layer == ControlLayer::Front,
             menu: [
                 text.open.to_owned(),
                 text.settings.to_owned(),
+                text.reset_control_position.to_owned(),
                 text.hide_control.to_owned(),
             ],
         })
@@ -194,6 +231,16 @@ mod native_control {
                         .map(|_| ())
                         .map_err(|e| e.to_string())
                 }
+                ControlEvent::Menu(ControlMenuItem::ResetPosition) => {
+                    preferences::change(&app, |s| s.control_position = None)
+                        .map(|_| ())
+                        .map_err(|e| e.to_string())
+                }
+                ControlEvent::Moved { x, y } => preferences::change(&app, |s| {
+                    s.control_position = Some(ControlPosition { x, y });
+                })
+                .map(|_| ())
+                .map_err(|e| e.to_string()),
                 ControlEvent::Refresh => {
                     let visible = preferences::current(&app).is_ok_and(|s| s.control_widget);
                     super::sync_control(&app, visible).map_err(|e| e.to_string())
@@ -206,11 +253,12 @@ mod native_control {
     }
 }
 
-/// The control widget (macOS, Linux): a small always-on-top webview window outside the
-/// taskbar that does not take focus when shown.
+/// The control widget (macOS, Linux): a small webview window outside the taskbar, above or
+/// below other windows as set, that does not take focus when shown.
 #[cfg(not(target_os = "windows"))]
 fn open_control(app: &AppHandle) -> tauri::Result<()> {
-    let Some(((x, y), _)) = control_placement(app)? else {
+    let settings = preferences::current(app).unwrap_or_default();
+    let Some(((x, y), _)) = control_placement(app, &settings)? else {
         return Ok(());
     };
     let window = WebviewWindowBuilder::new(app, CONTROL, WebviewUrl::App("index.html".into()))
@@ -223,13 +271,13 @@ fn open_control(app: &AppHandle) -> tauri::Result<()> {
         .decorations(false)
         .transparent(true)
         .shadow(false)
-        .always_on_top(true)
         .skip_taskbar(true)
         .focused(false)
         .visible(false)
         .initialization_script(settings_script(app))
         .build()?;
     window.set_position(PhysicalPosition::new(x, y))?;
+    set_control_layer(&window, settings.control_layer)?;
     window.show()
 }
 

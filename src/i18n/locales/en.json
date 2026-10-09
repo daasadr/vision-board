@@ -107,7 +107,12 @@
     },
     "control": {
       "label": "Desktop control",
-      "hint": "A small bar in the top right corner of the screen. Click it to open the settings."
+      "hint": "A small bar on your desktop. Click it to open the settings, drag it anywhere you like.",
+      "layer": "Position",
+      "behind": "Behind windows",
+      "front": "In front of windows",
+      "layerHint": "Behind windows it shows only on the free desktop and never gets in the way. In front of windows it always stays on top.",
+      "resetPosition": "Move back to the corner"
     },
     "reset": {
       "button": "Restore default settings",

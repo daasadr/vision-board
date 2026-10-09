@@ -83,6 +83,23 @@ impl Default for Placement {
     }
 }
 
+/// Whether the control widget stays behind other windows (at desktop level) or above them.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub enum ControlLayer {
+    #[default]
+    Behind,
+    Front,
+}
+
+/// Where the user dragged the control widget: its top-left corner in physical pixels on the
+/// virtual desktop.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Type)]
+pub struct ControlPosition {
+    pub x: i32,
+    pub y: i32,
+}
+
 /// Modes that start with the app. Phases 3 and 4 act on them.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, Type)]
 #[serde(rename_all = "camelCase")]
@@ -101,8 +118,11 @@ pub struct Settings {
     /// Hide quotes and texts (they stay stored).
     pub images_only: bool,
     pub placement: Placement,
-    /// The always-on-top control widget is shown.
+    /// The control widget is shown.
     pub control_widget: bool,
+    pub control_layer: ControlLayer,
+    /// None: the default corner.
+    pub control_position: Option<ControlPosition>,
     pub startup: Startup,
 }
 
@@ -115,6 +135,8 @@ impl Default for Settings {
             images_only: false,
             placement: Placement::default(),
             control_widget: true,
+            control_layer: ControlLayer::default(),
+            control_position: None,
             startup: Startup::default(),
         }
     }
@@ -217,6 +239,8 @@ mod tests {
                 anchor: Anchor::BottomRight,
             },
             control_widget: false,
+            control_layer: ControlLayer::Front,
+            control_position: Some(ControlPosition { x: -300, y: 40 }),
             startup: Startup {
                 wallpaper: true,
                 scheduled_popup: true,
@@ -243,6 +267,8 @@ mod tests {
         let settings = Settings::from_json_lenient(r#"{"theme":"noc"}"#);
         assert_eq!(settings.theme, ThemePreference::Noc);
         assert!(settings.control_widget);
+        assert_eq!(settings.control_layer, ControlLayer::Behind);
+        assert_eq!(settings.control_position, None);
         assert_eq!(settings.placement, Placement::default());
 
         let nested = Settings::from_json_lenient(r#"{"placement":{"mode":"partial"}}"#);
@@ -275,6 +301,8 @@ mod tests {
         let json = serde_json::to_string(&Settings::default()).expect("json");
         assert!(json.contains(r#""imagesOnly":false"#));
         assert!(json.contains(r#""controlWidget":true"#));
+        assert!(json.contains(r#""controlLayer":"behind""#));
+        assert!(json.contains(r#""controlPosition":null"#));
         assert!(json.contains(r#""scheduledPopup":false"#));
         assert!(json.contains(r#""theme":"system""#));
     }

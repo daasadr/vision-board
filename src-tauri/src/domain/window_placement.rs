@@ -83,9 +83,92 @@ pub fn control_position(area: Rect, scale: f64) -> (i32, i32) {
     (x as i32, y as i32)
 }
 
+/// Where the control widget of the given size (physical pixels) goes: where the user dragged
+/// it, when at least half of it lies on one work area (then moved fully into that area), or
+/// else the default corner of the primary work area.
+pub fn control_origin(
+    saved: Option<(i32, i32)>,
+    size: (u32, u32),
+    work_areas: &[Rect],
+    primary: Rect,
+    scale: f64,
+) -> (i32, i32) {
+    let default = control_position(primary, scale);
+    let Some((x, y)) = saved else {
+        return default;
+    };
+    let widget = Rect::new(x, y, size.0, size.1);
+    let half = i64::from(size.0) * i64::from(size.1) / 2;
+    let Some(area) = work_areas.iter().find(|area| {
+        let (w, h) = widget.intersection(area);
+        w * h >= half
+    }) else {
+        return default;
+    };
+    let clamp = |pos: i32, len: u32, start: i32, area_len: u32| {
+        let max = i64::from(start) + i64::from(area_len) - i64::from(len);
+        // Within the area's i32 coordinates.
+        i64::from(pos).clamp(i64::from(start), max.max(i64::from(start))) as i32
+    };
+    (
+        clamp(x, size.0, area.x, area.width),
+        clamp(y, size.1, area.y, area.height),
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    const CONTROL: (u32, u32) = (120, 40);
+
+    #[test]
+    fn control_goes_to_the_corner_until_moved() {
+        assert_eq!(
+            control_origin(None, CONTROL, &[PRIMARY], PRIMARY, 1.0),
+            (1650, 2)
+        );
+    }
+
+    #[test]
+    fn a_moved_control_stays_where_it_was_put() {
+        assert_eq!(
+            control_origin(
+                Some((300, 500)),
+                CONTROL,
+                &[PRIMARY, SECONDARY],
+                PRIMARY,
+                1.0
+            ),
+            (300, 500)
+        );
+        assert_eq!(
+            control_origin(
+                Some((3000, 900)),
+                CONTROL,
+                &[PRIMARY, SECONDARY],
+                PRIMARY,
+                1.0
+            ),
+            (3000, 900)
+        );
+    }
+
+    #[test]
+    fn a_control_hanging_over_the_edge_is_pulled_in() {
+        assert_eq!(
+            control_origin(Some((1830, 1010)), CONTROL, &[PRIMARY], PRIMARY, 1.0),
+            (1800, 1000)
+        );
+    }
+
+    #[test]
+    fn a_control_on_a_disconnected_monitor_returns_to_the_corner() {
+        assert_eq!(
+            control_origin(Some((3000, 900)), CONTROL, &[PRIMARY], PRIMARY, 1.0),
+            (1650, 2)
+        );
+    }
 
     #[test]
     fn control_sits_left_of_the_caption_buttons() {

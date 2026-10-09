@@ -107,7 +107,12 @@
     },
     "control": {
       "label": "Bedienelement auf dem Desktop",
-      "hint": "Eine kleine Leiste oben rechts auf dem Bildschirm. Ein Klick öffnet die Einstellungen."
+      "hint": "Eine kleine Leiste auf dem Desktop. Ein Klick öffnet die Einstellungen, per Ziehen verschieben Sie sie beliebig.",
+      "layer": "Lage",
+      "behind": "Hinter Fenstern",
+      "front": "Vor Fenstern",
+      "layerHint": "Hinter Fenstern ist sie nur auf dem freien Desktop sichtbar und stört nie. Vor Fenstern bleibt sie immer oben.",
+      "resetPosition": "Zurück in die Ecke"
     },
     "reset": {
       "button": "Standardeinstellungen wiederherstellen",

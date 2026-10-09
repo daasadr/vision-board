@@ -22,8 +22,10 @@ pub struct ControlLook {
     pub y: i32,
     pub normal: crate::domain::control_look::Bitmap,
     pub hover: crate::domain::control_look::Bitmap,
-    /// Labels of the context menu: open board, settings, hide.
-    pub menu: [String; 3],
+    /// Above all windows; otherwise kept at the bottom (desktop level).
+    pub front: bool,
+    /// Labels of the context menu: open board, settings, back to the corner, hide.
+    pub menu: [String; 4],
 }
 
 /// Something the user did with the native control widget, or a display change that may need
@@ -33,6 +35,11 @@ pub struct ControlLook {
 pub enum ControlEvent {
     Click,
     Menu(ControlMenuItem),
+    /// The user dragged the widget; its new top-left corner in physical pixels.
+    Moved {
+        x: i32,
+        y: i32,
+    },
     Refresh,
 }
 
@@ -41,5 +48,6 @@ pub enum ControlEvent {
 pub enum ControlMenuItem {
     OpenBoard,
     Settings,
+    ResetPosition,
     Hide,
 }

@@ -107,7 +107,12 @@
     },
     "control": {
       "label": "Ovládací prvek na ploše",
-      "hint": "Malý obdélník v pravém horním rohu obrazovky. Kliknutím otevřete nastavení."
+      "hint": "Malý obdélník na ploše. Kliknutím otevřete nastavení, tažením ho přesunete kamkoli.",
+      "layer": "Poloha prvku",
+      "behind": "Za okny",
+      "front": "Před okny",
+      "layerHint": "Za okny je prvek vidět jen na volné ploše a nepřekáží. Před okny zůstává vždy navrchu.",
+      "resetPosition": "Vrátit do rohu"
     },
     "reset": {
       "button": "Obnovit výchozí nastavení",

@@ -121,3 +121,12 @@ Boční navigace se sekcemi Obecné (jazyk, spuštění se systémem, ovládací
 - **Souběh:** `preferences::store` pustí zámek databáze dřív, než vytváří okna (`settings_script` čte nastavení znovu).
 - **Odinstalace:** NSIS hook maže autostart jen mimo aktualizaci (`$UpdateMode`).
 - Nalezené a opravené při ověřování v release buildu: webview prvek překročil paměťový limit (→ nativní prvek), titulek okna nastavení se nepřekládal (→ `retitle`).
+
+## Úprava po zpětné vazbě (2026-10-09)
+
+Prvek vždy navrchu v rohu při práci překážel a nešel posunout. Změna:
+
+- `Settings.controlLayer`: **za okny** (nový výchozí stav) nebo **před okny**. Na Windows drží vrstvu „za okny“ `WM_WINDOWPOSCHANGING`, které každou změnu z-pořadí přepíše na `HWND_BOTTOM`. Prvek se tak chová jako widget na ploše a klik na něj ho nevytáhne nad okna.
+- **Přesun tažením** v obou vrstvách. Stisk levého tlačítka se po překročení systémového prahu tažení (`SM_CXDRAG`/`SM_CYDRAG`) změní na tažení s `SetCapture`, jinak je to klik. Konec tažení uloží `Settings.controlPosition` (fyzické px). `window_placement::control_origin` ji použije, jen když prvek z alespoň poloviny leží na některé pracovní ploše (pak ho dotáhne dovnitř), jinak vrátí výchozí roh.
+- **Vrátit do rohu** v kontextové nabídce prvku a v nastavení (`controlPosition = null`).
+- macOS/Linux (webview): vrstva přes `always_on_top`/`always_on_bottom`, tažení zatím chybí (úkol vb-p53).

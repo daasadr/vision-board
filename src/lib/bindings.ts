@@ -74,6 +74,18 @@ export type Board = {
  */
 export type BoardOp = { op: "upsert"; item: Item } | { op: "delete"; id: string };
 
+/**  Whether the control widget stays behind other windows (at desktop level) or above them. */
+export type ControlLayer = "behind" | "front";
+
+/**
+ *  Where the user dragged the control widget: its top-left corner in physical pixels on the
+ *  virtual desktop.
+ */
+export type ControlPosition = {
+	x: number,
+	y: number,
+};
+
 export type Entitlement = {
 	feature: Feature,
 	enabled: boolean,
@@ -155,8 +167,11 @@ export type Settings = {
 	/**  Hide quotes and texts (they stay stored). */
 	imagesOnly: boolean,
 	placement: Placement,
-	/**  The always-on-top control widget is shown. */
+	/**  The control widget is shown. */
 	controlWidget: boolean,
+	controlLayer: ControlLayer,
+	/**  None: the default corner. */
+	controlPosition: ControlPosition | null,
 	startup: Startup,
 };
 

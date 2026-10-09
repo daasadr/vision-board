@@ -66,6 +66,23 @@ test.describe("settings window", () => {
     });
   });
 
+  test.describe("with a moved control widget", () => {
+    test.use({ settings: { controlPosition: { x: 400, y: 300 } } });
+
+    test("the control can go in front of windows and back to its corner", async ({ page }) => {
+      await page.goto("/settings");
+      const layer = page.getByRole("group", { name: "Poloha prvku" });
+      await expect(layer.getByRole("radio", { name: "Za okny" })).toBeChecked();
+
+      await layer.getByRole("radio", { name: "Před okny" }).check();
+      await expect.poll(async () => (await storedSettings(page)).controlLayer).toBe("front");
+
+      await page.getByRole("button", { name: "Vrátit do rohu" }).click();
+      await expect.poll(async () => (await storedSettings(page)).controlPosition).toBeNull();
+      await expect(page.getByRole("button", { name: "Vrátit do rohu" })).toBeHidden();
+    });
+  });
+
   test("starting at login can be turned on, and restoring defaults turns it off", async ({
     page,
   }) => {

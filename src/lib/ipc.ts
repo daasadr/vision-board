@@ -5,6 +5,7 @@ import {
   type Anchor,
   type AppFlag,
   type BoardOp,
+  type ControlLayer,
   type Entitlement,
   type Feature,
   type FrameStyle,
@@ -24,6 +25,7 @@ import {
 export type {
   Anchor,
   BoardOp,
+  ControlLayer,
   Entitlement,
   Feature,
   FrameStyle,

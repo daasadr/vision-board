@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button, Dialog, DialogClose, SegmentedControl, Switch } from "../../design/components";
-import { ipc, type LanguagePreference } from "../../lib/ipc";
+import { ipc, type ControlLayer, type LanguagePreference } from "../../lib/ipc";
 import { useSettings } from "../../lib/settings";
 import styles from "./SettingsApp.module.css";
 import { useSaveSettings, type Notify } from "./useSaveSettings";
 
 const LANGUAGES: LanguagePreference[] = ["system", "cs", "en", "de"];
+const LAYERS: ControlLayer[] = ["behind", "front"];
 
 /**
  * Starting at login. The OS registration is the source of truth, so the switch reads it when
@@ -85,6 +86,27 @@ export function GeneralSection({ notify }: { notify: Notify }) {
         />
         <p className={styles.hint}>{t("settings.control.hint")}</p>
       </div>
+      {settings.controlWidget && (
+        <div className={styles.group}>
+          <SegmentedControl
+            label={t("settings.control.layer")}
+            value={settings.controlLayer}
+            options={LAYERS.map((value) => ({
+              value,
+              label: t(`settings.control.${value}`),
+            }))}
+            onChange={(controlLayer) => void save({ controlLayer })}
+          />
+          <p className={styles.hint}>{t("settings.control.layerHint")}</p>
+          {settings.controlPosition && (
+            <div>
+              <Button size="sm" onClick={() => void save({ controlPosition: null })}>
+                {t("settings.control.resetPosition")}
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
       <div className={`${styles.group} ${styles.danger}`}>
         <Dialog
           open={confirmReset}
