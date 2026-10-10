@@ -45,7 +45,9 @@ jobs:
       image: semgrep/semgrep
     steps:
       - uses: actions/checkout@v7
-      - run: semgrep scan --config p/typescript --config p/react --config p/rust --config p/secrets --error --exclude src/lib/bindings.ts
+      # unsafe-usage is off: the compiler already denies `unsafe` everywhere except
+      # src-tauri/src/platform (the OS FFI layer, see Cargo.toml lints), which is stricter.
+      - run: semgrep scan --config p/typescript --config p/react --config p/rust --config p/secrets --error --exclude src/lib/bindings.ts --exclude-rule rust.lang.security.unsafe-usage.unsafe-usage
 
   libyear:
     name: Dependency freshness (libyear)

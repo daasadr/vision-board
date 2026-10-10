@@ -13,6 +13,7 @@ use tauri::async_runtime::JoinHandle;
 use tauri::AppHandle;
 
 /// Window label of the off-screen renderer.
+#[cfg_attr(not(target_os = "windows"), allow(dead_code))]
 pub const RENDERER: &str = "wallpaper-render";
 /// Command-line flag the uninstaller passes to put the original wallpaper back.
 pub const RESTORE_ARG: &str = "--restore-wallpaper";
@@ -32,6 +33,7 @@ pub struct Wallpaper {
     /// Signalled by the renderer page once the board, its images and fonts are drawn.
     rendered: tokio::sync::Notify,
     /// What the shown wallpaper was made from; nothing is rendered when it did not change.
+    #[cfg_attr(not(target_os = "windows"), allow(dead_code))]
     shown: Mutex<Option<String>>,
 }
 

@@ -64,6 +64,8 @@ pub fn run() {
             app.manage(popup::Popup::default());
             app.manage(wallpaper::Wallpaper::default());
             // Run by the uninstaller: put the original wallpaper back and quit.
+            // Arguments only choose what to open at start; nothing security-relevant.
+            // nosemgrep: rust.lang.security.args.args
             if std::env::args().any(|arg| arg == wallpaper::RESTORE_ARG) {
                 wallpaper::restore(app.handle());
                 std::process::exit(0);
@@ -73,6 +75,7 @@ pub fn run() {
             tray::create(app.handle(), &settings)?;
             app.on_menu_event(window_manager::on_menu_event);
             // Started at login: stay in the tray (and the control widget) without a window.
+            // nosemgrep: rust.lang.security.args.args
             if !std::env::args().any(|arg| arg == AUTOSTART_ARG) {
                 window_manager::open_board(app.handle())?;
             }

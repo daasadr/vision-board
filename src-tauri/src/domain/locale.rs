@@ -39,6 +39,8 @@ pub struct Texts {
     pub settings: &'static str,
     pub control_widget: &'static str,
     pub hide_control: &'static str,
+    // Only the native control widget (Windows) has this menu item.
+    #[cfg_attr(not(target_os = "windows"), allow(dead_code))]
     pub reset_control_position: &'static str,
     pub quit: &'static str,
     pub settings_title: &'static str,
