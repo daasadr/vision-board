@@ -1,0 +1,70 @@
+/*
+ * Hotspots sit over the image and scale with the item (--item-w, unitless canvas width).
+ * Quiet at rest, clear when the pointer is over the image or the hotspot has focus.
+ */
+
+.layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.hotspot {
+  position: absolute;
+  width: calc(var(--item-w) * 0.075px);
+  height: calc(var(--item-w) * 0.075px);
+  min-width: 18px;
+  min-height: 18px;
+  padding: 0;
+  border: max(1.5px, calc(var(--item-w) * 0.005px)) solid var(--hotspot-ring);
+  border-radius: var(--radius-pill);
+  background: var(--hotspot-fill);
+  box-shadow: var(--shadow-hotspot);
+  opacity: 0.7;
+  cursor: pointer;
+  pointer-events: auto;
+  transform: translate(-50%, -50%);
+  transition:
+    opacity var(--duration-fast) var(--ease-standard),
+    transform var(--duration-fast) var(--ease-standard);
+}
+
+.hotspot:hover {
+  transform: translate(-50%, -50%) scale(1.15);
+}
+
+.hotspot:focus-visible {
+  opacity: 1;
+}
+
+.dot {
+  position: absolute;
+  inset: 28%;
+  border-radius: var(--radius-pill);
+  background: var(--gradient-accent);
+}
+
+/* Editing: the whole image takes clicks (to add hotspots) and hotspots are always clear. */
+.editing {
+  pointer-events: auto;
+  cursor: crosshair;
+  outline: 2px dashed var(--color-focus);
+  outline-offset: -2px;
+}
+
+.editing .hotspot {
+  opacity: 1;
+  cursor: grab;
+  touch-action: none;
+}
+
+/* The pointer over the image (its box carries data-image-box). */
+[data-image-box]:hover .hotspot {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hotspot:hover {
+    transform: translate(-50%, -50%);
+  }
+}

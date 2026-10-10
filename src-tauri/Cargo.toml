@@ -38,9 +38,14 @@ sys-locale = "0.3"
 tokio = { version = "1", features = ["sync", "time"] }
 # Local time for the popup schedule; already in the tree (through tauri), so no new code.
 chrono = { version = "0.4", default-features = false, features = ["clock"] }
+# Validating hotspot links (http/https only); already in the tree through tauri.
+url = "2"
 # Start at login through the OS mechanism (HKCU Run, LaunchAgent, XDG autostart); adds only
 # auto-launch + winreg. Pinned: newer releases require Tauri 2.12.
 tauri-plugin-autostart = "=2.5.1"
+# Opens hotspot links in the default browser (from Rust only, no JS permissions). Pinned:
+# newer releases require Tauri 2.12.
+tauri-plugin-opener = "=2.5.0"
 
 # Already compiled for tao/wry (same version and features), so this adds no code of its own.
 [target.'cfg(windows)'.dependencies]

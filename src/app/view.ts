@@ -1,4 +1,12 @@
-export const VIEWS = ["board", "settings", "control", "popup", "wallpaper", "design"] as const;
+export const VIEWS = [
+  "board",
+  "settings",
+  "control",
+  "popup",
+  "wallpaper",
+  "detail",
+  "design",
+] as const;
 export type View = (typeof VIEWS)[number];
 
 function isView(name: string): name is View {

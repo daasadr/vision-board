@@ -38,3 +38,20 @@
     animation: none;
   }
 }
+
+.hotspotHint {
+  position: absolute;
+  top: var(--space-3);
+  left: 50%;
+  z-index: var(--z-overlay);
+  margin: 0;
+  padding: var(--space-2) var(--space-4);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-raised);
+  box-shadow: var(--shadow-md);
+  font-size: var(--text-sm);
+  color: var(--color-ink);
+  transform: translateX(-50%);
+  backdrop-filter: blur(var(--blur-surface));
+}

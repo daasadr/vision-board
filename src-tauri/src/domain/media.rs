@@ -219,8 +219,14 @@ pub fn list(conn: &Connection) -> Result<Vec<Media>, MediaError> {
 /// i.e. at startup and after the board was saved on exit. Returns how many files were removed.
 pub fn remove_unreferenced(conn: &Connection, media_dir: &Path) -> Result<usize, MediaError> {
     conn.execute(
+        // Kept: every image's own media and the photos of its hotspots' detail galleries.
         "DELETE FROM media WHERE id NOT IN (
             SELECT json_extract(payload, '$.mediaId') FROM items WHERE kind = 'image'
+            UNION
+            SELECT photo.value FROM items,
+                json_each(items.payload, '$.hotspots') AS hotspot,
+                json_each(hotspot.value, '$.action.media') AS photo
+            WHERE items.kind = 'image'
         )",
         [],
     )?;
@@ -453,6 +459,7 @@ mod tests {
             z: 0,
             content: crate::domain::board::ItemContent::Image {
                 media_id: kept.id.clone(),
+                hotspots: vec![],
             },
             style: crate::domain::board::ItemStyle::default(),
         };
@@ -474,6 +481,53 @@ mod tests {
         let mut expected = vec![kept.file_name, kept.thumb_name];
         expected.sort();
         assert_eq!(left, expected);
+    }
+
+    #[test]
+    fn cleanup_keeps_the_photos_of_hotspot_details() {
+        use crate::domain::board::{
+            self, BoardOp, Hotspot, HotspotAction, Item, ItemContent, ItemStyle,
+        };
+        let dir = tempfile::tempdir().expect("temp dir");
+        let mut conn = crate::domain::db::open_in_memory();
+        let shown = import_bytes(dir.path(), &jpeg(60, 40)).expect("import");
+        let in_detail = import_bytes(dir.path(), &jpeg(60, 40)).expect("import");
+        record(&conn, &shown, 0).expect("record");
+        record(&conn, &in_detail, 0).expect("record");
+        let item = Item {
+            id: "i".into(),
+            x: 0.0,
+            y: 0.0,
+            w: 60.0,
+            h: 40.0,
+            rotation: 0.0,
+            z: 0,
+            content: ItemContent::Image {
+                media_id: shown.id.clone(),
+                hotspots: vec![Hotspot {
+                    id: "h".into(),
+                    x: 0.5,
+                    y: 0.5,
+                    label: "Více".into(),
+                    action: HotspotAction::Detail {
+                        title: "Dům".into(),
+                        text: String::new(),
+                        media: vec![in_detail.id.clone()],
+                    },
+                }],
+            },
+            style: ItemStyle::default(),
+        };
+        board::apply_ops(
+            &mut conn,
+            crate::domain::db::DEFAULT_BOARD_ID,
+            &[BoardOp::Upsert { item }],
+            0,
+        )
+        .expect("add image with a detail");
+
+        assert_eq!(remove_unreferenced(&conn, dir.path()).expect("cleanup"), 0);
+        assert_eq!(list(&conn).expect("list").len(), 2);
     }
 
     #[test]

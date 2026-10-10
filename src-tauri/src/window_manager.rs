@@ -123,6 +123,34 @@ fn control_placement(
     Ok(Some((position, scale)))
 }
 
+/// The window that shows a hotspot's detail (title, text, photo gallery).
+pub const DETAIL: &str = "detail";
+/// Tells an open detail window to show another hotspot. Matches src/app/detail.
+pub const DETAIL_SHOW_EVENT: &str = "detail://show";
+
+/// Shows the detail of a hotspot: a small window, reused when it is already open.
+pub fn open_detail(app: &AppHandle, item_id: &str, hotspot_id: &str) -> tauri::Result<()> {
+    let target = serde_json::json!({ "itemId": item_id, "hotspotId": hotspot_id });
+    if let Some(window) = app.get_webview_window(DETAIL) {
+        use tauri::Emitter;
+        window.emit(DETAIL_SHOW_EVENT, target)?;
+        window.unminimize()?;
+        window.show()?;
+        return window.set_focus();
+    }
+    let script = format!("{}window.__VB_DETAIL__ = {target};", settings_script(app));
+    let window = WebviewWindowBuilder::new(app, DETAIL, WebviewUrl::App("index.html".into()))
+        .title("Vision Board")
+        .inner_size(760.0, 560.0)
+        .min_inner_size(480.0, 360.0)
+        .center()
+        .visible(false)
+        .initialization_script(script)
+        .build()?;
+    window.show()?;
+    window.set_focus()
+}
+
 /// Shows, updates (theme, language, monitor) or hides the control widget to match the setting.
 #[cfg(target_os = "windows")]
 pub fn sync_control(app: &AppHandle, visible: bool) -> tauri::Result<()> {

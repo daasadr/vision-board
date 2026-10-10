@@ -28,6 +28,9 @@ pub enum ItemContent {
     Image {
         #[serde(rename = "mediaId")]
         media_id: String,
+        /// Buttons on the image (at most 5); older boards have none.
+        #[serde(default)]
+        hotspots: Vec<Hotspot>,
     },
     Quote {
         text: String,
@@ -39,7 +42,63 @@ pub enum ItemContent {
     },
 }
 
+/// A button on an image that leads further: to a web page or to a small window with more
+/// photos and text.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub struct Hotspot {
+    pub id: String,
+    /// Position as a fraction of the image (0–1), so it moves and scales with it.
+    pub x: f64,
+    pub y: f64,
+    pub label: String,
+    pub action: HotspotAction,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type)]
+#[serde(tag = "kind", rename_all = "camelCase")]
+pub enum HotspotAction {
+    /// Opens in the default browser; http and https only.
+    Link { url: String },
+    Detail {
+        title: String,
+        text: String,
+        /// Further photos (stored media), shown as a gallery.
+        media: Vec<String>,
+    },
+}
+
+pub const MAX_HOTSPOTS: usize = 5;
+pub const MAX_DETAIL_MEDIA: usize = 20;
+const MAX_LABEL_LEN: usize = 40;
+const MAX_TITLE_LEN: usize = 80;
+const MAX_URL_LEN: usize = 2000;
+
+/// Whether `url` is an absolute http(s) address with a host; nothing else may be opened.
+pub fn is_web_link(url: &str) -> bool {
+    url.len() <= MAX_URL_LEN
+        && url::Url::parse(url)
+            .is_ok_and(|u| matches!(u.scheme(), "http" | "https") && u.host_str().is_some())
+}
+
 impl ItemContent {
+    /// Every stored image the item shows: the image itself and its hotspots' galleries.
+    pub fn media_ids(&self) -> Vec<&str> {
+        match self {
+            Self::Image {
+                media_id, hotspots, ..
+            } => std::iter::once(media_id.as_str())
+                .chain(hotspots.iter().flat_map(|h| match &h.action {
+                    HotspotAction::Detail { media, .. } => {
+                        media.iter().map(String::as_str).collect()
+                    }
+                    HotspotAction::Link { .. } => Vec::new(),
+                }))
+                .collect(),
+            _ => Vec::new(),
+        }
+    }
+
     fn kind(&self) -> &'static str {
         match self {
             Self::Image { .. } => "image",
@@ -191,7 +250,7 @@ fn ensure_board(conn: &Connection, board_id: &str) -> Result<(), BoardError> {
 
 fn upsert(tx: &Transaction, board_id: &str, item: &Item, now_ms: i64) -> Result<(), BoardError> {
     validate(item)?;
-    if let ItemContent::Image { media_id } = &item.content {
+    for media_id in item.content.media_ids() {
         let exists = tx
             .query_row("SELECT 1 FROM media WHERE id = ?1", [media_id], |_| Ok(()))
             .optional()?
@@ -199,7 +258,7 @@ fn upsert(tx: &Transaction, board_id: &str, item: &Item, now_ms: i64) -> Result<
         if !exists {
             return Err(BoardError::UnknownMedia {
                 id: item.id.clone(),
-                media_id: media_id.clone(),
+                media_id: media_id.to_owned(),
             });
         }
     }
@@ -266,9 +325,10 @@ fn validate(item: &Item) -> Result<(), BoardError> {
         return Err(invalid(item, "rotation must be within ±15°"));
     }
     match &item.content {
-        ItemContent::Image { media_id } if media_id.is_empty() => {
+        ItemContent::Image { media_id, .. } if media_id.is_empty() => {
             Err(invalid(item, "image needs media"))
         }
+        ItemContent::Image { hotspots, .. } => validate_hotspots(item, hotspots),
         ItemContent::Quote { text, author } => {
             check_text(item, text)?;
             match author {
@@ -279,8 +339,47 @@ fn validate(item: &Item) -> Result<(), BoardError> {
             }
         }
         ItemContent::Text { text, .. } => check_text(item, text),
-        ItemContent::Image { .. } => Ok(()),
     }
+}
+
+fn validate_hotspots(item: &Item, hotspots: &[Hotspot]) -> Result<(), BoardError> {
+    if hotspots.len() > MAX_HOTSPOTS {
+        return Err(invalid(item, "an image has at most 5 hotspots"));
+    }
+    let mut ids = std::collections::HashSet::new();
+    for hotspot in hotspots {
+        if hotspot.id.is_empty() || hotspot.id.len() > MAX_ID_LEN || !ids.insert(&hotspot.id) {
+            return Err(invalid(item, "hotspot ids must be unique, 1–64 characters"));
+        }
+        if !(0.0..=1.0).contains(&hotspot.x) || !(0.0..=1.0).contains(&hotspot.y) {
+            return Err(invalid(item, "hotspot must lie on the image"));
+        }
+        let label = hotspot.label.trim();
+        if label.is_empty() || label.chars().count() > MAX_LABEL_LEN {
+            return Err(invalid(item, "hotspot label must be 1–40 characters"));
+        }
+        match &hotspot.action {
+            HotspotAction::Link { url } if !is_web_link(url) => {
+                return Err(invalid(
+                    item,
+                    "hotspot link must be an http or https address",
+                ));
+            }
+            HotspotAction::Detail { title, text, media } => {
+                if title.trim().is_empty() || title.chars().count() > MAX_TITLE_LEN {
+                    return Err(invalid(item, "detail title must be 1–80 characters"));
+                }
+                if text.chars().count() > MAX_TEXT_LEN {
+                    return Err(invalid(item, "detail text is too long"));
+                }
+                if media.len() > MAX_DETAIL_MEDIA || media.iter().any(String::is_empty) {
+                    return Err(invalid(item, "a detail has at most 20 photos"));
+                }
+            }
+            HotspotAction::Link { .. } => {}
+        }
+    }
+    Ok(())
 }
 
 fn check_text(item: &Item, text: &str) -> Result<(), BoardError> {
@@ -343,6 +442,7 @@ mod tests {
         let image = Item {
             content: ItemContent::Image {
                 media_id: "m1".into(),
+                hotspots: vec![],
             },
             ..quote("b", 1)
         };
@@ -371,6 +471,7 @@ mod tests {
         let framed = Item {
             content: ItemContent::Image {
                 media_id: "m1".into(),
+                hotspots: vec![],
             },
             style: ItemStyle {
                 frame: Some(FrameStyle::Polaroid),
@@ -392,6 +493,131 @@ mod tests {
             .expect("style from a newer version");
         let items = load(&conn, DEFAULT_BOARD_ID).expect("load").items;
         assert_eq!(items[0].style.frame, None);
+    }
+
+    fn hotspot(id: &str, action: HotspotAction) -> Hotspot {
+        Hotspot {
+            id: id.into(),
+            x: 0.3,
+            y: 0.6,
+            label: "Ubytování".into(),
+            action,
+        }
+    }
+
+    fn link(url: &str) -> HotspotAction {
+        HotspotAction::Link { url: url.into() }
+    }
+
+    fn image_with(hotspots: Vec<Hotspot>) -> Item {
+        Item {
+            content: ItemContent::Image {
+                media_id: "m1".into(),
+                hotspots,
+            },
+            ..quote("img", 0)
+        }
+    }
+
+    #[test]
+    fn stores_hotspots_with_the_image() {
+        let mut conn = open_in_memory();
+        add_media(&conn, "m1");
+        add_media(&conn, "m2");
+        let item = image_with(vec![
+            hotspot("h1", link("https://example.com/ubytovani")),
+            hotspot(
+                "h2",
+                HotspotAction::Detail {
+                    title: "Dům snů".into(),
+                    text: "Terasa s výhledem".into(),
+                    media: vec!["m2".into()],
+                },
+            ),
+        ]);
+        apply_ops(&mut conn, DEFAULT_BOARD_ID, &[upsert(item.clone())], 1).expect("apply");
+        assert_eq!(
+            load(&conn, DEFAULT_BOARD_ID).expect("load").items,
+            vec![item]
+        );
+    }
+
+    #[test]
+    fn an_image_from_before_hotspots_loads_without_them() {
+        let content: ItemContent =
+            serde_json::from_str(r#"{"kind":"image","mediaId":"m1"}"#).expect("old payload");
+        assert_eq!(
+            content,
+            ItemContent::Image {
+                media_id: "m1".into(),
+                hotspots: vec![]
+            }
+        );
+    }
+
+    #[test]
+    fn only_web_links_are_accepted() {
+        assert!(is_web_link("https://example.com"));
+        assert!(is_web_link("http://example.com/a?b=c"));
+        for bad in [
+            "file:///C:/Windows",
+            "javascript:alert(1)",
+            "ftp://example.com",
+            "example.com",
+            "https://",
+            "",
+        ] {
+            assert!(!is_web_link(bad), "{bad}");
+        }
+
+        let mut conn = open_in_memory();
+        add_media(&conn, "m1");
+        let item = image_with(vec![hotspot("h1", link("javascript:alert(1)"))]);
+        assert!(apply_ops(&mut conn, DEFAULT_BOARD_ID, &[upsert(item)], 1).is_err());
+    }
+
+    #[test]
+    fn rejects_too_many_or_misplaced_hotspots() {
+        let mut conn = open_in_memory();
+        add_media(&conn, "m1");
+        let six: Vec<_> = (0..6)
+            .map(|i| hotspot(&format!("h{i}"), link("https://example.com")))
+            .collect();
+        assert!(apply_ops(&mut conn, DEFAULT_BOARD_ID, &[upsert(image_with(six))], 1).is_err());
+
+        let mut outside = hotspot("h1", link("https://example.com"));
+        outside.x = 1.2;
+        assert!(apply_ops(
+            &mut conn,
+            DEFAULT_BOARD_ID,
+            &[upsert(image_with(vec![outside]))],
+            1
+        )
+        .is_err());
+
+        let twins = vec![
+            hotspot("h1", link("https://a.example")),
+            hotspot("h1", link("https://b.example")),
+        ];
+        assert!(apply_ops(&mut conn, DEFAULT_BOARD_ID, &[upsert(image_with(twins))], 1).is_err());
+    }
+
+    #[test]
+    fn a_detail_must_use_stored_photos() {
+        let mut conn = open_in_memory();
+        add_media(&conn, "m1");
+        let item = image_with(vec![hotspot(
+            "h1",
+            HotspotAction::Detail {
+                title: "Dům".into(),
+                text: String::new(),
+                media: vec!["missing".into()],
+            },
+        )]);
+        assert!(matches!(
+            apply_ops(&mut conn, DEFAULT_BOARD_ID, &[upsert(item)], 1),
+            Err(BoardError::UnknownMedia { .. })
+        ));
     }
 
     #[test]
@@ -462,6 +688,7 @@ mod tests {
         let image = Item {
             content: ItemContent::Image {
                 media_id: "missing".into(),
+                hotspots: vec![],
             },
             ..quote("i", 0)
         };
@@ -551,7 +778,7 @@ mod tests {
         }))
         .expect("deserialize");
         assert!(
-            matches!(op, BoardOp::Upsert { item } if item.content == ItemContent::Image { media_id: "m1".into() })
+            matches!(op, BoardOp::Upsert { item } if item.content == ItemContent::Image { media_id: "m1".into(), hotspots: vec![] })
         );
     }
 }

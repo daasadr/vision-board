@@ -6,7 +6,8 @@
     "cancel": "Abbrechen",
     "add": "Hinzufügen",
     "save": "Speichern",
-    "dismiss": "Benachrichtigung schließen"
+    "dismiss": "Benachrichtigung schließen",
+    "close": "Schließen"
   },
   "board": {
     "loadError": "Die Pinnwand konnte nicht geladen werden. Bitte starten Sie die App neu.",
@@ -57,7 +58,9 @@
       "resize": "Größe ändern",
       "rotate": "Drehen",
       "frame": "Rahmen",
-      "frameDefault": "Wie die Pinnwand ({{name}})"
+      "frameDefault": "Wie die Pinnwand ({{name}})",
+      "hotspots": "Hotspots",
+      "hotspotsDone": "Fertig"
     },
     "import": {
       "tooLarge": "„{{name}}“ ist größer als 50 MB.",
@@ -71,6 +74,26 @@
       "title": "Vision Board läuft weiter",
       "body": "Das Fenster wird geschlossen, aber Vision Board bleibt im Infobereich neben der Uhr (unter macOS in der Menüleiste). Von dort öffnen Sie Ihre Pinnwand oder beenden die App jederzeit.",
       "ok": "Verstanden"
+    },
+    "hotspots": {
+      "hint": "Klicken Sie ins Bild, um einen Hotspot hinzuzufügen (höchstens 5). Ziehen verschiebt ihn, ein Klick bearbeitet ihn.",
+      "dialogTitle": "Hotspot",
+      "label": "Name",
+      "labelHint": "Erscheint beim Darüberfahren, z. B. „Unterkunft“.",
+      "action": "Beim Klick",
+      "link": "Link öffnen",
+      "detail": "Detail zeigen",
+      "url": "Adresse",
+      "urlError": "Geben Sie eine Adresse ein, die mit http:// oder https:// beginnt.",
+      "title": "Titel des Details",
+      "text": "Text",
+      "photos": "Fotos im Detail",
+      "addPhotos": "Fotos hinzufügen",
+      "removePhoto": "Foto {{n}} entfernen",
+      "photosHint": "Höchstens 20 Fotos.",
+      "remove": "Hotspot entfernen",
+      "required": "Geben Sie einen Namen ein.",
+      "titleRequired": "Geben Sie einen Titel ein."
     }
   },
   "control": {
@@ -207,5 +230,13 @@
     "close": "Schließen",
     "snooze": "Später:",
     "minutes": "{{count}} Min."
+  },
+  "detail": {
+    "gallery": "Fotos",
+    "previous": "Vorheriges Foto",
+    "next": "Nächstes Foto",
+    "counter": "{{n}} / {{count}}",
+    "photoN": "Foto {{n}}",
+    "missing": "Dieses Detail gibt es nicht mehr."
   }
 }

@@ -9,6 +9,8 @@ import {
   type Entitlement,
   type Feature,
   type FrameStyle,
+  type Hotspot,
+  type HotspotAction,
   type ImportResult,
   type ItemContent,
   type LanguagePreference,
@@ -30,6 +32,8 @@ export type {
   Entitlement,
   Feature,
   FrameStyle,
+  Hotspot,
+  HotspotAction,
   ImportResult,
   ItemContent,
   LanguagePreference,
@@ -159,6 +163,16 @@ export const ipc = {
   /** The next planned showing as local `YYYY-MM-DDTHH:MM:SS`, or null when none. */
   async nextShowing(): Promise<string | null> {
     return unwrap("schedule_next", await commands.scheduleNext());
+  },
+
+  /** Opens an http(s) link in the default browser (checked again by the backend). */
+  async openLink(url: string): Promise<void> {
+    unwrap("open_link", await commands.openLink(url));
+  },
+
+  /** Opens the detail window of a hotspot. */
+  async openDetail(itemId: string, hotspotId: string): Promise<void> {
+    unwrap("window_open_detail", await commands.windowOpenDetail(itemId, hotspotId));
   },
 
   /** The wallpaper renderer has drawn the board; the backend captures it. */

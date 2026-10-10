@@ -1,0 +1,114 @@
+.app {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  height: 100%;
+  padding: var(--space-5) var(--space-6);
+  overflow-y: auto;
+}
+
+.header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.title {
+  font-size: var(--text-2xl);
+}
+
+.gallery {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 240px;
+  border-radius: var(--radius-md);
+  background: var(--color-surface-sunken);
+  box-shadow: var(--shadow-inset);
+  overflow: hidden;
+}
+
+.photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.nav {
+  position: absolute;
+  top: 50%;
+  width: 44px;
+  height: 44px;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-raised);
+  color: var(--color-ink);
+  font-size: var(--text-xl);
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-50%);
+  backdrop-filter: blur(var(--blur-surface));
+}
+
+.prev {
+  left: var(--space-3);
+}
+
+.next {
+  right: var(--space-3);
+}
+
+.counter {
+  position: absolute;
+  right: var(--space-3);
+  bottom: var(--space-2);
+  margin: 0;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-raised);
+  font-size: var(--text-xs);
+  color: var(--color-ink);
+}
+
+.thumbs {
+  display: flex;
+  gap: var(--space-2);
+  overflow-x: auto;
+}
+
+.thumb {
+  flex: 0 0 auto;
+  width: 72px;
+  height: 54px;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: var(--radius-sm);
+  background: none;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.thumb[aria-pressed="true"] {
+  border-color: var(--color-accent);
+}
+
+.thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.text {
+  margin: 0;
+  max-width: 70ch;
+  white-space: pre-wrap;
+  color: var(--color-ink);
+}
+
+.missing {
+  margin: auto;
+  color: var(--color-ink-muted);
+}

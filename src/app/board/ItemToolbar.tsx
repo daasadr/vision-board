@@ -53,7 +53,19 @@ function FrameSelect({ item }: { item: Item }) {
 const GAP = 96;
 
 /** Actions for the selected item, floating above it in screen space (not scaled). */
-export function ItemToolbar({ item, fit, onEdit }: { item: Item; fit: Fit; onEdit: () => void }) {
+export function ItemToolbar({
+  item,
+  fit,
+  onEdit,
+  hotspotsEditing,
+  onToggleHotspots,
+}: {
+  item: Item;
+  fit: Fit;
+  onEdit: () => void;
+  hotspotsEditing: boolean;
+  onToggleHotspots: () => void;
+}) {
   const { t } = useTranslation();
   const actions = useBoardActions();
   const centerX = (item.x + item.w / 2) * fit.scale + fit.offsetX;
@@ -76,7 +88,17 @@ export function ItemToolbar({ item, fit, onEdit }: { item: Item; fit: Fit; onEdi
         {t("board.item.sendToBack")}
       </Button>
       {item.content.kind === "image" ? (
-        <FrameSelect item={item} />
+        <>
+          <FrameSelect item={item} />
+          <Button
+            size="sm"
+            variant="ghost"
+            aria-pressed={hotspotsEditing}
+            onClick={onToggleHotspots}
+          >
+            {hotspotsEditing ? t("board.item.hotspotsDone") : t("board.item.hotspots")}
+          </Button>
+        </>
       ) : (
         <Button size="sm" variant="ghost" onClick={onEdit}>
           {t("board.item.edit")}

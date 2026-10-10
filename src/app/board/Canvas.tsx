@@ -14,8 +14,10 @@ import { useBoard, useBoardActions } from "./boardContext";
 import { BoardItemView, type ItemCallbacks } from "./BoardItemView";
 import styles from "./Canvas.module.css";
 import { CANVAS_HEIGHT, CANVAS_WIDTH, fitCanvas, type Fit } from "./geometry";
+import { HotspotContext } from "./hotspotContext";
 import { ItemToolbar } from "./ItemToolbar";
 import { itemsInOrder } from "./store";
+import { useHotspotEditor } from "./useHotspotEditor";
 import type { Placeholder } from "./useImageImport";
 
 /** Tracks an element's size and the canvas fit for it. */
@@ -79,6 +81,9 @@ export function Canvas({
     [actions, onEditStart, onEditEnd],
   );
 
+  const itemsById = useBoard((s) => s.items);
+  const hotspots = useHotspotEditor(itemsById, selectedId);
+
   const selected = items.find((i) => i.id === selectedId);
   // A selection that just got hidden must not stay selected (keyboard actions would hit it).
   useEffect(() => {
@@ -86,44 +91,58 @@ export function Canvas({
   }, [selectedId, selected, actions]);
 
   return (
-    <div ref={ref} className={styles.viewport}>
-      <section
-        className={styles.stage}
-        aria-label={t("board.label")}
-        data-board-stage
-        style={{
-          width: CANVAS_WIDTH,
-          height: CANVAS_HEIGHT,
-          transform: `translate(${fit.offsetX}px, ${fit.offsetY}px) scale(${fit.scale})`,
-        }}
-        onPointerDown={(e) => {
-          if (e.target === e.currentTarget) actions.select(null);
-        }}
-      >
-        {items.map((item) => (
-          <BoardItemView
-            key={item.id}
-            item={item}
-            selected={item.id === selectedId}
-            editing={item.id === editingId}
-            scale={fit.scale}
-            {...callbacks}
+    <HotspotContext.Provider value={hotspots.behavior}>
+      <div ref={ref} className={styles.viewport}>
+        <section
+          className={styles.stage}
+          aria-label={t("board.label")}
+          data-board-stage
+          style={{
+            width: CANVAS_WIDTH,
+            height: CANVAS_HEIGHT,
+            transform: `translate(${fit.offsetX}px, ${fit.offsetY}px) scale(${fit.scale})`,
+          }}
+          onPointerDown={(e) => {
+            if (e.target === e.currentTarget) actions.select(null);
+          }}
+        >
+          {items.map((item) => (
+            <BoardItemView
+              key={item.id}
+              item={item}
+              selected={item.id === selectedId}
+              editing={item.id === editingId}
+              scale={fit.scale}
+              {...callbacks}
+            />
+          ))}
+          {placeholders.map((p) => (
+            <div
+              key={p.id}
+              className={styles.placeholder}
+              style={{ left: p.x, top: p.y, width: p.w, height: p.h }}
+              role="img"
+              aria-label={t("board.import.processing")}
+            />
+          ))}
+        </section>
+        {selected && !interacting && editingId !== selected.id && (
+          <ItemToolbar
+            item={selected}
+            fit={fit}
+            onEdit={() => onEditStart(selected.id)}
+            hotspotsEditing={hotspots.editingItemId === selected.id}
+            onToggleHotspots={() => hotspots.toggle(selected.id)}
           />
-        ))}
-        {placeholders.map((p) => (
-          <div
-            key={p.id}
-            className={styles.placeholder}
-            style={{ left: p.x, top: p.y, width: p.w, height: p.h }}
-            role="img"
-            aria-label={t("board.import.processing")}
-          />
-        ))}
-      </section>
-      {selected && !interacting && editingId !== selected.id && (
-        <ItemToolbar item={selected} fit={fit} onEdit={() => onEditStart(selected.id)} />
-      )}
-      {overlay}
-    </div>
+        )}
+        {hotspots.editingItemId && (
+          <p className={styles.hotspotHint} role="status">
+            {t("board.hotspots.hint")}
+          </p>
+        )}
+        {hotspots.dialog}
+        {overlay}
+      </div>
+    </HotspotContext.Provider>
   );
 }

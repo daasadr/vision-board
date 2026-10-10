@@ -6,7 +6,8 @@
     "cancel": "Cancel",
     "add": "Add",
     "save": "Save",
-    "dismiss": "Dismiss notification"
+    "dismiss": "Dismiss notification",
+    "close": "Close"
   },
   "board": {
     "loadError": "The board could not be loaded. Please restart the app.",
@@ -57,7 +58,9 @@
       "resize": "Resize",
       "rotate": "Rotate",
       "frame": "Frame",
-      "frameDefault": "Board default ({{name}})"
+      "frameDefault": "Board default ({{name}})",
+      "hotspots": "Hotspots",
+      "hotspotsDone": "Done"
     },
     "import": {
       "tooLarge": "“{{name}}” is larger than 50 MB.",
@@ -71,6 +74,26 @@
       "title": "Vision Board keeps running",
       "body": "The window closes, but Vision Board stays in the notification area next to the clock (in the menu bar on macOS). Open your board or quit the app from there at any time.",
       "ok": "Got it"
+    },
+    "hotspots": {
+      "hint": "Click into the image to add a hotspot (up to 5). Drag to move it, click to edit it.",
+      "dialogTitle": "Hotspot",
+      "label": "Name",
+      "labelHint": "Shown when the pointer is over it, e.g. “Where to stay”.",
+      "action": "On click",
+      "link": "Open a link",
+      "detail": "Show a detail",
+      "url": "Address",
+      "urlError": "Enter an address starting with http:// or https://.",
+      "title": "Detail title",
+      "text": "Text",
+      "photos": "Photos in the detail",
+      "addPhotos": "Add photos",
+      "removePhoto": "Remove photo {{n}}",
+      "photosHint": "Up to 20 photos.",
+      "remove": "Remove hotspot",
+      "required": "Enter a name.",
+      "titleRequired": "Enter a title."
     }
   },
   "control": {
@@ -207,5 +230,13 @@
     "close": "Close",
     "snooze": "Snooze:",
     "minutes": "{{count}} min"
+  },
+  "detail": {
+    "gallery": "Photos",
+    "previous": "Previous photo",
+    "next": "Next photo",
+    "counter": "{{n}} / {{count}}",
+    "photoN": "Photo {{n}}",
+    "missing": "This detail no longer exists."
   }
 }

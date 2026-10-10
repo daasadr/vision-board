@@ -2,9 +2,10 @@ import { useEffect, useRef, type KeyboardEvent } from "react";
 import { Frame } from "../../design/components";
 import { useEntitlement } from "../../lib/entitlements";
 import { effectiveFrame } from "../../lib/frames";
-import type { FrameStyle, Item } from "../../lib/ipc";
+import type { FrameStyle, Hotspot, Item } from "../../lib/ipc";
 import { useSettings } from "../../lib/settings";
 import { useMediaUrl } from "./boardContext";
+import { HotspotLayer } from "./hotspots";
 import styles from "./ItemContentView.module.css";
 
 export interface TextEdit {
@@ -30,7 +31,9 @@ export function ItemContentView({ item, editing, onEditDone, screenWidth }: Prop
     case "image":
       return (
         <ImageView
+          item={item}
           mediaId={content.mediaId}
+          hotspots={content.hotspots ?? []}
           frame={item.style?.frame}
           width={item.w}
           variant={screenWidth * window.devicePixelRatio <= THUMB_EDGE ? "thumb" : "full"}
@@ -68,12 +71,16 @@ export function ItemContentView({ item, editing, onEditDone, screenWidth }: Prop
 }
 
 function ImageView({
+  item,
   mediaId,
+  hotspots,
   frame,
   width,
   variant,
 }: {
+  item: Item;
   mediaId: string;
+  hotspots: Hotspot[];
   frame: FrameStyle | null | undefined;
   width: number;
   variant: "full" | "thumb";
@@ -83,11 +90,15 @@ function ImageView({
   const premium = useEntitlement("premiumFrames");
   return (
     <Frame frame={effectiveFrame(frame, boardFrame, premium)} width={width}>
-      {src ? (
-        <img className={styles.image} src={src} alt="" draggable={false} decoding="async" />
-      ) : (
-        <div className={styles.placeholder} />
-      )}
+      {/* Hotspot positions are fractions of this box: the image without its frame. */}
+      <div className={styles.imageBox} data-image-box>
+        {src ? (
+          <img className={styles.image} src={src} alt="" draggable={false} decoding="async" />
+        ) : (
+          <div className={styles.placeholder} />
+        )}
+        <HotspotLayer item={item} hotspots={hotspots} />
+      </div>
     </Frame>
   );
 }

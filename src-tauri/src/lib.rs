@@ -47,6 +47,7 @@ pub fn run() {
             tauri_plugin_autostart::MacosLauncher::LaunchAgent,
             Some(vec![AUTOSTART_ARG]),
         ))
+        .plugin(tauri_plugin_opener::init())
         .invoke_handler(commands.invoke_handler())
         .setup(|app| {
             let data_dir = app.path().app_data_dir()?;

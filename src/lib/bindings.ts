@@ -50,6 +50,13 @@ export const commands = {
 	autostartSet: (enabled: boolean) => typedError<boolean, string>(__TAURI_INVOKE("autostart_set", { enabled })),
 	/**  Opens (or focuses) the settings window. */
 	windowOpenSettings: () => typedError<null, string>(__TAURI_INVOKE("window_open_settings")),
+	/**  Opens the detail window of a hotspot (it loads the data itself from the stored board). */
+	windowOpenDetail: (itemId: string, hotspotId: string) => typedError<null, string>(__TAURI_INVOKE("window_open_detail", { itemId, hotspotId })),
+	/**
+	 *  Opens a hotspot link in the default browser, never inside the app. The address is checked
+	 *  again here (http or https only), whatever the frontend sent.
+	 */
+	openLink: (url: string) => typedError<null, string>(__TAURI_INVOKE("open_link", { url })),
 	/**  Shows the pop-up now, regardless of the schedule and the user's activity ("Try it"). */
 	popupShowNow: () => typedError<null, string>(__TAURI_INVOKE("popup_show_now")),
 	/**  Closes the pop-up on all monitors; with `snooze_minutes` it comes back after that long. */
@@ -111,6 +118,25 @@ export type Feature = "premiumFrames" | "wallpaper" | "scheduledPopup";
 /**  How images are framed. Polaroid and glass are premium (entitlement PremiumFrames). */
 export type FrameStyle = "none" | "line" | "passepartout" | "polaroid" | "glass";
 
+/**
+ *  A button on an image that leads further: to a web page or to a small window with more
+ *  photos and text.
+ */
+export type Hotspot = {
+	id: string,
+	/**  Position as a fraction of the image (0–1), so it moves and scales with it. */
+	x: number | null,
+	y: number | null,
+	label: string,
+	action: HotspotAction,
+};
+
+export type HotspotAction = 
+/**  Opens in the default browser; http and https only. */
+{ kind: "link"; url: string } | { kind: "detail"; title: string; text: string; 
+/**  Further photos (stored media), shown as a gallery. */
+media: string[] };
+
 /**  Why one file could not be imported; the UI shows a localized message per kind. */
 export type ImportErrorKind = "tooLarge" | "unsupported" | "unreadable";
 
@@ -134,7 +160,9 @@ export type Item = {
 };
 
 /**  What an item shows. The tag doubles as the item kind stored in the database. */
-export type ItemContent = { kind: "image"; mediaId: string } | { kind: "quote"; text: string; author: string | null } | { kind: "text"; text: string; variant: TextVariant };
+export type ItemContent = { kind: "image"; mediaId: string; 
+/**  Buttons on the image (at most 5); older boards have none. */
+hotspots?: Hotspot[] } | { kind: "quote"; text: string; author: string | null } | { kind: "text"; text: string; variant: TextVariant };
 
 /**  Per-item visual overrides. */
 export type ItemStyle = {

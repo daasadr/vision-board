@@ -6,7 +6,8 @@
     "cancel": "Zrušit",
     "add": "Přidat",
     "save": "Uložit",
-    "dismiss": "Zavřít oznámení"
+    "dismiss": "Zavřít oznámení",
+    "close": "Zavřít"
   },
   "board": {
     "loadError": "Nástěnku se nepodařilo načíst. Zkuste aplikaci spustit znovu.",
@@ -57,7 +58,9 @@
       "resize": "Změnit velikost",
       "rotate": "Otočit",
       "frame": "Rám",
-      "frameDefault": "Podle nástěnky ({{name}})"
+      "frameDefault": "Podle nástěnky ({{name}})",
+      "hotspots": "Hotspoty",
+      "hotspotsDone": "Hotovo"
     },
     "import": {
       "tooLarge": "„{{name}}“ je větší než 50 MB.",
@@ -71,6 +74,26 @@
       "title": "Vision Board poběží dál",
       "body": "Okno se zavře, ale Vision Board zůstane v oznamovací oblasti vedle hodin (na macOS v řádku nabídek). Odtud nástěnku kdykoli otevřete nebo aplikaci ukončíte.",
       "ok": "Rozumím"
+    },
+    "hotspots": {
+      "hint": "Klikněte do obrázku a přidejte hotspot (nejvýš 5). Tažením ho posunete, kliknutím upravíte.",
+      "dialogTitle": "Hotspot",
+      "label": "Název",
+      "labelHint": "Zobrazí se při najetí myší, třeba „Ubytování“.",
+      "action": "Po kliknutí",
+      "link": "Otevřít odkaz",
+      "detail": "Ukázat detail",
+      "url": "Adresa",
+      "urlError": "Zadejte adresu začínající http:// nebo https://.",
+      "title": "Nadpis detailu",
+      "text": "Text",
+      "photos": "Fotky v detailu",
+      "addPhotos": "Přidat fotky",
+      "removePhoto": "Odebrat fotku {{n}}",
+      "photosHint": "Nejvýš 20 fotek.",
+      "remove": "Odebrat hotspot",
+      "required": "Vyplňte název.",
+      "titleRequired": "Vyplňte nadpis."
     }
   },
   "control": {
@@ -207,5 +230,13 @@
     "close": "Zavřít",
     "snooze": "Odložit:",
     "minutes": "{{count}} min"
+  },
+  "detail": {
+    "gallery": "Fotky",
+    "previous": "Předchozí fotka",
+    "next": "Další fotka",
+    "counter": "{{n}} / {{count}}",
+    "photoN": "Fotka {{n}}",
+    "missing": "Tento detail už neexistuje."
   }
 }
