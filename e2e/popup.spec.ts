@@ -69,7 +69,8 @@ for (const [theme, colorScheme] of [
   ["noc", "dark"],
 ] as const) {
   test(`${theme}: the pop-up is accessible`, async ({ page }) => {
-    await page.emulateMedia({ colorScheme });
+    // Without motion the fade-in is done at once, so colors are checked as they end up.
+    await page.emulateMedia({ colorScheme, reducedMotion: "reduce" });
     await page.goto("/popup");
     await expect(page.getByText("Krok za krokem")).toBeVisible();
     const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();

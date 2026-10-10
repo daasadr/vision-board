@@ -38,8 +38,11 @@
   padding: var(--space-2) var(--space-3);
   border: var(--border-width) solid var(--color-border);
   border-radius: var(--radius-md);
-  background: var(--color-surface-raised);
-  backdrop-filter: blur(var(--blur-surface));
+
+  /* Opaque: the bar sits over the board or the desktop, and its text must stay readable
+     whatever is behind it. */
+  background-color: var(--color-bg);
+  background-image: var(--gradient-surface);
   box-shadow: var(--shadow-md);
   overflow: hidden;
 }
