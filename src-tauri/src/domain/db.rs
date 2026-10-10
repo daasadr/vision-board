@@ -71,6 +71,19 @@ fn migrations() -> Migrations<'static> {
             data        TEXT NOT NULL
         );",
         ),
+        // v3: daily tasks (domain::tasks). Times are kept for a later sync.
+        M::up(
+            "CREATE TABLE tasks (
+            id          TEXT PRIMARY KEY,
+            day         TEXT NOT NULL,
+            text        TEXT NOT NULL,
+            done        INTEGER NOT NULL DEFAULT 0,
+            position    INTEGER NOT NULL,
+            created_at  INTEGER NOT NULL,
+            updated_at  INTEGER NOT NULL
+        );
+        CREATE INDEX tasks_day ON tasks(day, position);",
+        ),
     ])
 }
 
@@ -120,7 +133,7 @@ mod tests {
             .expect("list tables");
         assert_eq!(
             tables,
-            ["app_state", "boards", "items", "media", "settings"]
+            ["app_state", "boards", "items", "media", "settings", "tasks"]
         );
 
         let boards: i64 = conn

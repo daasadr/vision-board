@@ -13,16 +13,16 @@
 
 ## 3. Úkoly
 
-- [ ] 3.1 Migrace v3, `domain::tasks`, commands `tasks_list` / `tasks_apply` a ověřit `cargo test`
-- [ ] 3.2 Store a seznam úkolů (Dnes / Zítra, přidat, odškrtnout, upravit, smazat, přeřadit) a ověřit Vitest + E2E scénářem „Plánování večer“
-- [ ] 3.3 Přenos nedokončených úkolů na nový den a ověřit E2E scénářem „Nový den“
+- [x] 3.1 Migrace v3, `domain::tasks`, commands `tasks_list` / `tasks_apply` a ověřit `cargo test`
+- [x] 3.2 Store a seznam úkolů (Dnes / Zítra, přidat, odškrtnout, upravit, smazat, přeřadit) a ověřit Vitest + E2E scénářem „Plánování večer“
+- [x] 3.3 Přenos nedokončených úkolů na nový den a ověřit E2E scénářem „Nový den“
 
 ## 4. Split-screen
 
-- [ ] 4.1 `Settings.split`, `SplitView` v hlavním okně a nastavení (strana, kde platí) cs/en/de a ověřit E2E „Zapnutí v hlavním okně“
-- [ ] 4.2 Split-screen v pop-upu (odškrtávání) a na tapetě (jen ke čtení, obnova po změně úkolů a o půlnoci) a ověřit E2E + ručně v release buildu
+- [x] 4.1 `Settings.split`, `SplitView` v hlavním okně a nastavení (strana, kde platí) cs/en/de a ověřit E2E „Zapnutí v hlavním okně“
+- [x] 4.2 Split-screen v pop-upu (odškrtávání) a na tapetě (jen ke čtení, obnova po změně úkolů a o půlnoci) a ověřit E2E + ručně v release buildu
 
 ## 5. Dokončení
 
-- [ ] 5.1 Review (odkazy, validace vstupů, nové okno, opener) a zapracovat nálezy
-- [ ] 5.2 Dokumentace: `docs/architecture.md`, `docs/user/hotspots.md` a `docs/user/tasks.md` (cs), ruční checklist, body do úkolu vb-8my
+- [x] 5.1 Review (odkazy, validace vstupů, nové okno, opener) a zapracovat nálezy
+- [x] 5.2 Dokumentace: `docs/architecture.md`, `docs/user/hotspots.md` a `docs/user/tasks.md` (cs), ruční checklist, body do úkolu vb-8my

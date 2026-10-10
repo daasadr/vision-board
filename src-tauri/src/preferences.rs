@@ -30,6 +30,18 @@ pub fn change(app: &AppHandle, edit: impl FnOnce(&mut Settings)) -> rusqlite::Re
     store(app, settings)
 }
 
+/// Event telling every window that the daily tasks changed. Matches TASKS_CHANGED_EVENT in
+/// src/lib/tasks.ts.
+pub const TASKS_CHANGED_EVENT: &str = "tasks://changed";
+
+/// The tasks changed: windows showing them reload, and the wallpaper shows them in split view.
+pub fn tasks_changed(app: &AppHandle) {
+    let _ = app.emit(TASKS_CHANGED_EVENT, ());
+    if current(app).is_ok_and(|s| s.split.wallpaper) {
+        wallpaper::refresh(app, true);
+    }
+}
+
 fn apply(app: &AppHandle, settings: &Settings) {
     if let Err(e) = tray::update(app, settings) {
         eprintln!("updating the tray menu failed: {e}");

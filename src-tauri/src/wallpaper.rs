@@ -30,6 +30,8 @@ pub struct Wallpaper {
     /// One render at a time. A render is never cancelled half-way (that would leave the
     /// renderer window behind); a request arriving meanwhile renders again afterwards.
     rendering: tokio::sync::Mutex<()>,
+    /// Waits for the next day when the wallpaper shows tasks.
+    midnight: Mutex<Option<JoinHandle<()>>>,
     /// Signalled by the renderer page once the board, its images and fonts are drawn.
     rendered: tokio::sync::Notify,
     /// What the shown wallpaper was made from; nothing is rendered when it did not change.
@@ -64,7 +66,43 @@ pub fn refresh(app: &AppHandle, force: bool) {
             if let Err(e) = imp::refresh(&app, force).await {
                 eprintln!("updating the wallpaper failed: {e}");
             }
+            schedule_midnight(&app);
         });
+    }));
+}
+
+/// Longest sleep before looking at the clock again while waiting for midnight (the computer
+/// may sleep and monotonic time stand still meanwhile).
+const MIDNIGHT_CHECK: Duration = Duration::from_secs(15 * 60);
+
+/// With tasks on the wallpaper, "today" changes at midnight: renders again once the date
+/// changes. Started after every render; a new one replaces the previous.
+fn schedule_midnight(app: &AppHandle) {
+    use tauri::Manager;
+    let state = app.state::<Wallpaper>();
+    if let Some(task) = lock(&state.midnight).take() {
+        task.abort();
+    }
+    let split =
+        crate::preferences::current(app).is_ok_and(|s| s.split.wallpaper && s.startup.wallpaper);
+    if !split {
+        return;
+    }
+    let app_for_task = app.clone();
+    *lock(&state.midnight) = Some(tauri::async_runtime::spawn(async move {
+        let day = chrono::Local::now().date_naive();
+        loop {
+            let now = chrono::Local::now().naive_local();
+            let next_midnight = (day + chrono::Days::new(1))
+                .and_hms_opt(0, 0, 5)
+                .unwrap_or(now);
+            if now >= next_midnight {
+                break;
+            }
+            let wait = (next_midnight - now).to_std().unwrap_or_default();
+            tokio::time::sleep(wait.min(MIDNIGHT_CHECK)).await;
+        }
+        refresh(&app_for_task, true);
     }));
 }
 
@@ -123,7 +161,8 @@ mod imp {
             .map(|m| (m.id.clone(), m.rect.width, m.rect.height))
             .collect();
         format!(
-            "{:?}|{:?}|{}|{:?}|{}|{:?}",
+            "{:?}|{:?}|{:?}|{}|{:?}|{}|{:?}",
+            settings.split,
             settings.theme,
             settings.frame,
             settings.images_only,

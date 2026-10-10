@@ -3,6 +3,9 @@ import { useTranslation } from "react-i18next";
 import { Button } from "../../design/components";
 import { ipc } from "../../lib/ipc";
 import { useSettings } from "../../lib/settings";
+import { SplitView } from "../tasks/SplitView";
+import { useTaskStore } from "../tasks/useTaskStore";
+import { TaskList } from "../tasks/TaskList";
 import { BoardView } from "./BoardView";
 import styles from "./PopupApp.module.css";
 
@@ -17,6 +20,8 @@ export default function PopupApp() {
   const { t } = useTranslation();
   const duration = useSettings((s) => s.settings.schedule.durationSecs);
   const full = useSettings((s) => s.settings.placement.mode === "full");
+  const split = useSettings((s) => s.settings.split);
+  const tasks = useTaskStore();
   const [leaving, setLeaving] = useState<{ snooze: number | null } | null>(null);
   const closed = useRef(false);
 
@@ -51,7 +56,15 @@ export default function PopupApp() {
     >
       <main className={styles.board}>
         <h1 className={styles.srOnly}>{t("app.title")}</h1>
-        <BoardView />
+        {split.popup ? (
+          <SplitView
+            side={split.side}
+            board={<BoardView />}
+            tasks={<TaskList store={tasks} mode="check" />}
+          />
+        ) : (
+          <BoardView />
+        )}
       </main>
       <div className={styles.bar} role="toolbar" aria-label={t("popup.actions")}>
         <span

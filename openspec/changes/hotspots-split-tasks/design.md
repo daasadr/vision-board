@@ -54,3 +54,17 @@ Tabulka `tasks(id TEXT PK (UUID z frontendu), day TEXT 'YYYY-MM-DD', text, done,
 - [Payload obrázku roste s detaily] → texty jsou omezené a fotky jsou jen id. Načítání celé nástěnky zůstává malé.
 - [Půlnoc a tapeta] → jedno naplánované probuzení denně a jen se zapnutým split-screenem na tapetě.
 - [Opener plugin vs. vlastní ShellExecute] → plugin je multiplatformní a malý. Připnout verzi kompatibilní s Tauri 2.11 (jako autostart).
+
+## Odchylky při implementaci (2026-10-10)
+
+- **Opener plugin připnutý na 2.5.0** (novější vyžaduje Tauri 2.12, stejně jako autostart). Přidá jen `open`, `is-wsl`, `is-docker`.
+- **Seznam úkolů bez tažení myší:** pořadí se mění tlačítky ↑ ↓ a klávesami Alt+šipky. Tažení v seznamu by přidalo kód bez velkého přínosu pro krátké denní seznamy.
+- **Přenos nedokončených úkolů** se nabízí, dokud nějaké zůstávají (a ne jen při prvním zobrazení dne). Obě volby je vyřeší, takže nabídka sama zmizí a není potřeba příznak v `app_state`.
+- Nový úkol se přidává do zvolené části (Dnes / Zítra) polem pod ní, místo přepínače dne.
+
+## Review (úkol 5.1)
+
+- **Odkazy:** schéma se ověřuje třikrát. Dialog nepustí jiné než http(s), `domain::board` neuloží položku s jiným odkazem a `open_link` adresu ověří znovu před otevřením. Otevírá se jen ve výchozím prohlížeči OS, ne ve webview. Plugin opener nemá povolená JS oprávnění.
+- **Vstupy:** hotspoty (počet, souřadnice, délky, unikátní id, existující média) a úkoly (id, formát dne, délka textu, max. 500 operací v dávce) validuje Rust. Dávka je atomická. `window_open_detail` omezuje délku id. Detail si data čte z databáze, nikoli z parametrů.
+- **Úklid médií** nesmaže fotky použité v detailech (test `cleanup_keeps_the_photos_of_hotspot_details`).
+- **Soukromí:** úkoly jen lokálně, bez síťového požadavku.

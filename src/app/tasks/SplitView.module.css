@@ -1,0 +1,31 @@
+.split {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  grid-template-areas: "board tasks";
+  gap: var(--space-4);
+  height: 100%;
+  min-height: 0;
+}
+
+.boardRight {
+  grid-template-columns: 2fr 3fr;
+  grid-template-areas: "tasks board";
+}
+
+.board {
+  grid-area: board;
+  min-width: 0;
+  min-height: 0;
+}
+
+.tasks {
+  display: flex;
+  flex-direction: column;
+  grid-area: tasks;
+  min-width: 0;
+  min-height: 0;
+}
+
+.tasks > * {
+  flex: 1 1 auto;
+}

@@ -223,6 +223,16 @@
       "hint": "The board becomes your desktop background under the icons, on every monitor, at the size set below. It updates a few seconds after every change. Turning it off or quitting the app brings back your original wallpaper.",
       "locked": "The wallpaper is part of the Almost-there.eu gift. Unlock it with your gift code.",
       "windowsOnly": "The wallpaper works on Windows only for now."
+    },
+    "split": {
+      "label": "Tasks next to the board",
+      "hint": "One half of the screen shows the board, the other your steps for today and tomorrow.",
+      "board": "In the board window",
+      "popup": "In the scheduled display",
+      "wallpaper": "On the wallpaper (read only)",
+      "side": "Board",
+      "left": "Left",
+      "right": "Right"
     }
   },
   "popup": {
@@ -238,5 +248,22 @@
     "counter": "{{n}} / {{count}}",
     "photoN": "Photo {{n}}",
     "missing": "This detail no longer exists."
+  },
+  "tasks": {
+    "label": "Tasks for today and tomorrow",
+    "title": "Steps toward the goal",
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "none": "Nothing planned.",
+    "addPlaceholder": "Add a step…",
+    "addTo": "Add a task for {{day}}",
+    "edit": "Edit",
+    "editLabel": "Task text",
+    "up": "Move up",
+    "down": "Move down",
+    "remove": "Delete",
+    "leftover": "Left unfinished from earlier days: {{count}}. Move to today?",
+    "moveToToday": "Move to today",
+    "drop": "Drop"
   }
 }

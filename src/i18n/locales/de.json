@@ -223,6 +223,16 @@
       "hint": "Die Pinnwand wird zum Desktop-Hintergrund unter den Symbolen, auf allen Monitoren, in der unten eingestellten Größe. Sie aktualisiert sich wenige Sekunden nach jeder Änderung. Beim Ausschalten oder Beenden der App kehrt Ihr ursprüngliches Hintergrundbild zurück.",
       "locked": "Das Hintergrundbild gehört zum Geschenk von Almost-there.eu. Schalten Sie es mit Ihrem Geschenkcode frei.",
       "windowsOnly": "Das Hintergrundbild funktioniert vorerst nur unter Windows."
+    },
+    "split": {
+      "label": "Aufgaben neben der Pinnwand",
+      "hint": "Eine Hälfte des Bildschirms zeigt die Pinnwand, die andere Ihre Schritte für heute und morgen.",
+      "board": "Im Pinnwand-Fenster",
+      "popup": "In der geplanten Anzeige",
+      "wallpaper": "Auf dem Hintergrundbild (nur lesen)",
+      "side": "Pinnwand",
+      "left": "Links",
+      "right": "Rechts"
     }
   },
   "popup": {
@@ -238,5 +248,22 @@
     "counter": "{{n}} / {{count}}",
     "photoN": "Foto {{n}}",
     "missing": "Dieses Detail gibt es nicht mehr."
+  },
+  "tasks": {
+    "label": "Aufgaben für heute und morgen",
+    "title": "Schritte zum Ziel",
+    "today": "Heute",
+    "tomorrow": "Morgen",
+    "none": "Nichts geplant.",
+    "addPlaceholder": "Schritt hinzufügen…",
+    "addTo": "Aufgabe für {{day}} hinzufügen",
+    "edit": "Bearbeiten",
+    "editLabel": "Text der Aufgabe",
+    "up": "Nach oben",
+    "down": "Nach unten",
+    "remove": "Löschen",
+    "leftover": "Von früheren Tagen offen geblieben: {{count}}. Auf heute verschieben?",
+    "moveToToday": "Auf heute verschieben",
+    "drop": "Verwerfen"
   }
 }

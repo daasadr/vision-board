@@ -21,6 +21,9 @@ import {
   type Item as RawItem,
   type Schedule,
   type Settings,
+  type SplitSide,
+  type Task,
+  type TaskOp,
   type TextVariant,
   type ThemePreference,
 } from "./bindings";
@@ -43,6 +46,9 @@ export type {
   PlacementMode,
   Schedule,
   Settings,
+  SplitSide,
+  Task,
+  TaskOp,
   TextVariant,
   ThemePreference,
 };
@@ -173,6 +179,20 @@ export const ipc = {
   /** Opens the detail window of a hotspot. */
   async openDetail(itemId: string, hotspotId: string): Promise<void> {
     unwrap("window_open_detail", await commands.windowOpenDetail(itemId, hotspotId));
+  },
+
+  /** Tasks of the days `from..=to` (`YYYY-MM-DD`). */
+  async listTasks(from: string, to: string): Promise<Task[]> {
+    return unwrap("tasks_list", await commands.tasksList(from, to));
+  },
+
+  /** Undone tasks of days before `day`. */
+  async unfinishedTasks(day: string): Promise<Task[]> {
+    return unwrap("tasks_unfinished_before", await commands.tasksUnfinishedBefore(day));
+  },
+
+  async applyTasks(ops: TaskOp[]): Promise<void> {
+    unwrap("tasks_apply", await commands.tasksApply(ops));
   },
 
   /** The wallpaper renderer has drawn the board; the backend captures it. */

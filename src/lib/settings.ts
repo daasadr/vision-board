@@ -30,6 +30,7 @@ export const DEFAULT_SETTINGS: Settings = {
     pauseSecs: 5,
     maxDelayMin: 30,
   },
+  split: { board: false, popup: false, wallpaper: false, side: "left" },
 };
 
 declare global {

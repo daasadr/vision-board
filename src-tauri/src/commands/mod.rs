@@ -10,6 +10,7 @@ mod links;
 mod media;
 mod popup;
 mod settings;
+mod tasks;
 mod wallpaper;
 mod windows;
 
@@ -42,6 +43,9 @@ pub fn builder() -> Builder<tauri::Wry> {
         popup::popup_close,
         popup::schedule_next,
         wallpaper::wallpaper_rendered,
+        tasks::tasks_list,
+        tasks::tasks_unfinished_before,
+        tasks::tasks_apply,
         windows::control_context_menu,
     ])
 }

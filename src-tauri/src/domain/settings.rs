@@ -102,6 +102,27 @@ pub struct ControlPosition {
     pub y: i32,
 }
 
+/// Which side of a split view shows the board (the tasks take the other one).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub enum SplitSide {
+    #[default]
+    Left,
+    Right,
+}
+
+/// Board and daily tasks side by side, separately for each place the board shows.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub struct Split {
+    /// The board window.
+    pub board: bool,
+    pub popup: bool,
+    /// Read-only tasks on the wallpaper.
+    pub wallpaper: bool,
+    pub side: SplitSide,
+}
+
 /// Modes that start with the app. Phases 3 and 4 act on them.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, Type)]
 #[serde(rename_all = "camelCase")]
@@ -128,6 +149,7 @@ pub struct Settings {
     /// Modes on at start; `scheduled_popup` is also the switch of the schedule below.
     pub startup: Startup,
     pub schedule: Schedule,
+    pub split: Split,
 }
 
 impl Default for Settings {
@@ -143,6 +165,7 @@ impl Default for Settings {
             control_position: None,
             startup: Startup::default(),
             schedule: Schedule::default(),
+            split: Split::default(),
         }
     }
 }
@@ -254,6 +277,12 @@ mod tests {
             schedule: Schedule {
                 times: vec![8 * 60 + 30],
                 ..Schedule::default()
+            },
+            split: Split {
+                board: true,
+                popup: false,
+                wallpaper: true,
+                side: SplitSide::Right,
             },
         };
         save(&conn, settings.clone()).expect("save");

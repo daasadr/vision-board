@@ -2,7 +2,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button, Dialog, Notices, type Notice } from "../../design/components";
 import { ipc } from "../../lib/ipc";
-import { settingsStore } from "../../lib/settings";
+import { settingsStore, useSettings } from "../../lib/settings";
+import { SplitView } from "../tasks/SplitView";
+import { useTaskStore } from "../tasks/useTaskStore";
+import { TaskList } from "../tasks/TaskList";
 import { AddQuoteDialog, AddTextDialog } from "./AddItemDialogs";
 import styles from "./BoardApp.module.css";
 import { BoardContext, useBoard, useBoardServices, type BoardServices } from "./boardContext";
@@ -84,6 +87,9 @@ function Board() {
   const { placeholders, importFiles } = useImageImport(store, media, notify);
   const pickerRef = useRef<HTMLInputElement>(null);
 
+  const split = useSettings((s) => s.settings.split);
+  const tasks = useTaskStore();
+
   useShortcuts();
   const { trayNoticeOpen, acknowledgeTrayNotice } = useWindowLifecycle(saver);
 
@@ -105,6 +111,12 @@ function Board() {
     onAddQuote: () => setDialog("quote"),
     onAddText: () => setDialog("text"),
   };
+  const canvas = (
+    <Canvas
+      overlay={loaded && isEmpty && placeholders.length === 0 ? <EmptyState {...add} /> : null}
+      placeholders={placeholders}
+    />
+  );
 
   return (
     <main className={styles.app}>
@@ -115,12 +127,15 @@ function Board() {
         </p>
       ) : (
         <>
-          <Canvas
-            overlay={
-              loaded && isEmpty && placeholders.length === 0 ? <EmptyState {...add} /> : null
-            }
-            placeholders={placeholders}
-          />
+          {split.board ? (
+            <SplitView
+              side={split.side}
+              board={canvas}
+              tasks={<TaskList store={tasks} mode="edit" />}
+            />
+          ) : (
+            canvas
+          )}
           {loaded && !isEmpty && <BoardToolbar {...add} />}
         </>
       )}

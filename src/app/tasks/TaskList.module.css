@@ -1,0 +1,183 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  min-height: 0;
+  padding: var(--space-5);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-bg);
+  background-image: var(--gradient-surface);
+  box-shadow: var(--shadow-md);
+  overflow-y: auto;
+}
+
+.title {
+  font-size: var(--text-xl);
+}
+
+.leftover {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+}
+
+.leftover p {
+  margin: 0;
+  font-size: var(--text-sm);
+}
+
+.leftoverActions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.day {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.dayHeading {
+  font-family: var(--font-ui);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+}
+
+.date {
+  margin-left: var(--space-1);
+  font-weight: 400;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.empty {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-ink-subtle);
+}
+
+.tasks {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.task {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 32px;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+}
+
+.task:hover,
+.task:focus-within {
+  background: var(--color-surface);
+}
+
+.check {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--color-accent);
+  cursor: pointer;
+}
+
+.mark {
+  flex-shrink: 0;
+  width: 18px;
+  text-align: center;
+  color: var(--color-accent);
+}
+
+.text {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--color-ink);
+}
+
+.done .text {
+  color: var(--color-ink-muted);
+  text-decoration: line-through;
+}
+
+.rowActions {
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-standard);
+}
+
+.task:hover .rowActions,
+.task:focus-within .rowActions {
+  opacity: 1;
+}
+
+.icon {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-ink-muted);
+  font: inherit;
+  cursor: pointer;
+}
+
+.icon:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.icon:hover:not(:disabled) {
+  background: var(--color-surface-raised);
+  color: var(--color-ink);
+}
+
+.addForm {
+  display: flex;
+}
+
+.addInput,
+.editInput {
+  flex: 1 1 auto;
+  height: 32px;
+  padding: 0 var(--space-2);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-sunken);
+  color: var(--color-ink);
+  font: inherit;
+}
+
+.addInput::placeholder {
+  color: var(--color-ink-subtle);
+}
+
+.addInput:focus-visible,
+.editInput:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
+}
+
+/* On the wallpaper: larger and calmer, nothing to click. */
+.read {
+  gap: var(--space-6);
+  padding: var(--space-6);
+}
+
+.read .text {
+  font-size: var(--text-lg);
+}

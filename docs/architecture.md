@@ -1,6 +1,6 @@
 # Architektura
 
-Stav po fázi 4 (wallpaper-mode). Každá další fáze sem doplní svou část.
+Stav po fázi 5 (hotspots-split-tasks). Každá další fáze sem doplní svou část.
 
 ## Přehled
 
@@ -166,24 +166,34 @@ změna nástěnky / nastavení / tématu OS / monitorů → wallpaper::refresh (
 - **Původní tapeta:** před první změnou se uloží (`app_state.wallpaper_originals`: obrázek pro každý monitor a režim přizpůsobení) a vrátí se při vypnutí, Ukončit, po pádu (start s vypnutým režimem) a při odinstalaci (NSIS hook → `vision-board.exe --restore-wallpaper`; běžící instance dostane požadavek přes single-instance a obnovu provede na vlastním vlákně, protože ve `WM_COPYDATA` Windows nedovolí volat COM Průzkumníka).
 - Vykreslí se jen tehdy, když se změnilo něco, co tapeta ukazuje (podpis: téma, rám, jen obrázky, umístění, téma OS, monitory). Změna nástěnky vykreslí vždy.
 
+## Hotspoty, úkoly a split-screen
+
+- **Hotspoty** jsou součástí obsahu obrázku (`ItemContent::Image.hotspots`, nejvýš 5, pozice jako poměr 0–1), takže se posouvají s obrázkem, ukládají se v téže dávce a zpět/znovu je zahrnuje. Validace v `domain::board`: odkazy jen `http`/`https` (`is_web_link`, totéž ve frontendu `links.ts`), detail nejvýš 20 existujících médií. Úklid médií počítá i fotky z detailů (`json_each`).
+- Odkaz otevírá `open_link` (znovu ověří schéma) přes `tauri-plugin-opener` ve výchozím prohlížeči. Detail otevírá okno `detail` (`window_open_detail`), které si data načte samo. Už otevřené okno dostane událost `detail://show`.
+- `HotspotContext` určuje chování: aktivní (nástěnka, pop-up), skryté (tapeta) a editor (`useHotspotEditor`: klik přidá, tažení posune, klik upraví).
+- **Úkoly:** `domain::tasks` + `tasks_list` / `tasks_unfinished_before` / `tasks_apply` (dávka v transakci). Po změně přijde událost `tasks://changed` do všech oken a při split-screenu na tapetě i obnova tapety. Frontend: `lib/tasks.ts` (store s optimistickými úpravami), `TaskList` v režimech `edit` / `check` / `read`.
+- **Split-screen:** `Settings.split` (hlavní okno, pop-up, tapeta, strana). `SplitView` dělí prostor 3:2. Tapeta s úkoly se obnoví i o půlnoci (`wallpaper::schedule_midnight`).
+
 ## Kde co najít
 
-| Chci změnit…                   | Soubor                                                                     |
-| ------------------------------ | -------------------------------------------------------------------------- |
-| barvy, stíny, typografii       | `src/design/tokens.css`                                                    |
-| texty UI                       | `src/i18n/locales/{cs,en,de}.json`                                         |
-| texty tray a nativních nabídek | `src-tauri/src/domain/locale.rs`                                           |
-| vzhled položek nástěnky        | `src/app/board/ItemContentView.*`, `BoardItemView.*`                       |
-| geometrii (plátno, přichycení) | `src/app/board/geometry.ts`                                                |
-| validaci a ukládání položek    | `src-tauri/src/domain/board.rs`                                            |
-| zpracování obrázků             | `src-tauri/src/domain/media.rs`                                            |
-| přidat Rust command            | `src-tauri/src/commands/`, pak `pnpm bindings`                             |
-| chování oken a tray            | `src-tauri/src/window_manager.rs`, `tray.rs`, `lifecycle.rs`               |
-| oprávnění webview, CSP, assety | `src-tauri/capabilities/default.json`, `tauri.conf.json`                   |
-| nastavení (model, výchozí)     | `src-tauri/src/domain/settings.rs`, `src/lib/settings.ts`                  |
-| okno nastavení                 | `src/app/settings/`                                                        |
-| ovládací prvek                 | `src/app/control/` + `pnpm control:render`, `platform/`                    |
-| styly rámů                     | `src/design/components/Frame.*`, tokeny `--frame-*`                        |
-| plán a vhodná chvíle pop-upu   | `src-tauri/src/domain/schedule.rs`, `activity.rs`                          |
-| pop-up                         | `src-tauri/src/popup.rs`, `scheduler.rs`, `src/app/popup/`                 |
-| tapeta                         | `src-tauri/src/wallpaper.rs`, `domain/wallpaper.rs`, `platform/windows.rs` |
+| Chci změnit…                   | Soubor                                                                                       |
+| ------------------------------ | -------------------------------------------------------------------------------------------- |
+| barvy, stíny, typografii       | `src/design/tokens.css`                                                                      |
+| texty UI                       | `src/i18n/locales/{cs,en,de}.json`                                                           |
+| texty tray a nativních nabídek | `src-tauri/src/domain/locale.rs`                                                             |
+| vzhled položek nástěnky        | `src/app/board/ItemContentView.*`, `BoardItemView.*`                                         |
+| geometrii (plátno, přichycení) | `src/app/board/geometry.ts`                                                                  |
+| validaci a ukládání položek    | `src-tauri/src/domain/board.rs`                                                              |
+| zpracování obrázků             | `src-tauri/src/domain/media.rs`                                                              |
+| přidat Rust command            | `src-tauri/src/commands/`, pak `pnpm bindings`                                               |
+| chování oken a tray            | `src-tauri/src/window_manager.rs`, `tray.rs`, `lifecycle.rs`                                 |
+| oprávnění webview, CSP, assety | `src-tauri/capabilities/default.json`, `tauri.conf.json`                                     |
+| nastavení (model, výchozí)     | `src-tauri/src/domain/settings.rs`, `src/lib/settings.ts`                                    |
+| okno nastavení                 | `src/app/settings/`                                                                          |
+| ovládací prvek                 | `src/app/control/` + `pnpm control:render`, `platform/`                                      |
+| styly rámů                     | `src/design/components/Frame.*`, tokeny `--frame-*`                                          |
+| plán a vhodná chvíle pop-upu   | `src-tauri/src/domain/schedule.rs`, `activity.rs`                                            |
+| pop-up                         | `src-tauri/src/popup.rs`, `scheduler.rs`, `src/app/popup/`                                   |
+| hotspoty                       | `src/app/board/hotspots.tsx`, `useHotspotEditor.tsx`, `HotspotDialog.tsx`, `src/app/detail/` |
+| úkoly a split-screen           | `src-tauri/src/domain/tasks.rs`, `src/lib/tasks.ts`, `src/app/tasks/`                        |
+| tapeta                         | `src-tauri/src/wallpaper.rs`, `domain/wallpaper.rs`, `platform/windows.rs`                   |

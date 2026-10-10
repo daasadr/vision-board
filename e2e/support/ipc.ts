@@ -1,5 +1,5 @@
 import { test as base, type Page } from "@playwright/test";
-import type { BoardOp, Item, Media, Settings } from "../../src/lib/bindings";
+import type { BoardOp, Item, Media, Settings, Task, TaskOp } from "../../src/lib/bindings";
 
 /** Return values of mocked Rust commands, keyed by command name as invoked (snake_case). */
 export type IpcHandlers = Record<string, unknown>;
@@ -29,6 +29,7 @@ export const DEFAULT_SETTINGS: Settings = {
     pauseSecs: 5,
     maxDelayMin: 30,
   },
+  split: { board: false, popup: false, wallpaper: false, side: "left" },
 };
 
 const defaultHandlers: IpcHandlers = {
@@ -49,6 +50,8 @@ interface MockOptions {
   seedMedia: Media[];
   /** Stored settings to start with (merged over the defaults); kept across reloads. */
   seedSettings: Partial<Settings>;
+  /** Daily tasks to start with; kept across reloads. */
+  seedTasks: Task[];
 }
 
 /**
@@ -63,7 +66,13 @@ interface MockOptions {
  * 800×600 image; image URLs resolve to an inline SVG.
  */
 export async function mockIpc(page: Page, options: Partial<MockOptions> = {}) {
-  const { handlers = {}, seedItems = [], seedMedia = [], seedSettings = {} } = options;
+  const {
+    handlers = {},
+    seedItems = [],
+    seedMedia = [],
+    seedSettings = {},
+    seedTasks = [],
+  } = options;
   await page.addInitScript(
     ({ responses, seed, keys }) => {
       const calls: { cmd: string; args: unknown }[] = [];
@@ -71,6 +80,7 @@ export async function mockIpc(page: Page, options: Partial<MockOptions> = {}) {
         localStorage.setItem(keys.board, JSON.stringify(seed.items));
         localStorage.setItem(keys.media, JSON.stringify(seed.media));
         localStorage.setItem(keys.settings, JSON.stringify(seed.settings));
+        localStorage.setItem(keys.tasks, JSON.stringify(seed.tasks));
       }
       const read = <T>(key: string): T[] => JSON.parse(localStorage.getItem(key) ?? "[]");
       const write = (key: string, value: unknown) =>
@@ -130,6 +140,22 @@ export async function mockIpc(page: Page, options: Partial<MockOptions> = {}) {
         popup_show_now: () => null,
         wallpaper_rendered: () => null,
         open_link: () => null,
+        tasks_list: ({ from, to }) =>
+          read<Task>(keys.tasks).filter(
+            (t) => t.day >= (from as string) && t.day <= (to as string),
+          ),
+        tasks_unfinished_before: ({ day }) =>
+          read<Task>(keys.tasks).filter((t) => t.day < (day as string) && !t.done),
+        tasks_apply: ({ ops }) => {
+          const tasks = new Map(read<Task>(keys.tasks).map((t) => [t.id, t]));
+          for (const op of ops as TaskOp[]) {
+            if (op.op === "upsert") tasks.set(op.task.id, op.task);
+            else tasks.delete(op.id);
+          }
+          write(keys.tasks, [...tasks.values()]);
+          emit("tasks://changed", null);
+          return null;
+        },
         window_open_detail: () => null,
         popup_close: () => null,
         schedule_next: () => "2026-10-12T09:00:00",
@@ -207,12 +233,14 @@ export async function mockIpc(page: Page, options: Partial<MockOptions> = {}) {
         media: seedMedia,
         settings: { ...DEFAULT_SETTINGS, ...seedSettings },
         defaultSettings: DEFAULT_SETTINGS,
+        tasks: seedTasks,
       },
       keys: {
         board: BOARD_STORAGE_KEY,
         media: MEDIA_STORAGE_KEY,
         settings: SETTINGS_STORAGE_KEY,
         autostart: "__e2e_autostart__",
+        tasks: "__e2e_tasks__",
       },
     },
   );
@@ -256,20 +284,28 @@ export interface BoardSeed {
   media?: Media[];
 }
 
+/** Daily tasks to start with (an object for the same reason as BoardSeed). */
+export interface TaskSeed {
+  items: Task[];
+}
+
 export const test = base.extend<{
   ipc: IpcHandlers;
   board: BoardSeed;
   settings: Partial<Settings>;
+  tasks: TaskSeed;
 }>({
   ipc: [{}, { option: true }],
   board: [{ items: [] }, { option: true }],
   settings: [{}, { option: true }],
-  page: async ({ page, ipc, board, settings }, use) => {
+  tasks: [{ items: [] }, { option: true }],
+  page: async ({ page, ipc, board, settings, tasks }, use) => {
     await mockIpc(page, {
       handlers: ipc,
       seedItems: board.items,
       seedMedia: board.media ?? [],
       seedSettings: settings,
+      seedTasks: tasks.items,
     });
     await use(page);
   },

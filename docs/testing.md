@@ -96,3 +96,14 @@ Poloha okna se ukládá při zavření. Násilné ukončení procesu (Správce �
 | Po přihlášení         | Autostart + tapeta, restart počítače                            | Nástěnka jako tapeta, bez okna                          | Ručně neověřeno                                       |
 | Restart Průzkumníka   | Ukončit a znovu spustit explorer.exe                            | Tapeta zůstane                                          | Ručně neověřeno                                       |
 | Odinstalace (NSIS)    | Odinstalovat se zapnutou tapetou                                | Původní tapeta                                          | Ručně neověřeno                                       |
+
+### Hotspoty, úkoly a split-screen (hotspots-split-tasks)
+
+| Scénář              | Postup                                              | Očekávaný výsledek                                          | Ověřeno         |
+| ------------------- | --------------------------------------------------- | ----------------------------------------------------------- | --------------- |
+| Odkaz v prohlížeči  | Hotspot s odkazem, kliknout                         | Stránka se otevře ve výchozím prohlížeči, ne v aplikaci     | Ručně neověřeno |
+| Okno detailu        | Hotspot s detailem a fotkami, kliknout              | Okno s nadpisem, textem a fotkami, šipky listují, Esc zavře | Ručně neověřeno |
+| Hotspot v pop-upu   | Vyzkoušet teď, kliknout na hotspot                  | Akce proběhne i v pop-upu                                   | Ručně neověřeno |
+| Split-screen v okně | Zapnout „V okně nástěnky“, přidat úkoly             | Nástěnka a seznam vedle sebe, úkoly zůstanou po restartu    | Ručně neověřeno |
+| Úkoly na tapetě     | Tapeta + „Na tapetě“, přidat úkol                   | Do pár sekund je úkol na tapetě, bez zaškrtávacích políček  | Ručně neověřeno |
+| Nový den            | Nechat úkol nedokončený, druhý den otevřít nástěnku | Nabídka Přesunout na dnes / Zahodit                         | Ručně neověřeno |

@@ -55,7 +55,46 @@ export function DisplaySection({ notify }: { notify: Notify }) {
         </div>
       )}
       <PlacementPreview placement={placement} />
+      <SplitSettings notify={notify} />
     </>
+  );
+}
+
+/** Board and daily tasks side by side, separately for each place. */
+function SplitSettings({ notify }: { notify: Notify }) {
+  const { t } = useTranslation();
+  const split = useSettings((s) => s.settings.split);
+  const save = useSaveSettings(notify);
+  const update = (patch: Partial<typeof split>) => void save({ split: { ...split, ...patch } });
+  return (
+    <fieldset className={styles.splitGroup}>
+      <legend className={styles.legend}>{t("settings.split.label")}</legend>
+      <p className={sectionStyles.hint}>{t("settings.split.hint")}</p>
+      <Switch
+        label={t("settings.split.board")}
+        checked={split.board}
+        onCheckedChange={(board) => update({ board })}
+      />
+      <Switch
+        label={t("settings.split.popup")}
+        checked={split.popup}
+        onCheckedChange={(popup) => update({ popup })}
+      />
+      <Switch
+        label={t("settings.split.wallpaper")}
+        checked={split.wallpaper}
+        onCheckedChange={(wallpaper) => update({ wallpaper })}
+      />
+      <SegmentedControl
+        label={t("settings.split.side")}
+        value={split.side}
+        options={[
+          { value: "left", label: t("settings.split.left") },
+          { value: "right", label: t("settings.split.right") },
+        ]}
+        onChange={(side) => update({ side })}
+      />
+    </fieldset>
   );
 }
 

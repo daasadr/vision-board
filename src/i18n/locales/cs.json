@@ -223,6 +223,16 @@
       "hint": "Nástěnka bude pozadím plochy pod ikonami, na všech monitorech, ve velikosti nastavené níže. Po každé změně se do pár sekund obnoví. Při vypnutí nebo ukončení aplikace se vrátí vaše původní tapeta.",
       "locked": "Tapeta je součástí dárku od Almost-there.eu. Odemknete ji dárkovým kódem.",
       "windowsOnly": "Tapeta zatím funguje jen ve Windows."
+    },
+    "split": {
+      "label": "Úkoly vedle nástěnky",
+      "hint": "Polovina obrazovky ukáže nástěnku, druhá vaše kroky na dnes a zítra.",
+      "board": "V okně nástěnky",
+      "popup": "V naplánovaném zobrazení",
+      "wallpaper": "Na tapetě (jen ke čtení)",
+      "side": "Nástěnka",
+      "left": "Vlevo",
+      "right": "Vpravo"
     }
   },
   "popup": {
@@ -238,5 +248,22 @@
     "counter": "{{n}} / {{count}}",
     "photoN": "Fotka {{n}}",
     "missing": "Tento detail už neexistuje."
+  },
+  "tasks": {
+    "label": "Úkoly na dnes a zítra",
+    "title": "Kroky k cíli",
+    "today": "Dnes",
+    "tomorrow": "Zítra",
+    "none": "Nic naplánovaného.",
+    "addPlaceholder": "Přidat krok…",
+    "addTo": "Přidat úkol na {{day}}",
+    "edit": "Upravit",
+    "editLabel": "Text úkolu",
+    "up": "Posunout výš",
+    "down": "Posunout níž",
+    "remove": "Smazat",
+    "leftover": "Z minulých dnů zůstalo nedokončeno: {{count}}. Přesunout na dnešek?",
+    "moveToToday": "Přesunout na dnes",
+    "drop": "Zahodit"
   }
 }
