@@ -35,6 +35,7 @@ pub fn resolve(preference: LanguagePreference, system_tag: Option<&str>) -> Lang
 pub struct Texts {
     pub tooltip: &'static str,
     pub open: &'static str,
+    pub show_now: &'static str,
     pub settings: &'static str,
     pub control_widget: &'static str,
     pub hide_control: &'static str,
@@ -48,6 +49,7 @@ pub fn texts(language: Language) -> Texts {
         Language::Cs => Texts {
             tooltip: "Vision Board",
             open: "Otevřít nástěnku",
+            show_now: "Zobrazit nástěnku teď",
             settings: "Nastavení…",
             control_widget: "Ovládací prvek na ploše",
             hide_control: "Skrýt",
@@ -58,6 +60,7 @@ pub fn texts(language: Language) -> Texts {
         Language::En => Texts {
             tooltip: "Vision Board",
             open: "Open board",
+            show_now: "Show the board now",
             settings: "Settings…",
             control_widget: "Desktop control",
             hide_control: "Hide",
@@ -68,6 +71,7 @@ pub fn texts(language: Language) -> Texts {
         Language::De => Texts {
             tooltip: "Vision Board",
             open: "Pinnwand öffnen",
+            show_now: "Pinnwand jetzt zeigen",
             settings: "Einstellungen…",
             control_widget: "Bedienelement auf dem Desktop",
             hide_control: "Ausblenden",

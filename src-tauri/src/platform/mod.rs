@@ -14,6 +14,42 @@ mod windows;
 #[cfg(target_os = "windows")]
 pub use windows::{control, system_prefers_dark};
 
+use crate::domain::activity::Activity;
+
+/// Time since the last input and the OS busy/away flags (see `domain::activity`). On Linux
+/// nothing is known, so the board shows at the planned time without waiting for a pause.
+pub fn activity() -> Activity {
+    #[cfg(target_os = "windows")]
+    return windows::activity();
+    #[cfg(target_os = "macos")]
+    return macos::activity();
+    #[cfg(not(any(target_os = "windows", target_os = "macos")))]
+    Activity::default()
+}
+
+/// The window in the foreground, to give focus back after the pop-up (Windows only).
+pub fn foreground_window() -> Option<isize> {
+    #[cfg(target_os = "windows")]
+    return windows::foreground_window();
+    #[cfg(not(target_os = "windows"))]
+    None
+}
+
+pub fn restore_foreground(window: isize) {
+    #[cfg(target_os = "windows")]
+    windows::restore_foreground(window);
+    #[cfg(not(target_os = "windows"))]
+    let _ = window;
+}
+
+/// Keeps a shown window out of Alt+Tab (Windows; elsewhere `skip_taskbar` is enough).
+pub fn hide_from_task_switcher(window: &tauri::WebviewWindow) {
+    #[cfg(target_os = "windows")]
+    windows::hide_from_task_switcher(window);
+    #[cfg(not(target_os = "windows"))]
+    let _ = window;
+}
+
 /// What the native control widget shows and where (physical pixels, top-left corner).
 #[cfg(target_os = "windows")]
 #[derive(Debug, Clone)]

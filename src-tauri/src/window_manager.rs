@@ -27,7 +27,7 @@ const CONTROL_MENU_HIDE: &str = "control-hide";
 
 /// Script that hands the stored settings to a new window before its page runs, so the first
 /// render already has the right theme and language (read by src/lib/settings.ts).
-fn settings_script(app: &AppHandle) -> String {
+pub(crate) fn settings_script(app: &AppHandle) -> String {
     let settings = preferences::current(app).unwrap_or_default();
     // JSON is a valid JavaScript expression.
     let json = serde_json::to_string(&settings).unwrap_or_else(|_| "undefined".into());

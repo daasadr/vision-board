@@ -5,7 +5,7 @@ use tauri::{AppHandle, Emitter, Manager};
 
 use crate::domain::settings::{self, Settings};
 use crate::state::Db;
-use crate::{tray, window_manager};
+use crate::{scheduler, tray, window_manager};
 
 /// Event carrying the new settings to every window. Matches SETTINGS_CHANGED_EVENT in
 /// src/lib/settings.ts.
@@ -38,5 +38,6 @@ fn apply(app: &AppHandle, settings: &Settings) {
     if let Err(e) = window_manager::sync_control(app, settings.control_widget) {
         eprintln!("showing or hiding the control widget failed: {e}");
     }
+    scheduler::restart(app);
     let _ = app.emit(SETTINGS_CHANGED_EVENT, settings);
 }

@@ -4,6 +4,7 @@
 use std::cell::RefCell;
 use std::ffi::c_void;
 use std::rc::Rc;
+use std::time::Duration;
 
 use windows::core::{w, PCWSTR};
 use windows::Win32::Foundation::{COLORREF, HWND, LPARAM, LRESULT, POINT, SIZE, WPARAM};
@@ -13,22 +14,96 @@ use windows::Win32::Graphics::Gdi::{
 };
 use windows::Win32::System::LibraryLoader::GetModuleHandleW;
 use windows::Win32::System::Registry::{RegGetValueW, HKEY_CURRENT_USER, RRF_RT_REG_DWORD};
+use windows::Win32::System::SystemInformation::GetTickCount;
+use windows::Win32::UI::Input::KeyboardAndMouse::{GetLastInputInfo, LASTINPUTINFO};
 use windows::Win32::UI::Input::KeyboardAndMouse::{
     ReleaseCapture, SetCapture, TrackMouseEvent, TME_LEAVE, TRACKMOUSEEVENT,
 };
+use windows::Win32::UI::Shell::{
+    SHQueryUserNotificationState, QUNS_BUSY, QUNS_NOT_PRESENT, QUNS_PRESENTATION_MODE,
+    QUNS_QUIET_TIME, QUNS_RUNNING_D3D_FULL_SCREEN,
+};
 use windows::Win32::UI::WindowsAndMessaging::{
     AppendMenuW, CreatePopupMenu, CreateWindowExW, DefWindowProcW, DestroyMenu, DestroyWindow,
-    GetCursorPos, GetSystemMetrics, LoadCursorW, RegisterClassW, SetCursor, SetForegroundWindow,
-    SetWindowPos, ShowWindow, TrackPopupMenu, UpdateLayeredWindow, HWND_BOTTOM, HWND_TOPMOST,
-    IDC_HAND, MA_NOACTIVATE, MF_STRING, SM_CXDRAG, SM_CYDRAG, SWP_NOACTIVATE, SWP_NOMOVE,
-    SWP_NOSIZE, SWP_NOZORDER, SW_SHOWNOACTIVATE, TPM_RETURNCMD, TPM_RIGHTBUTTON, ULW_ALPHA,
-    WINDOWPOS, WM_CAPTURECHANGED, WM_DISPLAYCHANGE, WM_DPICHANGED, WM_LBUTTONDOWN, WM_LBUTTONUP,
+    GetCursorPos, GetForegroundWindow, GetSystemMetrics, GetWindowLongPtrW, IsWindow, LoadCursorW,
+    RegisterClassW, SetCursor, SetForegroundWindow, SetWindowLongPtrW, SetWindowPos, ShowWindow,
+    TrackPopupMenu, UpdateLayeredWindow, GWL_EXSTYLE, HWND_BOTTOM, HWND_TOPMOST, IDC_HAND,
+    MA_NOACTIVATE, MF_STRING, SM_CXDRAG, SM_CYDRAG, SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE,
+    SWP_NOZORDER, SW_HIDE, SW_SHOWNOACTIVATE, TPM_RETURNCMD, TPM_RIGHTBUTTON, ULW_ALPHA, WINDOWPOS,
+    WM_CAPTURECHANGED, WM_DISPLAYCHANGE, WM_DPICHANGED, WM_LBUTTONDOWN, WM_LBUTTONUP,
     WM_MOUSEACTIVATE, WM_MOUSEMOVE, WM_RBUTTONUP, WM_SETCURSOR, WM_SETTINGCHANGE,
-    WM_WINDOWPOSCHANGING, WNDCLASSW, WS_EX_LAYERED, WS_EX_NOACTIVATE, WS_EX_TOOLWINDOW, WS_POPUP,
+    WM_WINDOWPOSCHANGING, WNDCLASSW, WS_EX_APPWINDOW, WS_EX_LAYERED, WS_EX_NOACTIVATE,
+    WS_EX_TOOLWINDOW, WS_POPUP,
 };
 
 use super::{ControlEvent, ControlLook, ControlMenuItem};
 use crate::domain::control_look::Bitmap;
+
+/// Time since the last keyboard/mouse input and the shell's notification state. These are the
+/// only things read: no keys, window titles or screen content.
+pub fn activity() -> crate::domain::activity::Activity {
+    let mut info = LASTINPUTINFO {
+        cbSize: std::mem::size_of::<LASTINPUTINFO>() as u32,
+        dwTime: 0,
+    };
+    // SAFETY: `info` is a valid LASTINPUTINFO with cbSize set, valid for writes. GetTickCount
+    // and SHQueryUserNotificationState take no pointers.
+    let (idle, state) = unsafe {
+        let idle = GetLastInputInfo(&mut info).as_bool().then(|| {
+            // Both are 32-bit tick counts that wrap after ~49 days; wrapping_sub stays right.
+            Duration::from_millis(u64::from(GetTickCount().wrapping_sub(info.dwTime)))
+        });
+        (idle, SHQueryUserNotificationState().ok())
+    };
+    crate::domain::activity::Activity {
+        idle,
+        busy: matches!(
+            state,
+            Some(
+                QUNS_BUSY | QUNS_RUNNING_D3D_FULL_SCREEN | QUNS_PRESENTATION_MODE | QUNS_QUIET_TIME
+            )
+        ),
+        away: state == Some(QUNS_NOT_PRESENT),
+    }
+}
+
+/// The window in the foreground (whatever app it belongs to), to give focus back later.
+pub fn foreground_window() -> Option<isize> {
+    // SAFETY: no arguments; returns a handle or null.
+    let hwnd = unsafe { GetForegroundWindow() };
+    (!hwnd.is_invalid()).then_some(hwnd.0 as isize)
+}
+
+/// Gives focus back to a window remembered by `foreground_window`, if it still exists.
+/// Works while this app is in the foreground (the user clicked into one of its windows).
+pub fn restore_foreground(window: isize) {
+    let hwnd = HWND(window as *mut c_void);
+    // SAFETY: IsWindow accepts any value and tells whether it is a live window; only then is
+    // it passed to SetForegroundWindow.
+    unsafe {
+        if IsWindow(Some(hwnd)).as_bool() {
+            let _ = SetForegroundWindow(hwnd);
+        }
+    }
+}
+
+/// Keeps a shown webview window out of Alt+Tab and the taskbar (tool window). tao rewrites the
+/// extended style when it shows a window, so this runs after showing, and hides and shows the
+/// window again without activating it so the shell picks the style up.
+pub fn hide_from_task_switcher(window: &tauri::WebviewWindow) {
+    let Ok(hwnd) = window.hwnd() else {
+        return;
+    };
+    // SAFETY: `hwnd` is a live window of this process (`window` keeps it alive). Only its
+    // extended style bits and visibility change; no pointers are passed.
+    unsafe {
+        let style = GetWindowLongPtrW(hwnd, GWL_EXSTYLE);
+        let style = (style | WS_EX_TOOLWINDOW.0 as isize) & !(WS_EX_APPWINDOW.0 as isize);
+        SetWindowLongPtrW(hwnd, GWL_EXSTYLE, style);
+        let _ = ShowWindow(hwnd, SW_HIDE);
+        let _ = ShowWindow(hwnd, SW_SHOWNOACTIVATE);
+    }
+}
 
 /// Whether "system" means the dark theme: Windows apps mode (Settings > Personalization >
 /// Colors). Unknown counts as light, like the webview's `prefers-color-scheme`.

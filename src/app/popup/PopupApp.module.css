@@ -1,0 +1,102 @@
+/*
+ * The window is transparent. Full screen: a scrim over the desktop with the board inside.
+ * Partial: the board fills the window, which already has the board's 16:9 shape.
+ */
+
+.popup {
+  position: relative;
+  display: grid;
+  height: 100%;
+  animation: enter var(--duration-slow) var(--ease-standard) both;
+}
+
+.full {
+  grid-template-rows: 1fr auto;
+  gap: var(--space-4);
+  padding: var(--space-7) var(--space-7) var(--space-5);
+  background: var(--color-scrim);
+}
+
+.partial {
+  grid-template-rows: 1fr;
+}
+
+.leaving {
+  animation: leave var(--duration-normal) var(--ease-standard) both;
+}
+
+.board {
+  min-height: 0;
+}
+
+.bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-self: center;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+  backdrop-filter: blur(var(--blur-surface));
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+/* Partial: the bar floats over the bottom of the board. */
+.partial .bar {
+  position: absolute;
+  bottom: var(--space-4);
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* Time left: a thin line along the top of the bar that shrinks; paused while hovered. */
+.countdown {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--gradient-accent);
+  transform-origin: left;
+  animation: countdown var(--duration) linear both;
+}
+
+.popup:hover .countdown {
+  animation-play-state: paused;
+}
+
+.snoozeLabel {
+  margin-left: var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--color-ink-muted);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@keyframes enter {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes leave {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes countdown {
+  to {
+    transform: scaleX(0);
+  }
+}

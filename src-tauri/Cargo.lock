@@ -4455,6 +4455,7 @@ name = "vision-board"
 version = "0.1.0"
 dependencies = [
  "base64 0.22.1",
+ "chrono",
  "image",
  "rusqlite",
  "rusqlite_migration",

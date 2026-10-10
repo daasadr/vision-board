@@ -2,7 +2,9 @@ mod commands;
 mod domain;
 mod lifecycle;
 mod platform;
+mod popup;
 mod preferences;
+mod scheduler;
 mod state;
 mod tray;
 mod window_manager;
@@ -45,6 +47,8 @@ pub fn run() {
             app.manage(state::Db::new(conn));
             app.manage(state::MediaDir(media_dir));
             app.manage(lifecycle::Lifecycle::default());
+            app.manage(scheduler::Scheduler::default());
+            app.manage(popup::Popup::default());
 
             let settings = preferences::current(app.handle()).unwrap_or_default();
             tray::create(app.handle(), &settings)?;
@@ -54,6 +58,7 @@ pub fn run() {
                 window_manager::open_board(app.handle())?;
             }
             window_manager::sync_control(app.handle(), settings.control_widget)?;
+            scheduler::restart(app.handle());
             Ok(())
         })
         .build(tauri::generate_context!())

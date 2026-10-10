@@ -17,6 +17,7 @@ import {
   type Placement,
   type PlacementMode,
   type Item as RawItem,
+  type Schedule,
   type Settings,
   type TextVariant,
   type ThemePreference,
@@ -36,6 +37,7 @@ export type {
   MediaLibrary,
   Placement,
   PlacementMode,
+  Schedule,
   Settings,
   TextVariant,
   ThemePreference,
@@ -144,6 +146,19 @@ export const ipc = {
 
   async openSettings(): Promise<void> {
     unwrap("window_open_settings", await commands.windowOpenSettings());
+  },
+
+  /** Shows the pop-up now, regardless of the schedule ("Try it", tray). */
+  async showPopupNow(): Promise<void> {
+    unwrap("popup_show_now", await commands.popupShowNow());
+  },
+
+  /** Closes the pop-up on every monitor; with minutes it comes back after that long. */
+  closePopup: (snoozeMinutes: number | null) => commands.popupClose(snoozeMinutes),
+
+  /** The next planned showing as local `YYYY-MM-DDTHH:MM:SS`, or null when none. */
+  async nextShowing(): Promise<string | null> {
+    return unwrap("schedule_next", await commands.scheduleNext());
   },
 
   /** Native context menu of the control widget. */

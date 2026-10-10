@@ -7,10 +7,11 @@ use tauri::{AppHandle, Manager, Wry};
 use crate::domain::locale;
 use crate::domain::settings::Settings;
 use crate::state::Db;
-use crate::{lifecycle, preferences, window_manager};
+use crate::{lifecycle, popup, preferences, window_manager};
 
 const TRAY_ID: &str = "main";
 const OPEN_ID: &str = "open";
+const SHOW_NOW_ID: &str = "show-now";
 const SETTINGS_ID: &str = "settings";
 const CONTROL_ID: &str = "control";
 const QUIT_ID: &str = "quit";
@@ -27,6 +28,7 @@ fn menu(app: &AppHandle, settings: &Settings) -> tauri::Result<Menu<Wry>> {
         app,
         &[
             &MenuItem::with_id(app, OPEN_ID, text.open, true, None::<&str>)?,
+            &MenuItem::with_id(app, SHOW_NOW_ID, text.show_now, true, None::<&str>)?,
             &MenuItem::with_id(app, SETTINGS_ID, text.settings, true, None::<&str>)?,
             &CheckMenuItem::with_id(
                 app,
@@ -51,6 +53,11 @@ pub fn create(app: &AppHandle, settings: &Settings) -> tauri::Result<()> {
         .on_menu_event(|app, event| match event.id().as_ref() {
             OPEN_ID => {
                 let _ = window_manager::open_board(app);
+            }
+            SHOW_NOW_ID => {
+                if let Err(e) = popup::show(app) {
+                    eprintln!("showing the pop-up failed: {e}");
+                }
             }
             SETTINGS_ID => {
                 let _ = window_manager::open_settings(app);

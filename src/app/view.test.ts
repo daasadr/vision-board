@@ -6,6 +6,7 @@ describe("viewFor", () => {
     expect(viewFor("/", "settings")).toBe("settings");
     expect(viewFor("/", "control")).toBe("control");
     expect(viewFor("/", "board")).toBe("board");
+    expect(viewFor("/", "popup-1")).toBe("popup");
   });
 
   it("picks the view by path in a browser", () => {
@@ -15,6 +16,6 @@ describe("viewFor", () => {
 
   it("falls back to the board", () => {
     expect(viewFor("/", null)).toBe("board");
-    expect(viewFor("/unknown", "popup")).toBe("board");
+    expect(viewFor("/unknown", "wallpaper")).toBe("board");
   });
 });

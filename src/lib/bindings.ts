@@ -50,6 +50,15 @@ export const commands = {
 	autostartSet: (enabled: boolean) => typedError<boolean, string>(__TAURI_INVOKE("autostart_set", { enabled })),
 	/**  Opens (or focuses) the settings window. */
 	windowOpenSettings: () => typedError<null, string>(__TAURI_INVOKE("window_open_settings")),
+	/**  Shows the pop-up now, regardless of the schedule and the user's activity ("Try it"). */
+	popupShowNow: () => typedError<null, string>(__TAURI_INVOKE("popup_show_now")),
+	/**  Closes the pop-up on all monitors; with `snooze_minutes` it comes back after that long. */
+	popupClose: (snoozeMinutes: number | null) => __TAURI_INVOKE<void>("popup_close", { snoozeMinutes }),
+	/**
+	 *  The next planned showing as local date-time `YYYY-MM-DDTHH:MM:SS`, or none when the
+	 *  schedule is off, locked or has no day enabled.
+	 */
+	scheduleNext: () => typedError<string | null, string>(__TAURI_INVOKE("schedule_next")),
 	/**  Shows the native context menu of the control widget at the pointer. */
 	controlContextMenu: () => typedError<null, string>(__TAURI_INVOKE("control_context_menu")),
 };
@@ -159,6 +168,24 @@ export type Placement = {
 
 export type PlacementMode = "full" | "partial";
 
+export type Schedule = {
+	/**  Fixed times of day, minutes since midnight (0–12 of them). */
+	times: number[],
+	/**  Repeat every n minutes (15–480) within the window; none: no repetition. */
+	interval: number | null,
+	/**  Window of the interval, minutes since midnight; the end is exclusive. */
+	windowStart: number,
+	windowEnd: number,
+	/**  Monday to Sunday. */
+	days: [boolean, boolean, boolean, boolean, boolean, boolean, boolean],
+	/**  How long the board stays up (10–600 s). */
+	durationSecs: number,
+	/**  Input pause to wait for before showing (2–30 s). */
+	pauseSecs: number,
+	/**  Give up on one showing after this long without a good moment (5–120 min). */
+	maxDelayMin: number,
+};
+
 export type Settings = {
 	theme: ThemePreference,
 	language: LanguagePreference,
@@ -172,7 +199,9 @@ export type Settings = {
 	controlLayer: ControlLayer,
 	/**  None: the default corner. */
 	controlPosition: ControlPosition | null,
+	/**  Modes on at start; `scheduled_popup` is also the switch of the schedule below. */
 	startup: Startup,
+	schedule: Schedule,
 };
 
 /**  Modes that start with the app. Phases 3 and 4 act on them. */

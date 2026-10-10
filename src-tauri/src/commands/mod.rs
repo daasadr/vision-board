@@ -7,6 +7,7 @@ mod app;
 mod board;
 mod entitlements;
 mod media;
+mod popup;
 mod settings;
 mod windows;
 
@@ -33,6 +34,9 @@ pub fn builder() -> Builder<tauri::Wry> {
         settings::autostart_get,
         settings::autostart_set,
         windows::window_open_settings,
+        popup::popup_show_now,
+        popup::popup_close,
+        popup::schedule_next,
         windows::control_context_menu,
     ])
 }

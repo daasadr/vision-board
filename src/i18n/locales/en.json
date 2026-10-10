@@ -83,7 +83,8 @@
       "label": "Settings sections",
       "general": "General",
       "appearance": "Appearance",
-      "display": "Display"
+      "display": "Display",
+      "timing": "Timing"
     },
     "language": {
       "label": "Language",
@@ -150,6 +151,55 @@
       "bottomLeft": "Bottom left",
       "bottomRight": "Bottom right",
       "preview": "Preview of the placement on the screen"
+    },
+    "timing": {
+      "enabled": "Show the board on a schedule",
+      "hint": "At the set times the board appears over all windows. It waits until you stop typing and never interrupts a presentation, a full-screen game or a locked screen.",
+      "locked": "The scheduled display is part of the Almost-there.eu gift. Unlock it with your gift code.",
+      "tryIt": "Try it now",
+      "next": "Next display: {{date}} at {{time}}",
+      "noNext": "No next display – turn on at least one day and time.",
+      "times": "Fixed times",
+      "timeN": "Time {{n}}",
+      "removeTime": "Remove time {{time}}",
+      "addTime": "Add a time",
+      "repeat": "Repeat during the day",
+      "every": "Every",
+      "from": "from",
+      "to": "to",
+      "days": "Days",
+      "dayShort": {
+        "mon": "Mo",
+        "tue": "Tu",
+        "wed": "We",
+        "thu": "Th",
+        "fri": "Fr",
+        "sat": "Sa",
+        "sun": "Su"
+      },
+      "dayNames": {
+        "mon": "Monday",
+        "tue": "Tuesday",
+        "wed": "Wednesday",
+        "thu": "Thursday",
+        "fri": "Friday",
+        "sat": "Saturday",
+        "sun": "Sunday"
+      },
+      "duration": "How long to show the board",
+      "pause": "Wait for a pause in typing",
+      "pauseHint": "The board appears once you have not pressed a key or moved the mouse for this long.",
+      "maxDelay": "Wait for a good moment at most",
+      "maxDelayHint": "If no good moment comes by then, this display is skipped until the next time.",
+      "seconds": "{{count}} s",
+      "minutes": "{{count}} min",
+      "hours": "{{count}} h"
     }
+  },
+  "popup": {
+    "actions": "Board display controls",
+    "close": "Close",
+    "snooze": "Snooze:",
+    "minutes": "{{count}} min"
   }
 }

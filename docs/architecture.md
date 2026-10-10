@@ -1,6 +1,6 @@
 # Architektura
 
-Stav po fázi 2 (settings-appearance). Každá další fáze sem doplní svou část.
+Stav po fázi 3 (scheduled-popup). Každá další fáze sem doplní svou část.
 
 ## Přehled
 
@@ -9,13 +9,15 @@ Stav po fázi 2 (settings-appearance). Každá další fáze sem doplní svou č
 │  lib.rs            pluginy, setup (DB, úklid médií, tray, okna), běh v tray (ExitRequested) │
 │  window_manager    okna board / settings / control: vytvoření, obnova, zaostření, zrušení   │
 │  tray              ikona a nabídka (nástěnka, nastavení, ovládací prvek, ukončit)           │
-│  preferences       uložení nastavení → tray, ovládací prvek, událost settings://changed     │
+│  preferences       uložení nastavení → tray, ovládací prvek, plánovač, settings://changed  │
+│  scheduler         plán pop-upu: spánek do okamžiku (max 15 min), čekání na vhodnou chvíli │
+│  popup             okna pop-upu na všech monitorech, návrat fokusu, odložení              │
 │  lifecycle         Ukončit: uložení z frontendu → dokončení importů (max 5 s) → úklid → exit │
 │  state             sdílený stav: Db (SQLite), MediaDir                                     │
 │  commands/         tenká IPC vrstva, tauri-specta → src/lib/bindings.ts                    │
 │  domain/           doménová logika bez závislosti na Tauri (cargo test):                   │
 │                    db, board, media, entitlements, app_state, locale, settings, placement, │
-│                    window_placement, control_look                                          │
+│                    window_placement, control_look, schedule, activity                      │
 │  platform/         jediné místo pro FFI a unsafe (Win32: nativní ovládací prvek, téma OS)   │
 └──────────────┬─────────────────────────────────────────────────────────────────────────────┘
                │ IPC (invoke, události) · asset protokol pro obrázky z media/
@@ -24,6 +26,7 @@ Stav po fázi 2 (settings-appearance). Každá další fáze sem doplní svou č
 │  src/app/board/    nástěnka: store, ukládání, plátno, položky, import, životní cyklus okna  │
 │  src/app/settings/ okno nastavení (Obecné, Vzhled, Zobrazení)                               │
 │  src/app/control/  ovládací prvek (3D obdélník v rohu obrazovky)                            │
+│  src/app/popup/    pop-up: nástěnka jen ke čtení, Zavřít / Odložit, odpočet                 │
 │  src/lib/settings.ts  store nastavení, aplikace tématu a jazyka, poslech změn               │
 │  src/lib/ipc.ts    jediný přístup k Rustu (typovaný, v E2E mockovaný)                       │
 │  src/lib/entitlements.ts  dostupnost prémiových funkcí (useEntitlement)                     │
@@ -132,6 +135,22 @@ okno nastavení → settingsStore.update (hned se projeví v okně) → settings
 
 `domain::placement::rect_in` spočítá obdélník nástěnky na monitoru (celá pracovní plocha, nebo 30–90 % šířky v poměru 16:9 u jednoho z pěti ukotvení, 2 % od okraje). Použije ho pop-up (fáze 3) a tapeta (fáze 4). Náhled v nastavení počítá totéž v `src/app/settings/placement.ts`. Shodu hlídají stejné testovací případy v Rustu i ve Vitestu.
 
+## Naplánované zobrazení (pop-up)
+
+```
+scheduler (async úloha, jen při zapnutém plánu a oprávnění ScheduledPopup)
+  → Schedule::due / next_after (domain::schedule, místní čas, chrono)
+  → spánek do nejbližšího okamžiku, nejvýš 15 min (přepočet podle hodin: spánek PC, změna času)
+  → čekání na vhodnou chvíli: domain::activity::decide(platform::activity()) po ≤ 5 s
+  → popup::show: okno popup-N na každém monitoru (bez fokusu, mimo Alt+Tab, vždy navrch)
+  → Zavřít / Odložit / Esc / konec odpočtu → popup_close → zrušit okna, vrátit fokus, odložit
+```
+
+- **Soukromí:** `platform::activity` čte jen čas od posledního vstupu (`GetLastInputInfo`, na macOS `CGEventSourceSecondsSinceLastEventType`) a stav `SHQueryUserNotificationState` (fullscreen, prezentace → busy; zamčeno, spořič → away). Na Linuxu nic, pop-up se pak ukáže v plánovaný čas.
+- **Zmeškané:** `Schedule::due(last, now)` sloučí okamžiky zmeškané během spánku do posledního z nich. Platí, jen když je to dnes a u intervalu jen v časovém okně.
+- **Zapnutí** je `Settings.startup.scheduledPopup`, podrobnosti v `Settings.schedule`. Každá změna nastavení úlohu plánovače zruší a spustí znovu (`scheduler::restart`). Odložení je jednorázový okamžik v `Scheduler.snoozed_until`.
+- **Pop-up** je webview jen po dobu zobrazení. Odpočet je CSS animace (najetí myší ji pozastaví), takže ve frontendu neběží žádný časovač. Fokus: `popup::show` si zapamatuje okno v popředí. Když měl pop-up při zavření fokus (uživatel do něj klikl), `popup::close` ho vrátí.
+
 ## Kde co najít
 
 | Chci změnit…                   | Soubor                                                       |
@@ -150,3 +169,5 @@ okno nastavení → settingsStore.update (hned se projeví v okně) → settings
 | okno nastavení                 | `src/app/settings/`                                          |
 | ovládací prvek                 | `src/app/control/` + `pnpm control:render`, `platform/`      |
 | styly rámů                     | `src/design/components/Frame.*`, tokeny `--frame-*`          |
+| plán a vhodná chvíle pop-upu   | `src-tauri/src/domain/schedule.rs`, `activity.rs`            |
+| pop-up                         | `src-tauri/src/popup.rs`, `scheduler.rs`, `src/app/popup/`   |

@@ -9,6 +9,8 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use specta::Type;
 
+use super::schedule::Schedule;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, Type)]
 #[serde(rename_all = "camelCase")]
 pub enum ThemePreference {
@@ -108,7 +110,7 @@ pub struct Startup {
     pub scheduled_popup: bool,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Type)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[serde(rename_all = "camelCase")]
 pub struct Settings {
     pub theme: ThemePreference,
@@ -123,7 +125,9 @@ pub struct Settings {
     pub control_layer: ControlLayer,
     /// None: the default corner.
     pub control_position: Option<ControlPosition>,
+    /// Modes on at start; `scheduled_popup` is also the switch of the schedule below.
     pub startup: Startup,
+    pub schedule: Schedule,
 }
 
 impl Default for Settings {
@@ -138,6 +142,7 @@ impl Default for Settings {
             control_layer: ControlLayer::default(),
             control_position: None,
             startup: Startup::default(),
+            schedule: Schedule::default(),
         }
     }
 }
@@ -149,6 +154,7 @@ impl Settings {
             .placement
             .size
             .clamp(MIN_PLACEMENT_SIZE, MAX_PLACEMENT_SIZE);
+        self.schedule = self.schedule.normalized();
         self
     }
 
@@ -245,9 +251,13 @@ mod tests {
                 wallpaper: true,
                 scheduled_popup: true,
             },
+            schedule: Schedule {
+                times: vec![8 * 60 + 30],
+                ..Schedule::default()
+            },
         };
-        save(&conn, settings).expect("save");
-        save(&conn, settings).expect("save again");
+        save(&conn, settings.clone()).expect("save");
+        save(&conn, settings.clone()).expect("save again");
         assert_eq!(load(&conn).expect("load"), settings);
     }
 
@@ -256,7 +266,10 @@ mod tests {
         let conn = open_in_memory();
         let mut settings = Settings::default();
         settings.placement.size = 100;
-        assert_eq!(save(&conn, settings).expect("save").placement.size, 90);
+        assert_eq!(
+            save(&conn, settings.clone()).expect("save").placement.size,
+            90
+        );
         settings.placement.size = 5;
         assert_eq!(save(&conn, settings).expect("save").placement.size, 30);
         assert_eq!(load(&conn).expect("load").placement.size, 30);

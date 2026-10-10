@@ -83,7 +83,8 @@
       "label": "Sekce nastavení",
       "general": "Obecné",
       "appearance": "Vzhled",
-      "display": "Zobrazení"
+      "display": "Zobrazení",
+      "timing": "Časování"
     },
     "language": {
       "label": "Jazyk",
@@ -150,6 +151,55 @@
       "bottomLeft": "Vlevo dole",
       "bottomRight": "Vpravo dole",
       "preview": "Náhled umístění na obrazovce"
+    },
+    "timing": {
+      "enabled": "Zobrazovat nástěnku podle plánu",
+      "hint": "Nástěnka se v nastavené časy ukáže přes všechna okna. Počká, až přestanete psát, a nikdy neruší při prezentaci, hře přes celou obrazovku nebo se zamčenou obrazovkou.",
+      "locked": "Naplánované zobrazení je součástí dárku od Almost-there.eu. Odemknete ho dárkovým kódem.",
+      "tryIt": "Vyzkoušet teď",
+      "next": "Příští zobrazení: {{date}} v {{time}}",
+      "noNext": "Žádné příští zobrazení – zapněte aspoň jeden den a čas.",
+      "times": "Pevné časy",
+      "timeN": "Čas {{n}}",
+      "removeTime": "Odebrat čas {{time}}",
+      "addTime": "Přidat čas",
+      "repeat": "Opakovat během dne",
+      "every": "Každých",
+      "from": "od",
+      "to": "do",
+      "days": "Dny",
+      "dayShort": {
+        "mon": "Po",
+        "tue": "Út",
+        "wed": "St",
+        "thu": "Čt",
+        "fri": "Pá",
+        "sat": "So",
+        "sun": "Ne"
+      },
+      "dayNames": {
+        "mon": "pondělí",
+        "tue": "úterý",
+        "wed": "středa",
+        "thu": "čtvrtek",
+        "fri": "pátek",
+        "sat": "sobota",
+        "sun": "neděle"
+      },
+      "duration": "Jak dlouho nástěnku ukázat",
+      "pause": "Počkat na pauzu v psaní",
+      "pauseHint": "Nástěnka se ukáže, až tak dlouho nestisknete klávesu ani nepohnete myší.",
+      "maxDelay": "Nejdéle čekat na vhodnou chvíli",
+      "maxDelayHint": "Když se vhodná chvíle do té doby nenajde, zobrazení se vynechá a počká na další čas.",
+      "seconds": "{{count}} s",
+      "minutes": "{{count}} min",
+      "hours": "{{count}} h"
     }
+  },
+  "popup": {
+    "actions": "Ovládání zobrazené nástěnky",
+    "close": "Zavřít",
+    "snooze": "Odložit:",
+    "minutes": "{{count}} min"
   }
 }

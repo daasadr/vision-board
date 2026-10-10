@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Capability for the app windows (board, settings, control widget)",
-  "windows": ["board", "settings", "control"],
+  "description": "Capability for the app windows (board, settings, control widget, pop-ups)",
+  "windows": ["board", "settings", "control", "popup-*"],
   "permissions": ["core:default", "core:window:allow-destroy"]
 }

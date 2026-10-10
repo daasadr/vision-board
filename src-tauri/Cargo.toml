@@ -36,6 +36,8 @@ uuid = { version = "1", features = ["v4"] }
 base64 = "0.22"
 sys-locale = "0.3"
 tokio = { version = "1", features = ["sync", "time"] }
+# Local time for the popup schedule; already in the tree (through tauri), so no new code.
+chrono = { version = "0.4", default-features = false, features = ["clock"] }
 # Start at login through the OS mechanism (HKCU Run, LaunchAgent, XDG autostart); adds only
 # auto-launch + winreg. Pinned: newer releases require Tauri 2.12.
 tauri-plugin-autostart = "=2.5.1"
@@ -47,7 +49,9 @@ windows = { version = "0.61", features = [
   "Win32_Graphics_Gdi",
   "Win32_System_LibraryLoader",
   "Win32_System_Registry",
+  "Win32_System_SystemInformation",
   "Win32_UI_Input_KeyboardAndMouse",
+  "Win32_UI_Shell",
   "Win32_UI_WindowsAndMessaging",
 ] }
 

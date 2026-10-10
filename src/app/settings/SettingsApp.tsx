@@ -5,9 +5,10 @@ import { AppearanceSection } from "./AppearanceSection";
 import { DisplaySection } from "./DisplaySection";
 import { GeneralSection } from "./GeneralSection";
 import styles from "./SettingsApp.module.css";
+import { TimingSection } from "./TimingSection";
 import type { Notify } from "./useSaveSettings";
 
-const SECTIONS = ["general", "appearance", "display"] as const;
+const SECTIONS = ["general", "appearance", "timing", "display"] as const;
 type Section = (typeof SECTIONS)[number];
 
 /**
@@ -20,6 +21,7 @@ export default function SettingsApp() {
   const tabs = useRef<Record<Section, HTMLButtonElement | null>>({
     general: null,
     appearance: null,
+    timing: null,
     display: null,
   });
   const [notices, setNotices] = useState<Notice[]>([]);
@@ -82,6 +84,7 @@ export default function SettingsApp() {
         <h2 className={styles.heading}>{t(`settings.sections.${section}`)}</h2>
         {section === "general" && <GeneralSection notify={notify} />}
         {section === "appearance" && <AppearanceSection notify={notify} />}
+        {section === "timing" && <TimingSection notify={notify} />}
         {section === "display" && <DisplaySection notify={notify} />}
       </main>
       <Notices notices={notices} onDismiss={dismiss} dismissLabel={t("common.dismiss")} />

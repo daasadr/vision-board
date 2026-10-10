@@ -83,7 +83,8 @@
       "label": "Bereiche der Einstellungen",
       "general": "Allgemein",
       "appearance": "Darstellung",
-      "display": "Anzeige"
+      "display": "Anzeige",
+      "timing": "Zeitplan"
     },
     "language": {
       "label": "Sprache",
@@ -150,6 +151,55 @@
       "bottomLeft": "Unten links",
       "bottomRight": "Unten rechts",
       "preview": "Vorschau der Platzierung auf dem Bildschirm"
+    },
+    "timing": {
+      "enabled": "Pinnwand nach Zeitplan zeigen",
+      "hint": "Zu den eingestellten Zeiten erscheint die Pinnwand über allen Fenstern. Sie wartet, bis Sie nicht mehr tippen, und stört nie bei Präsentationen, Vollbildspielen oder gesperrtem Bildschirm.",
+      "locked": "Die geplante Anzeige gehört zum Geschenk von Almost-there.eu. Schalten Sie sie mit Ihrem Geschenkcode frei.",
+      "tryIt": "Jetzt ausprobieren",
+      "next": "Nächste Anzeige: {{date}} um {{time}}",
+      "noNext": "Keine nächste Anzeige – aktivieren Sie mindestens einen Tag und eine Uhrzeit.",
+      "times": "Feste Uhrzeiten",
+      "timeN": "Uhrzeit {{n}}",
+      "removeTime": "Uhrzeit {{time}} entfernen",
+      "addTime": "Uhrzeit hinzufügen",
+      "repeat": "Im Laufe des Tages wiederholen",
+      "every": "Alle",
+      "from": "von",
+      "to": "bis",
+      "days": "Tage",
+      "dayShort": {
+        "mon": "Mo",
+        "tue": "Di",
+        "wed": "Mi",
+        "thu": "Do",
+        "fri": "Fr",
+        "sat": "Sa",
+        "sun": "So"
+      },
+      "dayNames": {
+        "mon": "Montag",
+        "tue": "Dienstag",
+        "wed": "Mittwoch",
+        "thu": "Donnerstag",
+        "fri": "Freitag",
+        "sat": "Samstag",
+        "sun": "Sonntag"
+      },
+      "duration": "Wie lange die Pinnwand zeigen",
+      "pause": "Auf eine Tipppause warten",
+      "pauseHint": "Die Pinnwand erscheint, wenn Sie so lange keine Taste gedrückt und die Maus nicht bewegt haben.",
+      "maxDelay": "Höchstens so lange auf einen guten Moment warten",
+      "maxDelayHint": "Kommt bis dahin kein guter Moment, entfällt diese Anzeige bis zur nächsten Zeit.",
+      "seconds": "{{count}} s",
+      "minutes": "{{count}} Min.",
+      "hours": "{{count}} Std."
     }
+  },
+  "popup": {
+    "actions": "Steuerung der angezeigten Pinnwand",
+    "close": "Schließen",
+    "snooze": "Später:",
+    "minutes": "{{count}} Min."
   }
 }

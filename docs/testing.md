@@ -68,3 +68,16 @@ Poloha okna se ukládá při zavření. Násilné ukončení procesu (Správce �
 | Prvek za okny                     | Výchozí nastavení, otevřít jinou aplikaci přes prvek, kliknout na prvek | Aplikace prvek překryje; klik na prvek ho nevytáhne nad okna                    | Ručně neověřeno                                                         |
 | Přesun tažením                    | Přetáhnout prvek jinam, restartovat                                     | Prvek zůstane na novém místě; krátký klik dál otevírá nastavení                 | Ručně neověřeno                                                         |
 | Vrátit do rohu                    | Pravé tlačítko → Vrátit do rohu                                         | Prvek se vrátí do pravého horního rohu                                          | Ručně neověřeno                                                         |
+
+### Naplánované zobrazení (scheduled-popup)
+
+| Scénář                  | Postup                                                 | Očekávaný výsledek                                              | Ověřeno         |
+| ----------------------- | ------------------------------------------------------ | --------------------------------------------------------------- | --------------- |
+| Zobrazit teď            | Tray → Zobrazit nástěnku teď                           | Nástěnka na všech monitorech v nastaveném umístění, s prolnutím | Ručně neověřeno |
+| Bez krádeže fokusu      | Psát v editoru, spustit pop-up                         | Text se dál píše do editoru; po zavření je fokus tam, kde byl   | Ručně neověřeno |
+| Čekání na pauzu         | Plán za 1 min, souvisle psát                           | Nástěnka se ukáže až 5 s po posledním stisku                    | Ručně neověřeno |
+| Prezentace / fullscreen | Plán za 1 min, spustit video přes celou obrazovku      | Nástěnka se neukáže, dokud video běží přes celou obrazovku      | Ručně neověřeno |
+| Zamčená obrazovka       | Plán za 1 min, zamknout (Win+L), po 2 min odemknout    | Nástěnka se ukáže až po odemčení a pauze                        | Ručně neověřeno |
+| Odložit                 | V pop-upu Odložit 5 min                                | Zmizí a ukáže se znovu za 5 min                                 | Ručně neověřeno |
+| Vypnutý plán            | Plán vypnutý, 60 s v klidu                             | Žádné probouzení, CPU 0                                         | Ručně neověřeno |
+| Spánek počítače         | Plán na čas, kdy počítač spí; probudit později týž den | Nástěnka se po probuzení ukáže jednou                           | Ručně neověřeno |

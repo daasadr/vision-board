@@ -7,6 +7,7 @@ const views: Record<View, ReturnType<typeof lazy>> = {
   board: lazy(() => import("./board/BoardApp")),
   settings: lazy(() => import("./settings/SettingsApp")),
   control: lazy(() => import("./control/ControlApp")),
+  popup: lazy(() => import("./popup/PopupApp")),
   // Design system specimen, reachable only by URL (dev server, E2E).
   design: lazy(() => import("./design/DesignPage")),
 };
@@ -21,8 +22,11 @@ function windowLabel(): string | null {
 
 export function Root() {
   const view = viewFor(window.location.pathname, windowLabel());
-  // The control widget is a shape floating on the desktop, without a window background.
-  document.documentElement.toggleAttribute("data-transparent", view === "control");
+  // The control widget and the pop-up float over the desktop, without a window background.
+  document.documentElement.toggleAttribute(
+    "data-transparent",
+    view === "control" || view === "popup",
+  );
   const View = views[view];
   return (
     <Suspense>

@@ -19,6 +19,16 @@ export const DEFAULT_SETTINGS: Settings = {
   controlLayer: "behind",
   controlPosition: null,
   startup: { wallpaper: false, scheduledPopup: false },
+  schedule: {
+    times: [9 * 60],
+    interval: null,
+    windowStart: 9 * 60,
+    windowEnd: 18 * 60,
+    days: [true, true, true, true, true, true, true],
+    durationSecs: 30,
+    pauseSecs: 5,
+    maxDelayMin: 30,
+  },
 };
 
 const defaultHandlers: IpcHandlers = {
@@ -117,6 +127,9 @@ export async function mockIpc(page: Page, options: Partial<MockOptions> = {}) {
           return enabled;
         },
         window_open_settings: () => null,
+        popup_show_now: () => null,
+        popup_close: () => null,
+        schedule_next: () => "2026-10-12T09:00:00",
         control_context_menu: () => null,
       };
 
