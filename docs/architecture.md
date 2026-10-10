@@ -1,6 +1,6 @@
 # Architektura
 
-Stav po fázi 3 (scheduled-popup). Každá další fáze sem doplní svou část.
+Stav po fázi 4 (wallpaper-mode). Každá další fáze sem doplní svou část.
 
 ## Přehled
 
@@ -12,12 +12,13 @@ Stav po fázi 3 (scheduled-popup). Každá další fáze sem doplní svou část
 │  preferences       uložení nastavení → tray, ovládací prvek, plánovač, settings://changed  │
 │  scheduler         plán pop-upu: spánek do okamžiku (max 15 min), čekání na vhodnou chvíli │
 │  popup             okna pop-upu na všech monitorech, návrat fokusu, odložení              │
+│  wallpaper         nástěnka jako systémová tapeta: snímek → obrázek na monitor → obnova   │
 │  lifecycle         Ukončit: uložení z frontendu → dokončení importů (max 5 s) → úklid → exit │
 │  state             sdílený stav: Db (SQLite), MediaDir                                     │
 │  commands/         tenká IPC vrstva, tauri-specta → src/lib/bindings.ts                    │
 │  domain/           doménová logika bez závislosti na Tauri (cargo test):                   │
 │                    db, board, media, entitlements, app_state, locale, settings, placement, │
-│                    window_placement, control_look, schedule, activity                      │
+│                    window_placement, control_look, schedule, activity, wallpaper           │
 │  platform/         jediné místo pro FFI a unsafe (Win32: nativní ovládací prvek, téma OS)   │
 └──────────────┬─────────────────────────────────────────────────────────────────────────────┘
                │ IPC (invoke, události) · asset protokol pro obrázky z media/
@@ -151,23 +152,38 @@ scheduler (async úloha, jen při zapnutém plánu a oprávnění ScheduledPopup
 - **Zapnutí** je `Settings.startup.scheduledPopup`, podrobnosti v `Settings.schedule`. Každá změna nastavení úlohu plánovače zruší a spustí znovu (`scheduler::restart`). Odložení je jednorázový okamžik v `Scheduler.snoozed_until`.
 - **Pop-up** je webview jen po dobu zobrazení. Odpočet je CSS animace (najetí myší ji pozastaví), takže ve frontendu neběží žádný časovač. Fokus: `popup::show` si zapamatuje okno v popředí. Když měl pop-up při zavření fokus (uživatel do něj klikl), `popup::close` ho vrátí.
 
+## Tapeta (Windows)
+
+```
+změna nástěnky / nastavení / tématu OS / monitorů → wallpaper::refresh (debounce 2 s)
+  → okno wallpaper-render mimo obrazovku (BoardView flat) → wallpaper_rendered
+  → WebView2 CapturePreview (PNG) → okno zrušit
+  → domain::wallpaper::compose pro každý monitor (celá obrazovka / na původní tapetě)
+  → app data/wallpaper/board-N-<čas>.jpg → IDesktopWallpaper::SetWallpaper pro každý monitor
+```
+
+- **Statický obrázek místo živého webview:** tapeta je jen na dívání. Webview by trvale stálo ~80 MB, obrázek nestojí nic. Restart Průzkumníka i zamykací obrazovku obslouží Windows samy.
+- **Původní tapeta:** před první změnou se uloží (`app_state.wallpaper_originals`: obrázek pro každý monitor a režim přizpůsobení) a vrátí se při vypnutí, Ukončit, po pádu (start s vypnutým režimem) a při odinstalaci (NSIS hook → `vision-board.exe --restore-wallpaper`; běžící instance dostane požadavek přes single-instance a obnovu provede na vlastním vlákně, protože ve `WM_COPYDATA` Windows nedovolí volat COM Průzkumníka).
+- Vykreslí se jen tehdy, když se změnilo něco, co tapeta ukazuje (podpis: téma, rám, jen obrázky, umístění, téma OS, monitory). Změna nástěnky vykreslí vždy.
+
 ## Kde co najít
 
-| Chci změnit…                   | Soubor                                                       |
-| ------------------------------ | ------------------------------------------------------------ |
-| barvy, stíny, typografii       | `src/design/tokens.css`                                      |
-| texty UI                       | `src/i18n/locales/{cs,en,de}.json`                           |
-| texty tray a nativních nabídek | `src-tauri/src/domain/locale.rs`                             |
-| vzhled položek nástěnky        | `src/app/board/ItemContentView.*`, `BoardItemView.*`         |
-| geometrii (plátno, přichycení) | `src/app/board/geometry.ts`                                  |
-| validaci a ukládání položek    | `src-tauri/src/domain/board.rs`                              |
-| zpracování obrázků             | `src-tauri/src/domain/media.rs`                              |
-| přidat Rust command            | `src-tauri/src/commands/`, pak `pnpm bindings`               |
-| chování oken a tray            | `src-tauri/src/window_manager.rs`, `tray.rs`, `lifecycle.rs` |
-| oprávnění webview, CSP, assety | `src-tauri/capabilities/default.json`, `tauri.conf.json`     |
-| nastavení (model, výchozí)     | `src-tauri/src/domain/settings.rs`, `src/lib/settings.ts`    |
-| okno nastavení                 | `src/app/settings/`                                          |
-| ovládací prvek                 | `src/app/control/` + `pnpm control:render`, `platform/`      |
-| styly rámů                     | `src/design/components/Frame.*`, tokeny `--frame-*`          |
-| plán a vhodná chvíle pop-upu   | `src-tauri/src/domain/schedule.rs`, `activity.rs`            |
-| pop-up                         | `src-tauri/src/popup.rs`, `scheduler.rs`, `src/app/popup/`   |
+| Chci změnit…                   | Soubor                                                                     |
+| ------------------------------ | -------------------------------------------------------------------------- |
+| barvy, stíny, typografii       | `src/design/tokens.css`                                                    |
+| texty UI                       | `src/i18n/locales/{cs,en,de}.json`                                         |
+| texty tray a nativních nabídek | `src-tauri/src/domain/locale.rs`                                           |
+| vzhled položek nástěnky        | `src/app/board/ItemContentView.*`, `BoardItemView.*`                       |
+| geometrii (plátno, přichycení) | `src/app/board/geometry.ts`                                                |
+| validaci a ukládání položek    | `src-tauri/src/domain/board.rs`                                            |
+| zpracování obrázků             | `src-tauri/src/domain/media.rs`                                            |
+| přidat Rust command            | `src-tauri/src/commands/`, pak `pnpm bindings`                             |
+| chování oken a tray            | `src-tauri/src/window_manager.rs`, `tray.rs`, `lifecycle.rs`               |
+| oprávnění webview, CSP, assety | `src-tauri/capabilities/default.json`, `tauri.conf.json`                   |
+| nastavení (model, výchozí)     | `src-tauri/src/domain/settings.rs`, `src/lib/settings.ts`                  |
+| okno nastavení                 | `src/app/settings/`                                                        |
+| ovládací prvek                 | `src/app/control/` + `pnpm control:render`, `platform/`                    |
+| styly rámů                     | `src/design/components/Frame.*`, tokeny `--frame-*`                        |
+| plán a vhodná chvíle pop-upu   | `src-tauri/src/domain/schedule.rs`, `activity.rs`                          |
+| pop-up                         | `src-tauri/src/popup.rs`, `scheduler.rs`, `src/app/popup/`                 |
+| tapeta                         | `src-tauri/src/wallpaper.rs`, `domain/wallpaper.rs`, `platform/windows.rs` |

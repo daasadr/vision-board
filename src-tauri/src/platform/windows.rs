@@ -105,6 +105,176 @@ pub fn hide_from_task_switcher(window: &tauri::WebviewWindow) {
     }
 }
 
+/// The board as the desktop wallpaper: a WebView2 snapshot of the rendered board, and the
+/// system wallpaper per monitor (IDesktopWallpaper, the documented Windows 8+ API).
+pub mod wallpaper {
+    use std::sync::{Arc, Mutex};
+
+    use webview2_com::CapturePreviewCompletedHandler;
+    use webview2_com::Microsoft::Web::WebView2::Win32::COREWEBVIEW2_CAPTURE_PREVIEW_IMAGE_FORMAT_PNG;
+    use windows::core::{HSTRING, PCWSTR, PWSTR};
+    use windows::Win32::Foundation::HGLOBAL;
+    use windows::Win32::System::Com::StructuredStorage::{
+        CreateStreamOnHGlobal, GetHGlobalFromStream,
+    };
+    use windows::Win32::System::Com::{
+        CoCreateInstance, CoInitializeEx, CoTaskMemFree, IStream, CLSCTX_ALL, COINIT_MULTITHREADED,
+    };
+    use windows::Win32::System::Memory::{GlobalLock, GlobalSize, GlobalUnlock};
+    use windows::Win32::UI::Shell::{
+        DesktopWallpaper, IDesktopWallpaper, DESKTOP_WALLPAPER_POSITION, DWPOS_FILL,
+    };
+
+    use crate::domain::window_placement::Rect;
+
+    type Done = Box<dyn FnOnce(Result<Vec<u8>, String>) + Send>;
+
+    fn finish(done: &Mutex<Option<Done>>, result: Result<Vec<u8>, String>) {
+        if let Some(done) = done.lock().unwrap_or_else(|p| p.into_inner()).take() {
+            done(result);
+        }
+    }
+
+    /// Takes a PNG snapshot of what the window's webview shows (at its physical size) and
+    /// hands the bytes to `done`, exactly once.
+    pub fn capture_png(window: &tauri::WebviewWindow, done: Done) -> tauri::Result<()> {
+        let done = Arc::new(Mutex::new(Some(done)));
+        let on_error = Arc::clone(&done);
+        window.with_webview(move |webview| {
+            // SAFETY: COM calls on the webview's own (main) thread with valid interfaces; the
+            // stream stays alive in the handler until the capture has completed.
+            let started = unsafe {
+                (|| -> windows::core::Result<()> {
+                    let core = webview.controller().CoreWebView2()?;
+                    let stream = CreateStreamOnHGlobal(HGLOBAL::default(), true)?;
+                    let filled = stream.clone();
+                    let handler = CapturePreviewCompletedHandler::create(Box::new(move |result| {
+                        let bytes = result.and_then(|()| read_all(&filled));
+                        finish(&done, bytes.map_err(|e| e.to_string()));
+                        Ok(())
+                    }));
+                    core.CapturePreview(
+                        COREWEBVIEW2_CAPTURE_PREVIEW_IMAGE_FORMAT_PNG,
+                        &stream,
+                        &handler,
+                    )
+                })()
+            };
+            if let Err(e) = started {
+                finish(&on_error, Err(e.to_string()));
+            }
+        })
+    }
+
+    /// The bytes of a memory stream created by CreateStreamOnHGlobal.
+    unsafe fn read_all(stream: &IStream) -> windows::core::Result<Vec<u8>> {
+        let memory = GetHGlobalFromStream(stream)?;
+        let size = GlobalSize(memory);
+        let data = GlobalLock(memory).cast::<u8>();
+        if data.is_null() {
+            return Err(windows::core::Error::from_win32());
+        }
+        let bytes = std::slice::from_raw_parts(data, size).to_vec();
+        let _ = GlobalUnlock(memory);
+        Ok(bytes)
+    }
+
+    /// One monitor as the wallpaper API sees it.
+    #[derive(Debug, Clone)]
+    pub struct Monitor {
+        /// Device path; stable across restarts, used to restore the original wallpaper.
+        pub id: String,
+        /// Physical pixels on the virtual desktop.
+        pub rect: Rect,
+        /// Current wallpaper image (empty when a solid color or none).
+        pub wallpaper: String,
+    }
+
+    fn api() -> windows::core::Result<IDesktopWallpaper> {
+        // SAFETY: COM initialization is per thread and may already be done (then it returns
+        // S_FALSE or RPC_E_CHANGED_MODE, both fine); then the system's DesktopWallpaper object
+        // is created.
+        unsafe {
+            let _ = CoInitializeEx(None, COINIT_MULTITHREADED);
+            CoCreateInstance(&DesktopWallpaper, None, CLSCTX_ALL)
+        }
+    }
+
+    fn take_string(value: PWSTR) -> String {
+        // SAFETY: `value` was allocated by the API with CoTaskMemAlloc and is freed here once.
+        unsafe {
+            let text = value.to_string().unwrap_or_default();
+            CoTaskMemFree(Some(value.0.cast()));
+            text
+        }
+    }
+
+    /// Every attached monitor with its current wallpaper.
+    pub fn monitors() -> windows::core::Result<Vec<Monitor>> {
+        let api = api()?;
+        // SAFETY: plain COM calls; returned strings are freed by `take_string`.
+        unsafe {
+            let count = api.GetMonitorDevicePathCount()?;
+            let mut monitors = Vec::new();
+            for index in 0..count {
+                let id = take_string(api.GetMonitorDevicePathAt(index)?);
+                let key = HSTRING::from(id.as_str());
+                // Detached monitors stay in the list but have no rectangle.
+                let Ok(r) = api.GetMonitorRECT(PCWSTR(key.as_ptr())) else {
+                    continue;
+                };
+                let wallpaper = api
+                    .GetWallpaper(PCWSTR(key.as_ptr()))
+                    .map(take_string)
+                    .unwrap_or_default();
+                monitors.push(Monitor {
+                    id,
+                    rect: Rect::new(
+                        r.left,
+                        r.top,
+                        (r.right - r.left).max(0) as u32,
+                        (r.bottom - r.top).max(0) as u32,
+                    ),
+                    wallpaper,
+                });
+            }
+            Ok(monitors)
+        }
+    }
+
+    /// Sets an image file as the wallpaper of one monitor.
+    pub fn set(monitor_id: &str, image_path: &str) -> windows::core::Result<()> {
+        let api = api()?;
+        let (id, path) = (HSTRING::from(monitor_id), HSTRING::from(image_path));
+        // SAFETY: plain COM calls with valid, NUL-terminated strings that outlive them.
+        unsafe { api.SetWallpaper(PCWSTR(id.as_ptr()), PCWSTR(path.as_ptr())) }
+    }
+
+    /// How images are fitted (fill, fit, span…), to restore the user's choice.
+    pub fn position() -> windows::core::Result<i32> {
+        // SAFETY: plain COM call.
+        unsafe { api()?.GetPosition().map(|p| p.0) }
+    }
+
+    /// Puts back wallpapers stored by monitor id (an empty path: no image) and the fit mode.
+    pub fn restore(
+        position: Option<i32>,
+        monitors: &[(String, String)],
+    ) -> windows::core::Result<()> {
+        for (id, path) in monitors {
+            // A monitor that is not attached any more fails; the others still get theirs.
+            let _ = set(id, path);
+        }
+        set_position(position)
+    }
+
+    pub fn set_position(position: Option<i32>) -> windows::core::Result<()> {
+        let position = position.map_or(DWPOS_FILL, DESKTOP_WALLPAPER_POSITION);
+        // SAFETY: plain COM call.
+        unsafe { api()?.SetPosition(position) }
+    }
+}
+
 /// Whether "system" means the dark theme: Windows apps mode (Settings > Personalization >
 /// Colors). Unknown counts as light, like the webview's `prefers-color-scheme`.
 pub fn system_prefers_dark() -> bool {

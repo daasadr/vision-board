@@ -1,6 +1,7 @@
 import { useId, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { SegmentedControl, Slider } from "../../design/components";
+import { SegmentedControl, Slider, Switch } from "../../design/components";
+import { useEntitlement } from "../../lib/entitlements";
 import type { Anchor, Placement, PlacementMode } from "../../lib/ipc";
 import { useSettings } from "../../lib/settings";
 import styles from "./DisplaySection.module.css";
@@ -25,6 +26,7 @@ export function DisplaySection({ notify }: { notify: Notify }) {
 
   return (
     <>
+      <WallpaperSwitch notify={notify} />
       <div className={sectionStyles.group}>
         <SegmentedControl
           label={t("settings.placement.mode")}
@@ -54,6 +56,35 @@ export function DisplaySection({ notify }: { notify: Notify }) {
       )}
       <PlacementPreview placement={placement} />
     </>
+  );
+}
+
+/** The wallpaper works on Windows for now (macOS and Linux follow). */
+const WALLPAPER_SUPPORTED = /Windows/i.test(navigator.userAgent);
+
+/** The board as the desktop wallpaper, behind the icons. */
+function WallpaperSwitch({ notify }: { notify: Notify }) {
+  const { t } = useTranslation();
+  const startup = useSettings((s) => s.settings.startup);
+  const save = useSaveSettings(notify);
+  const unlocked = useEntitlement("wallpaper");
+  const available = unlocked === true && WALLPAPER_SUPPORTED;
+  return (
+    <div className={sectionStyles.group}>
+      <Switch
+        label={t("settings.wallpaper.label")}
+        checked={startup.wallpaper && available}
+        disabled={!available}
+        onCheckedChange={(wallpaper) => void save({ startup: { ...startup, wallpaper } })}
+      />
+      <p className={sectionStyles.hint}>
+        {unlocked === false
+          ? t("settings.wallpaper.locked")
+          : WALLPAPER_SUPPORTED
+            ? t("settings.wallpaper.hint")
+            : t("settings.wallpaper.windowsOnly")}
+      </p>
+    </div>
   );
 }
 

@@ -19,9 +19,17 @@ pub async fn board_load(db: State<'_, Db>) -> Result<Board, String> {
 /// Stores a batch of edits atomically. On error nothing from the batch is stored.
 #[tauri::command]
 #[specta::specta]
-pub async fn board_apply_ops(db: State<'_, Db>, ops: Vec<BoardOp>) -> Result<(), String> {
+pub async fn board_apply_ops(
+    app: tauri::AppHandle,
+    db: State<'_, Db>,
+    ops: Vec<BoardOp>,
+) -> Result<(), String> {
     if ops.len() > MAX_OPS_PER_BATCH {
         return Err(format!("too many operations in one batch ({})", ops.len()));
     }
-    board::apply_ops(&mut db.lock(), DEFAULT_BOARD_ID, &ops, now_ms()).map_err(|e| e.to_string())
+    board::apply_ops(&mut db.lock(), DEFAULT_BOARD_ID, &ops, now_ms())
+        .map_err(|e| e.to_string())?;
+    // The wallpaper shows the board: draw it again once the edits settle.
+    crate::wallpaper::refresh(&app, true);
+    Ok(())
 }

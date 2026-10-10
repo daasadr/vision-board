@@ -8,6 +8,7 @@ const views: Record<View, ReturnType<typeof lazy>> = {
   settings: lazy(() => import("./settings/SettingsApp")),
   control: lazy(() => import("./control/ControlApp")),
   popup: lazy(() => import("./popup/PopupApp")),
+  wallpaper: lazy(() => import("./wallpaper/WallpaperApp")),
   // Design system specimen, reachable only by URL (dev server, E2E).
   design: lazy(() => import("./design/DesignPage")),
 };

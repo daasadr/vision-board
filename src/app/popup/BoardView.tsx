@@ -16,8 +16,12 @@ function createServices(): BoardServices {
   return { saver, store: createBoardStore(saver.enqueue), media: createMediaStore() };
 }
 
-/** The board as it is, scaled to fit, without any editing. */
-export function BoardView() {
+/**
+ * The board as it is, scaled to fit, without any editing. `flat`: no rounded frame or shadow
+ * (the wallpaper adds its own). `onReady` is called once the board, its images and fonts are
+ * drawn, e.g. to take a snapshot.
+ */
+export function BoardView({ flat = false, onReady }: { flat?: boolean; onReady?: () => void }) {
   const { t } = useTranslation();
   const [services] = useState(createServices);
   const [items, setItems] = useState<Item[] | null>(null);
@@ -47,13 +51,28 @@ export function BoardView() {
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    if (items === null || !onReady) return;
+    let active = true;
+    const images = [...(ref.current?.querySelectorAll("img") ?? [])];
+    void Promise.all([document.fonts.ready, ...images.map((img) => img.decode().catch(() => {}))])
+      // Two frames, so the decoded images are also painted.
+      .then(
+        () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
+      )
+      .then(() => active && onReady());
+    return () => {
+      active = false;
+    };
+  }, [items, onReady]);
+
   const shown = (items ?? []).filter((i) => !imagesOnly || i.content.kind === "image");
 
   return (
     <BoardContext.Provider value={services}>
       <div ref={ref} className={styles.viewport}>
         <section
-          className={styles.stage}
+          className={`${styles.stage} ${flat ? styles.flat : ""}`}
           aria-label={t("board.label")}
           style={{
             width: CANVAS_WIDTH,

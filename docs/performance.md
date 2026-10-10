@@ -61,3 +61,14 @@ Release build, Windows 11, hlavní okno a nastavení zavřené, měřeno po ukon
 Webview varianta překročila limit specifikace (+30 MB), protože jako jediné okno drží celý WebView2 (prohlížeč, GPU, renderer). Na Windows je proto prvek nativní okno s předem vyrenderovanými bitmapami (`pnpm control:render`). Binárka: 7,4 MB po fázi 1 → 8,2 MB (nastavení, autostart, obrázky prvku). Na macOS a Linuxu zůstává webview prvek, změřit před vydáním.
 
 Postup: `scratchpad` skript `measure.ps1` sčítá `WorkingSetPrivate` z `Win32_PerfFormattedData_PerfProc_Process` pro proces aplikace a jeho potomky (WebView2) a CPU čas z `Get-Process` na začátku a na konci okna.
+
+### 2026-10-10 – fáze 4, tapeta
+
+Release build, Windows 11, dva monitory (3840×2160 + 1920×1080 fyzických px):
+
+| Měření                                      | Výsledek                                                    | Cíl                                |
+| ------------------------------------------- | ----------------------------------------------------------- | ---------------------------------- |
+| Od zapnutí do obrázků na obou monitorech    | 7 s (čekání 0,3 s + vykreslení, snímek a skládání 4K + FHD) | spec: do 3 s – nesplněno, viz níže |
+| Klid s tapetou, okno nástěnky zavřené, 60 s | 5,3 MB, 0 s CPU, 1 proces (žádné webview)                   | ≤ +60 MB, < 0,5 %                  |
+
+Paměť při vykreslení je krátkodobá (webview na pár sekund) a po skončení se uvolní spolu s WebView2. Zapnutí trvá 7 s místo požadovaných 3 s. Většinu času zabere složení a zakódování obrázku ve 4K (Lanczos, stín, JPEG). Zrychlit jde rychlejším filtrem nebo vykreslením rovnou v rozlišení každého monitoru (úkol vb-tn2.3).

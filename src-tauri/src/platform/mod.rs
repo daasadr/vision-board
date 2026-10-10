@@ -12,7 +12,7 @@ mod macos;
 mod windows;
 
 #[cfg(target_os = "windows")]
-pub use windows::{control, system_prefers_dark};
+pub use windows::{control, system_prefers_dark, wallpaper};
 
 use crate::domain::activity::Activity;
 

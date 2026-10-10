@@ -194,6 +194,12 @@
       "seconds": "{{count}} s",
       "minutes": "{{count}} Min.",
       "hours": "{{count}} Std."
+    },
+    "wallpaper": {
+      "label": "Pinnwand als Desktop-Hintergrund",
+      "hint": "Die Pinnwand wird zum Desktop-Hintergrund unter den Symbolen, auf allen Monitoren, in der unten eingestellten Größe. Sie aktualisiert sich wenige Sekunden nach jeder Änderung. Beim Ausschalten oder Beenden der App kehrt Ihr ursprüngliches Hintergrundbild zurück.",
+      "locked": "Das Hintergrundbild gehört zum Geschenk von Almost-there.eu. Schalten Sie es mit Ihrem Geschenkcode frei.",
+      "windowsOnly": "Das Hintergrundbild funktioniert vorerst nur unter Windows."
     }
   },
   "popup": {

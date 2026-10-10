@@ -242,6 +242,8 @@ mod native_control {
                 .map(|_| ())
                 .map_err(|e| e.to_string()),
                 ControlEvent::Refresh => {
+                    // The OS theme or the monitors changed: the wallpaper may need a new image.
+                    crate::wallpaper::refresh(&app, false);
                     let visible = preferences::current(&app).is_ok_and(|s| s.control_widget);
                     super::sync_control(&app, visible).map_err(|e| e.to_string())
                 }

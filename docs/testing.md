@@ -81,3 +81,18 @@ Poloha okna se ukládá při zavření. Násilné ukončení procesu (Správce �
 | Odložit                 | V pop-upu Odložit 5 min                                | Zmizí a ukáže se znovu za 5 min                                 | Ručně neověřeno |
 | Vypnutý plán            | Plán vypnutý, 60 s v klidu                             | Žádné probouzení, CPU 0                                         | Ručně neověřeno |
 | Spánek počítače         | Plán na čas, kdy počítač spí; probudit později týž den | Nástěnka se po probuzení ukáže jednou                           | Ručně neověřeno |
+
+### Tapeta (wallpaper-mode)
+
+| Scénář                | Postup                                                          | Očekávaný výsledek                                      | Ověřeno                                               |
+| --------------------- | --------------------------------------------------------------- | ------------------------------------------------------- | ----------------------------------------------------- |
+| Zapnutí               | Nastavení → Zobrazení → Nástěnka jako tapeta plochy             | Do pár sekund nástěnka na všech monitorech pod ikonami  | Windows 11, 2026-10-10 (2 monitory, obrázky 4K + FHD) |
+| Částečné umístění     | Část obrazovky, 40 %, vpravo dole                               | Nástěnka na původní tapetě, zaoblená, se stínem         | Windows 11, 2026-10-10                                |
+| Vypnutí vrátí původní | Tapetu vypnout                                                  | Na všech monitorech původní tapeta, žádné zbylé soubory | Windows 11, 2026-10-10 (IDesktopWallpaper)            |
+| Odinstalace za běhu   | Spustit `vision-board.exe --restore-wallpaper` při běžící appce | Původní tapeta, aplikace skončí                         | Windows 11, 2026-10-10 (po opravě)                    |
+| Klid                  | 60 s s tapetou, bez okna                                        | ≤ +60 MB, CPU 0                                         | Windows 11, 2026-10-10: 5,3 MB, 0 s                   |
+| Změna nástěnky        | Přidat fotku, zavřít okno                                       | Do 5 s na tapetě                                        | Ručně neověřeno                                       |
+| Ukončit               | Tray → Ukončit                                                  | Původní tapeta                                          | Ručně neověřeno                                       |
+| Po přihlášení         | Autostart + tapeta, restart počítače                            | Nástěnka jako tapeta, bez okna                          | Ručně neověřeno                                       |
+| Restart Průzkumníka   | Ukončit a znovu spustit explorer.exe                            | Tapeta zůstane                                          | Ručně neověřeno                                       |
+| Odinstalace (NSIS)    | Odinstalovat se zapnutou tapetou                                | Původní tapeta                                          | Ručně neověřeno                                       |

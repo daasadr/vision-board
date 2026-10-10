@@ -59,6 +59,11 @@ export const commands = {
 	 *  schedule is off, locked or has no day enabled.
 	 */
 	scheduleNext: () => typedError<string | null, string>(__TAURI_INVOKE("schedule_next")),
+	/**
+	 *  The off-screen renderer page has drawn the board (images and fonts loaded); the backend
+	 *  captures it now.
+	 */
+	wallpaperRendered: () => __TAURI_INVOKE<void>("wallpaper_rendered"),
 	/**  Shows the native context menu of the control widget at the pointer. */
 	controlContextMenu: () => typedError<null, string>(__TAURI_INVOKE("control_context_menu")),
 };

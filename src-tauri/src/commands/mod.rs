@@ -9,6 +9,7 @@ mod entitlements;
 mod media;
 mod popup;
 mod settings;
+mod wallpaper;
 mod windows;
 
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -37,6 +38,7 @@ pub fn builder() -> Builder<tauri::Wry> {
         popup::popup_show_now,
         popup::popup_close,
         popup::schedule_next,
+        wallpaper::wallpaper_rendered,
         windows::control_context_menu,
     ])
 }

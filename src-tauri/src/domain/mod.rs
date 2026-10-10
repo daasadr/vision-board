@@ -13,4 +13,5 @@ pub mod media;
 pub mod placement;
 pub mod schedule;
 pub mod settings;
+pub mod wallpaper;
 pub mod window_placement;

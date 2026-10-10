@@ -194,6 +194,12 @@
       "seconds": "{{count}} s",
       "minutes": "{{count}} min",
       "hours": "{{count}} h"
+    },
+    "wallpaper": {
+      "label": "Board as desktop wallpaper",
+      "hint": "The board becomes your desktop background under the icons, on every monitor, at the size set below. It updates a few seconds after every change. Turning it off or quitting the app brings back your original wallpaper.",
+      "locked": "The wallpaper is part of the Almost-there.eu gift. Unlock it with your gift code.",
+      "windowsOnly": "The wallpaper works on Windows only for now."
     }
   },
   "popup": {

@@ -25,3 +25,10 @@
   transform-origin: center;
   pointer-events: none;
 }
+
+/* As a wallpaper: the board fills the image edge to edge. */
+.flat {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}

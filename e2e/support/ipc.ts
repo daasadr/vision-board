@@ -128,6 +128,7 @@ export async function mockIpc(page: Page, options: Partial<MockOptions> = {}) {
         },
         window_open_settings: () => null,
         popup_show_now: () => null,
+        wallpaper_rendered: () => null,
         popup_close: () => null,
         schedule_next: () => "2026-10-12T09:00:00",
         control_context_menu: () => null,

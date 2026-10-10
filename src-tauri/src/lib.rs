@@ -7,6 +7,7 @@ mod preferences;
 mod scheduler;
 mod state;
 mod tray;
+mod wallpaper;
 mod window_manager;
 
 use tauri::{Manager, RunEvent};
@@ -21,7 +22,19 @@ pub fn run() {
 
     tauri::Builder::default()
         // Must be registered first so a second launch exits before doing any other work.
-        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+        .plugin(tauri_plugin_single_instance::init(|app, args, _cwd| {
+            // The uninstaller asks the running app to put the original wallpaper back.
+            if args.iter().any(|a| a == wallpaper::RESTORE_ARG) {
+                // This runs inside a synchronous window message (WM_COPYDATA), where Windows
+                // refuses calls to other processes' COM objects (the wallpaper lives in
+                // Explorer), so the restore runs on its own thread.
+                let app = app.clone();
+                tauri::async_runtime::spawn_blocking(move || {
+                    wallpaper::restore(&app);
+                    app.exit(0);
+                });
+                return;
+            }
             let _ = window_manager::open_board(app);
         }))
         .plugin(
@@ -49,6 +62,12 @@ pub fn run() {
             app.manage(lifecycle::Lifecycle::default());
             app.manage(scheduler::Scheduler::default());
             app.manage(popup::Popup::default());
+            app.manage(wallpaper::Wallpaper::default());
+            // Run by the uninstaller: put the original wallpaper back and quit.
+            if std::env::args().any(|arg| arg == wallpaper::RESTORE_ARG) {
+                wallpaper::restore(app.handle());
+                std::process::exit(0);
+            }
 
             let settings = preferences::current(app.handle()).unwrap_or_default();
             tray::create(app.handle(), &settings)?;
@@ -59,6 +78,9 @@ pub fn run() {
             }
             window_manager::sync_control(app.handle(), settings.control_widget)?;
             scheduler::restart(app.handle());
+            // Shows the board as the wallpaper when that is on; otherwise puts back an original
+            // left over from a crash.
+            wallpaper::refresh(app.handle(), true);
             Ok(())
         })
         .build(tauri::generate_context!())

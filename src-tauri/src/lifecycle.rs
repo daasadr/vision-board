@@ -77,6 +77,8 @@ pub fn request_quit(app: &AppHandle) {
                 eprintln!("media cleanup failed: {e}");
             }
         }
+        // The desktop must look as before the app ran.
+        crate::wallpaper::restore(&app);
         app.exit(0);
     });
 }

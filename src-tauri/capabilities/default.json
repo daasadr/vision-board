@@ -2,6 +2,6 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
   "description": "Capability for the app windows (board, settings, control widget, pop-ups)",
-  "windows": ["board", "settings", "control", "popup-*"],
+  "windows": ["board", "settings", "control", "popup-*", "wallpaper-render"],
   "permissions": ["core:default", "core:window:allow-destroy"]
 }

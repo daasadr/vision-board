@@ -161,6 +161,9 @@ export const ipc = {
     return unwrap("schedule_next", await commands.scheduleNext());
   },
 
+  /** The wallpaper renderer has drawn the board; the backend captures it. */
+  wallpaperRendered: () => commands.wallpaperRendered(),
+
   /** Native context menu of the control widget. */
   async controlMenu(): Promise<void> {
     unwrap("control_context_menu", await commands.controlContextMenu());

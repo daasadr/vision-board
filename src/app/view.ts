@@ -1,4 +1,4 @@
-export const VIEWS = ["board", "settings", "control", "popup", "design"] as const;
+export const VIEWS = ["board", "settings", "control", "popup", "wallpaper", "design"] as const;
 export type View = (typeof VIEWS)[number];
 
 function isView(name: string): name is View {
@@ -14,5 +14,7 @@ export function viewFor(pathname: string, label: string | null): View {
   if (isView(fromPath)) return fromPath;
   // One pop-up window per monitor: popup-0, popup-1, …
   if (label?.startsWith("popup-")) return "popup";
+  // The off-screen renderer of the wallpaper image.
+  if (label === "wallpaper-render") return "wallpaper";
   return label && isView(label) ? label : "board";
 }

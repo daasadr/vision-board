@@ -194,6 +194,12 @@
       "seconds": "{{count}} s",
       "minutes": "{{count}} min",
       "hours": "{{count}} h"
+    },
+    "wallpaper": {
+      "label": "Nástěnka jako tapeta plochy",
+      "hint": "Nástěnka bude pozadím plochy pod ikonami, na všech monitorech, ve velikosti nastavené níže. Po každé změně se do pár sekund obnoví. Při vypnutí nebo ukončení aplikace se vrátí vaše původní tapeta.",
+      "locked": "Tapeta je součástí dárku od Almost-there.eu. Odemknete ji dárkovým kódem.",
+      "windowsOnly": "Tapeta zatím funguje jen ve Windows."
     }
   },
   "popup": {
