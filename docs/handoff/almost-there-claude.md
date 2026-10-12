@@ -97,10 +97,23 @@ Navržená změna `openspec/changes/visionboard-licensing/`:
   4. Stránka aktivace (zachování parametrů přes přihlášení/registraci, potvrzení POSTem s CSRF, zobrazení kódu, přesměrování) s e2e testem.
   5. `/renew` a `/deactivate`, stránka „Moje zařízení“.
   6. Pozvánky: osobní odkaz v účtu (kopírovat, sdílet), veřejná landing page `/visionboard`, uložení pozvajícího při registraci, počet pozvaných v účtu.
-  7. Stránka ke stažení (čte `latest.json` z GitHub Releases, cache).
+  7. Stránka ke stažení (odkaz z GitHub Releases API podle oddílu 7 kontraktu, cache).
   8. Review bezpečnosti (oddíl 4 a oddíl 8 kontraktu).
   9. Vygenerovat produkční pár klíčů. Soukromý do prostředí serveru a správce hesel, **veřejný klíč a `kid` předat uživatelce pro Vision Board**. Teprve verze Vision Boardu s tímto klíčem začne licence vynucovat. Do té doby je v aplikaci vše odemčené, takže web lze nasadit a vyzkoušet bez rizika.
 - **Integrační test:** Vision Board v debug buildu jde nasměrovat na lokální server (`VISION_BOARD_API_URL=http://localhost:3000`, `VISION_BOARD_DEV_LICENSE_KEY=<veřejný klíč>`, `kid` `dev`), viz oddíl 10 kontraktu.
+
+### Pravidla pro klon repa Vision Boardu
+
+Uživatelka má repo Vision Boardu naklonované i na zařízení, kde se vyvíjí Almost-there. Cesta se liší podle zařízení, zdroj pravdy je vždy GitHub (`main`).
+
+- **Jen ke čtení.** Do repa Vision Boardu necommituj a nepushuj. Vyvíjí ho jiné sezení Claude Code a souběžné změny by se střetly. Před čtením kontraktu udělej `git pull`.
+- **Beads Vision Boardu nespouštěj** (`bd` v jeho složce). Úkoly a poznatky Almost-there patří do Beads repa Almost-there.
+- **Repo `daasadr/vision-board` musí zůstat veřejné.** Aplikace i stránka ke stažení čtou GitHub Releases bez přihlášení. Když bylo repo soukromé, aktualizace přestaly fungovat.
+- **Podpisový klíč aktualizací Vision Boardu** (není v repu) se Almost-there netýká. Vydávání aplikace dělá okno Vision Boardu.
+- **Klíč pro licence je jiný.** Pár Ed25519 pro podepisování licencí vygeneruje Almost-there (úkol 9 výše). Soukromá část zůstane jen na serveru Almost-there.
+- **Ověř s uživatelkou adresu:** kontrakt počítá s `https://almost-there.eu` pro stránky (`/visionboard`, `/visionboard/activate`) i API (`/api/visionboard/v1`). Pokud web běží na jiné doméně nebo cestě, je potřeba to říct oknu Vision Boardu, protože adresa je zabudovaná v aplikaci.
+- **Integrační test s aplikací** (oddíl 10 kontraktu) potřebuje na zařízení Rust a pnpm (`pnpm tauri dev` v klonu). Je volitelný, protože shodu obou stran ověří i testovací vektory z oddílu 9.
+- Aktuální stav Vision Boardu: verze 0.2.0 je vydaná a aktualizace fungují. Strana aplikace pro licence je rozpracovaná: ověřování licence a PKCE jsou hotové, spojení s API, deep link a sekce Licence se dělají. Licence se zatím nevynucují.
 
 ## 6. Blok do CLAUDE.md repa Almost-there
 
@@ -122,4 +135,4 @@ Desktopová aplikace (repo daasadr/vision-board) se aktivuje účtem Almost-ther
 
 ## 7. První zpráva pro nové sezení (zkopírovat do okna Almost-there)
 
-> Přečti si prosím `D:\Projekty\VisionBoard\docs\handoff\almost-there-claude.md` (nebo https://github.com/daasadr/vision-board/blob/main/docs/handoff/almost-there-claude.md) a kontrakt `docs/almost-there-api.md` vedle něj. Nejdřív v tomto repu zaveď OpenSpec a Beads podle oddílů 2 a 6 a ukaž mi, co měníš. Pak založ změnu `visionboard-licensing` (proposal, specs, design, tasks) a epic s úkoly v Beads podle oddílu 5 a počkej, až to schválím. Produktové otázky, které kontrakt neřeší (např. texty stránek, kde v účtu bude „Pozvat“), mi polož najednou.
+> Repo Vision Boardu mám naklonované v `<cesta ke klonu>` (jen ke čtení, nic v něm neměň). Přečti si prosím jeho `docs/handoff/almost-there-claude.md` a kontrakt `docs/almost-there-api.md`. Nejdřív v tomto repu zaveď OpenSpec a Beads podle oddílů 2 a 6 a ukaž mi, co měníš. Pak založ změnu `visionboard-licensing` (proposal, specs, design, tasks) a epic s úkoly v Beads podle oddílu 5 a počkej, až to schválím. Produktové otázky, které kontrakt neřeší (např. texty stránek, kde v účtu bude „Pozvat“), mi polož najednou.
