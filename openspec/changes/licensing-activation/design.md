@@ -2,12 +2,12 @@
 
 ## Context
 
-Vrstva `Entitlements` (fáze 1) zatím vše odemyká. Almost-there.eu je Next.js aplikace (PWA a webview mobilní aplikace) na vlastním serveru uživatelky. Její část (účty, registrace, dárky, vydávání licencí) dělá Claude Code v repu Almost-there podle `docs/almost-there-api.md`. Tento dokument popisuje stranu Vision Boardu a dělbu práce.
+Vrstva `Entitlements` (fáze 1) zatím vše odemyká. Almost-there.eu je Next.js aplikace (PWA a webview mobilní aplikace) na vlastním serveru uživatelky. Její část (účty, registrace, pozvánky, vydávání licencí) dělá Claude Code v repu Almost-there podle `docs/almost-there-api.md`. Tento dokument popisuje stranu Vision Boardu a dělbu práce.
 
 Model licencí (uživatelka, 2026-10-12):
 - Každý registrovaný uživatel Almost-there.eu má licenci ke svému účtu.
-- Každý může jednou darovat Vision Board jednomu člověku odkazem. Obdarovaný si vytvoří účet a licence se připíše jeho účtu.
-- Aplikace rozdíl mezi vlastní a darovanou licencí nepotřebuje, jen ho ukáže (`src`).
+- Každý má osobní pozvánku, kterou může poslat komukoli a kolikrát chce. Pozvaný se zaregistruje a dostane licenci také (upřesněno 2026-10-12, původně „jeden dárek na účet“).
+- Aplikace rozdíl mezi registrací a registrací přes pozvánku nepotřebuje, jen ho ukáže (`src`).
 
 ## Goals / Non-Goals
 
@@ -18,7 +18,7 @@ Model licencí (uživatelka, 2026-10-12):
 - Aplikace půjde vydat dřív, než bude API hotové: bez produkčního klíče zůstane vše odemčené.
 
 **Non-Goals:**
-- Gift mechanika, evidence zařízení a e-maily (strana Almost-there).
+- Pozvánky, evidence zařízení a e-maily (strana Almost-there).
 - OAuth server s refresh tokeny, OpenID Connect, platby.
 
 ## Decisions
@@ -58,7 +58,7 @@ Hlavička `{"alg":"EdDSA","typ":"JWT","kid":"<id klíče>"}`. Claims:
 | `iid` | id instalace z požadavku | musí se shodovat s instalací |
 | `features` | `["premiumFrames","wallpaper","scheduledPopup"]` | neznámé se ignorují |
 | `label` | zobrazitelný účet, např. maskovaný e-mail | jen zobrazit (max. 80 zn.) |
-| `src` | `account` nebo `gift` | jen zobrazit |
+| `src` | `account` nebo `invite` | jen zobrazit |
 | `jti` | id licence | jen uložit |
 | `iat` | vydáno (s) | nesmí být víc než 1 den v budoucnosti |
 | `exp` | volitelná expirace (s) | `now < exp` |
@@ -90,7 +90,7 @@ Hlavička `{"alg":"EdDSA","typ":"JWT","kid":"<id klíče>"}`. Claims:
 - Přijímá se jen `visionboard://activate` s parametry `code` a `state` (ostatní se ignorují). Jiné cesty se jen otevřou jako okno nástěnky.
 
 ### Nastavení „Licence“
-Nová sekce: stav (neaktivováno / aktivováno pro `label`, vlastní nebo dárek, platnost), tlačítko **Aktivovat**, pole **Mám kód** (viditelné po zahájení aktivace), **Deaktivovat na tomto počítači** a odkaz na Almost-there.eu. Všechny texty cs/en/de.
+Nová sekce: stav (neaktivováno / aktivováno pro `label`, platnost), tlačítko **Aktivovat**, pole **Mám kód** (viditelné po zahájení aktivace), **Deaktivovat na tomto počítači** a odkaz na Almost-there.eu. Všechny texty cs/en/de.
 
 ## Risks / Trade-offs
 

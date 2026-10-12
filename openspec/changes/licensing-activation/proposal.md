@@ -4,7 +4,7 @@
 
 Fáze 6 ze zadani.txt bod 5 a body 3.4 a 4: Vision Board je dárek pro uživatele Almost-there.eu. Prémiové funkce (styly rámování, tapeta, pop-upy) odemyká licence navázaná na účet Almost-there.eu. Po aktivaci musí appka fungovat offline, bez pravidelného dotazování serveru.
 
-Upřesnění od uživatelky (2026-10-12): každý registrovaný uživatel Almost-there.eu dostane licenci ke svému účtu a může jednou darovat aplikaci jednomu člověku odkazem (dárková licence). Obdarovaný si vytvoří účet a licence se připíše jemu. Dárky, registrace a evidence licencí jsou celé na webu Almost-there.eu (Next.js, vlastní server) a implementuje je Claude Code v jeho repu podle `docs/almost-there-api.md`.
+Upřesnění od uživatelky (2026-10-12): každý registrovaný uživatel Almost-there.eu dostane licenci ke svému účtu a má osobní pozvánku (odkaz), kterou může poslat komukoli a kolikrát chce; pozvaný se zaregistruje a licenci dostane také (cíl: noví registrovaní a možní platící uživatelé). Pozvánky, registrace a evidence licencí jsou celé na webu Almost-there.eu (Next.js, vlastní server) a implementuje je Claude Code v jeho repu podle `docs/almost-there-api.md`.
 
 ## What Changes
 
@@ -16,7 +16,7 @@ Upřesnění od uživatelky (2026-10-12): každý registrovaný uživatel Almost
 
 ## Non-goals
 
-- Dárková mechanika, registrace, alotmenty a UI „Darovat Vision Board“ v Almost-there.eu (jiné repo). Aplikace dárkové kódy vůbec nezná: dárek se uplatní na webu a aktivace pak probíhá stejně jako u vlastní licence.
+- Pozvánky, registrace a UI „Pozvat k Vision Boardu“ v Almost-there.eu (jiné repo). Aplikace pozvánky vůbec nezná: aktivace probíhá vždy přihlášením k účtu.
 - Platby přímo ve Vision Boardu.
 - Synchronizace dat nástěnky s účtem.
 - Dlouhodobé přihlášení v aplikaci (refresh tokeny). Po aktivaci aplikace drží jen licenci.

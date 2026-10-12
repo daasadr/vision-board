@@ -32,8 +32,8 @@ pub struct TrustedKey {
 pub enum LicenseSource {
     /// The user's own license from their account.
     Account,
-    /// Given by another user through a gift link.
-    Gift,
+    /// Registered through another user's invite link.
+    Invite,
 }
 
 /// A verified license.
@@ -173,8 +173,8 @@ pub fn verify(
     Ok(License {
         account: claims.sub,
         label: claims.label.chars().take(MAX_LABEL_CHARS).collect(),
-        source: if claims.src == "gift" {
-            LicenseSource::Gift
+        source: if claims.src == "invite" {
+            LicenseSource::Invite
         } else {
             LicenseSource::Account
         },
@@ -342,15 +342,15 @@ mod tests {
     }
 
     #[test]
-    fn skips_unknown_features_and_reads_gifts() {
+    fn skips_unknown_features_and_reads_invites() {
         let mut c = claims();
         c["features"] = json!(["wallpaper", "futureFeature", 7, "wallpaper"]);
-        c["src"] = json!("gift");
+        c["src"] = json!("invite");
         c["label"] = json!("x".repeat(200));
         let license = verify(&token(&c), &keys(), IID, IAT).expect("valid");
         assert_eq!(license.features, vec![Feature::Wallpaper]);
         assert!(!license.unlocks(Feature::ScheduledPopup));
-        assert_eq!(license.source, LicenseSource::Gift);
+        assert_eq!(license.source, LicenseSource::Invite);
         assert_eq!(license.label.chars().count(), MAX_LABEL_CHARS);
     }
 

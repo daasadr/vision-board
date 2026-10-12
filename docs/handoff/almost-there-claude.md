@@ -84,19 +84,19 @@ Zdroj pravdy je kontrakt v repu Vision Boardu:
 Model (rozhodnutí uživatelky 2026-10-12):
 
 - Každý registrovaný uživatel Almost-there.eu má licenci na Vision Board ke svému účtu.
-- Každý může jednou darovat Vision Board jednomu člověku odkazem. Obdarovaný si vytvoří účet a licence se připíše jeho účtu.
-- Aplikace Vision Board dárky nezná. Aktivuje se vždy přihlášením k účtu.
+- Každý má osobní pozvánku (odkaz), kterou může poslat komukoli a kolikrát chce. Pozvaný se zaregistruje a dostane licenci jako každý jiný. Účel: získat nové registrované (a možné platící) uživatele Almost-there.eu.
+- Aplikace Vision Board pozvánky nezná. Aktivuje se vždy přihlášením k účtu.
 
 Navržená změna `openspec/changes/visionboard-licensing/`:
 
-- **Capabilities:** `visionboard-license` (kdo má licenci, evidence instalací, limit 3 zařízení, stránka „Moje zařízení“), `visionboard-activation` (stránka `/visionboard/activate`, aktivační kód, PKCE, přesměrování na `visionboard://activate`), `visionboard-api` (`POST /api/visionboard/v1/licenses`, `/renew`, `/deactivate`, chyby), `visionboard-gift` (vytvoření a uplatnění dárkového odkazu), `visionboard-download` (stránka ke stažení podle `latest.json`).
+- **Capabilities:** `visionboard-license` (kdo má licenci, evidence instalací, limit 3 zařízení, stránka „Moje zařízení“), `visionboard-activation` (stránka `/visionboard/activate`, aktivační kód, PKCE, přesměrování na `visionboard://activate`), `visionboard-api` (`POST /api/visionboard/v1/licenses`, `/renew`, `/deactivate`, chyby), `visionboard-invite` (osobní pozvánka s `ref`, veřejná landing page `/visionboard`, kdo koho pozval), `visionboard-download` (stránka ke stažení podle `latest.json`).
 - **Úkoly (návrh pořadí):**
-  1. Datový model (Prisma nebo co repo používá): licence, instalace, aktivační kódy (hash), dárky. Migrace a testy.
+  1. Datový model (Prisma nebo co repo používá): licence, instalace, aktivační kódy (hash), pozvánky (kód uživatele, kdo koho pozval). Migrace a testy.
   2. Podepisování licencí (`jose`, EdDSA), klíč z prostředí serveru. Test proti vektorům z oddílu 9 kontraktu.
   3. API `/licenses` (výměna kódu, PKCE, limit zařízení, rate limit) s testy všech chybových kódů.
   4. Stránka aktivace (zachování parametrů přes přihlášení/registraci, potvrzení POSTem s CSRF, zobrazení kódu, přesměrování) s e2e testem.
   5. `/renew` a `/deactivate`, stránka „Moje zařízení“.
-  6. Dárek: vytvoření odkazu (jednou na účet), uplatnění po registraci, stav pro dárce.
+  6. Pozvánky: osobní odkaz v účtu (kopírovat, sdílet), veřejná landing page `/visionboard`, uložení pozvajícího při registraci, počet pozvaných v účtu.
   7. Stránka ke stažení (čte `latest.json` z GitHub Releases, cache).
   8. Review bezpečnosti (oddíl 4 a oddíl 8 kontraktu).
   9. Vygenerovat produkční pár klíčů. Soukromý do prostředí serveru a správce hesel, **veřejný klíč a `kid` předat uživatelce pro Vision Board**. Teprve verze Vision Boardu s tímto klíčem začne licence vynucovat. Do té doby je v aplikaci vše odemčené, takže web lze nasadit a vyzkoušet bez rizika.
@@ -122,4 +122,4 @@ Desktopová aplikace (repo daasadr/vision-board) se aktivuje účtem Almost-ther
 
 ## 7. První zpráva pro nové sezení (zkopírovat do okna Almost-there)
 
-> Přečti si prosím `D:\Projekty\VisionBoard\docs\handoff\almost-there-claude.md` (nebo https://github.com/daasadr/vision-board/blob/main/docs/handoff/almost-there-claude.md) a kontrakt `docs/almost-there-api.md` vedle něj. Nejdřív v tomto repu zaveď OpenSpec a Beads podle oddílů 2 a 6 a ukaž mi, co měníš. Pak založ změnu `visionboard-licensing` (proposal, specs, design, tasks) a epic s úkoly v Beads podle oddílu 5 a počkej, až to schválím. Produktové otázky, které kontrakt neřeší (např. texty stránek, kde v účtu bude „Darovat“), mi polož najednou.
+> Přečti si prosím `D:\Projekty\VisionBoard\docs\handoff\almost-there-claude.md` (nebo https://github.com/daasadr/vision-board/blob/main/docs/handoff/almost-there-claude.md) a kontrakt `docs/almost-there-api.md` vedle něj. Nejdřív v tomto repu zaveď OpenSpec a Beads podle oddílů 2 a 6 a ukaž mi, co měníš. Pak založ změnu `visionboard-licensing` (proposal, specs, design, tasks) a epic s úkoly v Beads podle oddílu 5 a počkej, až to schválím. Produktové otázky, které kontrakt neřeší (např. texty stránek, kde v účtu bude „Pozvat“), mi polož najednou.

@@ -6,15 +6,15 @@ Stav: **návrh v1** (2026-10-12). Změny kontraktu dělat v obou repech zárove�
 
 ## 1. Co dělá kdo
 
-| Almost-there.eu (web, Next.js)                                           | Vision Board (desktop)                                    |
-| ------------------------------------------------------------------------ | --------------------------------------------------------- |
-| Účty, registrace, přihlášení                                             | Neukládá hesla ani tokeny účtu                            |
-| Kdo má licenci: každý registrovaný uživatel                              | Ověří licenci offline podle veřejného klíče               |
-| Dárek: jeden odkaz na účet, obdarovaný si vytvoří účet a dostane licenci | Dárky nezná. Obdarovaný aktivuje stejně jako kdokoli jiný |
-| Stránka aktivace `/visionboard/activate`                                 | Otevře ji v prohlížeči a čeká na návrat                   |
-| API: vydání, obnova a deaktivace licence                                 | Volá API jen při aktivaci, obnově a deaktivaci            |
-| Podepisuje licence soukromým klíčem Ed25519                              | Má zabudovaný jen veřejný klíč                            |
-| Stránka ke stažení (odkaz na instalátor z GitHub Releases)               | Aktualizace si stahuje sám z GitHub Releases              |
+| Almost-there.eu (web, Next.js)                                                 | Vision Board (desktop)                                    |
+| ------------------------------------------------------------------------------ | --------------------------------------------------------- |
+| Účty, registrace, přihlášení                                                   | Neukládá hesla ani tokeny účtu                            |
+| Kdo má licenci: každý registrovaný uživatel                                    | Ověří licenci offline podle veřejného klíče               |
+| Pozvánka: osobní odkaz pro kohokoli, pozvaný se zaregistruje a dostane licenci | Pozvánky nezná. Pozvaný aktivuje stejně jako kdokoli jiný |
+| Stránka aktivace `/visionboard/activate`                                       | Otevře ji v prohlížeči a čeká na návrat                   |
+| API: vydání, obnova a deaktivace licence                                       | Volá API jen při aktivaci, obnově a deaktivaci            |
+| Podepisuje licence soukromým klíčem Ed25519                                    | Má zabudovaný jen veřejný klíč                            |
+| Stránka ke stažení (odkaz na instalátor z GitHub Releases)                     | Aktualizace si stahuje sám z GitHub Releases              |
 
 ## 2. Tok aktivace
 
@@ -127,7 +127,7 @@ Claims:
 | `iid`      | string   | ano     | `installationId` z požadavku                                                           |
 | `features` | string[] | ano     | `["premiumFrames","wallpaper","scheduledPopup"]`                                       |
 | `label`    | string   | ano     | co aplikace ukáže jako účet, např. maskovaný e-mail `j***@example.com` (max. 80 znaků) |
-| `src`      | string   | ano     | `account` (vlastní) nebo `gift` (darovaná)                                             |
+| `src`      | string   | ano     | `account` (registrace) nebo `invite` (registrace přes pozvánku)                        |
 | `jti`      | string   | ano     | id licence/instalace na serveru                                                        |
 | `iat`      | number   | ano     | čas vydání (unix s)                                                                    |
 | `exp`      | number   | ne      | expirace (unix s). Doporučeno `iat + 365 dní`, aplikace ji sama obnoví                 |
@@ -165,14 +165,16 @@ const license = await new SignJWT({ iid, features, label, src })
 4. **Dokud v aplikaci není produkční veřejný klíč, aplikace licence nevynucuje a vše je odemčené.** Napojení se tedy zapne až vydáním verze s klíčem, ve chvíli, kdy je web připravený.
 5. Rotace: nový `kid` nejdřív přidat do aplikace (aktualizace), pak teprve podepisovat novým klíčem.
 
-## 6. Dárek (jen na webu)
+## 6. Pozvánky (jen na webu)
 
-Aplikace o dárcích neví. Doporučený tok na webu:
+Rozhodnutí uživatelky 2026-10-12: licenci dostane každý registrovaný uživatel, takže omezený „dárek pro jednoho“ nemá smysl. Místo něj má každý uživatel **osobní pozvánku**, kterou může poslat komukoli a kolikrát chce. Cíl: přivést na Almost-there.eu nové registrované uživatele (a z nich možné platící). Aplikace o pozvánkách neví. Doporučený tok na webu:
 
-1. Uživatel s licencí vidí v účtu „Darovat Vision Board“ (jednou za účet). Vytvoří se dárek s náhodným tokenem (min. 128 bitů) a odkazem `https://almost-there.eu/visionboard/gift/<token>`, který může poslat komukoli.
-2. Obdarovaný odkaz otevře, zaregistruje se (nebo přihlásí) a dárek se připíše jeho účtu: účet dostane licenci se `src: "gift"`. Dárek jde uplatnit jednou. Dárce vidí, že byl uplatněn.
-3. Stránka pak nabídne stažení aplikace (oddíl 7) a návod: nainstalovat, v aplikaci Nastavení → Licence → **Aktivovat**.
-4. Pokud obdarovaný už licenci má, dárek se neuplatní a zůstane dárci.
+1. Uživatel vidí v účtu „Pozvat k Vision Boardu“ se svým trvalým odkazem, např. `https://almost-there.eu/visionboard?ref=<kód>`, a tlačítky Kopírovat / Sdílet (Web Share API v PWA a mobilní aplikaci). Kód je náhodný a neprozrazuje id ani e-mail.
+2. Stránka `/visionboard` je **veřejná landing page**: co Vision Board je, ukázky, „Zaregistrovat se a stáhnout zdarma“. Funguje i bez `ref`, takže jde sdílet i obecně.
+3. Kdo se přes odkaz zaregistruje, dostane licenci jako každý registrovaný uživatel (`src: "invite"`) a u účtu se uloží, kdo ho pozval (pro statistiky a případné budoucí odměny). Neznámý nebo neplatný `ref` se tiše ignoruje a registraci nikdy neblokuje.
+4. Po registraci stránka nabídne stažení aplikace (oddíl 7) a návod: nainstalovat, v aplikaci Nastavení → Licence → **Aktivovat**.
+5. Volitelně: uživatel vidí v účtu, kolik lidí se přes jeho pozvánku zaregistrovalo.
+6. Ochrana: rate limit registrací z jedné IP a běžná ochrana proti botům. Pozvánka sama nic neodemyká, licence se váže jen na účet.
 
 ## 7. Stažení a aktualizace
 
@@ -232,11 +234,11 @@ Stejné vektory používají testy Vision Boardu (`cargo test`), takže shoda ob
 
 ## 11. Kontrolní seznam pro Almost-there
 
-- [ ] Model: licence pro každý registrovaný účet, jeden dárek na účet, evidence instalací
+- [ ] Model: licence pro každý registrovaný účet, evidence instalací
 - [ ] Stránka `/visionboard/activate` (přihlášení/registrace se zachováním parametrů, potvrzení, kód, přesměrování)
 - [ ] `POST /api/visionboard/v1/licenses`, `/licenses/renew`, `/licenses/deactivate` s chybami z 3.4
 - [ ] Podepisování EdDSA (`jose`), klíč v prostředí serveru, `kid`
 - [ ] Testy proti vektorům z oddílu 9
-- [ ] Dárek: vytvoření odkazu, uplatnění, stav pro dárce
+- [ ] Pozvánky: osobní odkaz s `ref`, veřejná landing page `/visionboard`, kdo koho pozval
 - [ ] Stránka ke stažení podle `latest.json`
 - [ ] Předat veřejný klíč a `kid` do Vision Boardu

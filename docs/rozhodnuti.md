@@ -34,3 +34,8 @@ Doplňuje `zadani.txt`. Otevřené body se po odsouhlasení přenesou do OpenSpe
 
 - Nutný `rustup update` (je 1.79, Tauri 2 a aktuální crates potřebují novější).
 - Doinstalovat: pnpm, Beads (`bd`), OpenSpec, Lefthook.
+
+## Upřesněno (2026-10-12)
+
+- **Licence a pozvánky:** licenci na Vision Board dostane každý registrovaný uživatel Almost-there.eu. Místo jednoho dárku má každý osobní pozvánku (odkaz), kterou může poslat komukoli a kolikrát chce. Pozvaný se zaregistruje a dostane licenci také. Cíl: noví registrovaní a možní platící uživatelé. Pozvánky a registrace řeší web Almost-there.eu, aplikace se aktivuje vždy účtem (`docs/almost-there-api.md`).
+- **Aktualizace:** GitHub Releases repa `daasadr/vision-board`, podepsané klíčem, který má uživatelka (`docs/releasing.md`).
