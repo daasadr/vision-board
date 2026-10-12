@@ -1,11 +1,11 @@
 //! Which premium features are available. The single place that decides it, so licensing
 //! (phase 6) changes only this module.
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use specta::Type;
 
 /// Features unlocked by an Almost-there.eu gift. Everything else is free.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Type)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[serde(rename_all = "camelCase")]
 pub enum Feature {
     PremiumFrames,

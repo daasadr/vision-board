@@ -3,8 +3,8 @@
 ## 1. Kontrakt a licence
 
 - [x] 1.1 API kontrakt `docs/almost-there-api.md` (stránka aktivace, 3 endpointy, formát JWT, chyby, testovací vektory) a ověřit `openspec validate licensing-activation --strict`
-- [ ] 1.2 `domain::license` (parsování a ověření JWT EdDSA, claims, `iid`, `exp`) a `license_keys` (prázdný produkční seznam = nevynucovat) a ověřit `cargo test` (podpis, cizí `alg`, `none`, cizí `kid`, upravený payload, jiné `iid`, expirace)
-- [ ] 1.3 `domain::activation` (PKCE, `state`, čekající aktivace v `app_state` 15 min, normalizace kódu) a ověřit `cargo test`
+- [x] 1.2 `domain::license` (parsování a ověření JWT EdDSA, claims, `iid`, `exp`) a `license_keys` (prázdný produkční seznam = nevynucovat) a ověřit `cargo test` (podpis, cizí `alg`, `none`, cizí `kid`, upravený payload, jiné `iid`, expirace)
+- [x] 1.3 `domain::activation` (PKCE, `state`, čekající aktivace v `app_state` 15 min, normalizace kódu) a ověřit `cargo test`
 
 ## 2. Aktivace v aplikaci
 

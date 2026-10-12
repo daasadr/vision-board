@@ -49,6 +49,10 @@ tauri-plugin-opener = "=2.5.0"
 # Signed updates from GitHub Releases (minisign). Brings reqwest with rustls, which phase 6
 # reuses for license activation. Pinned: newer releases require Tauri 2.12.
 tauri-plugin-updater = "=2.12.0"
+# License verification (phase 6): Ed25519 signatures only, no key generation (no rand).
+# Pure Rust, ~100 KB; sha2 0.10 is already in the tree.
+ed25519-dalek = { version = "2.2", default-features = false, features = ["std"] }
+sha2 = "0.10"
 
 # Already compiled for tao/wry (same version and features), so this adds no code of its own.
 [target.'cfg(windows)'.dependencies]
