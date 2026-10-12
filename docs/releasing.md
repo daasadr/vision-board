@@ -92,7 +92,7 @@ Updater přijímá jen HTTPS. Lokální HTTP server proto potřebuje verzi A ses
 ## Pro Almost-there.eu: odkaz ke stažení
 
 - Stránka všech verzí: `https://github.com/daasadr/vision-board/releases/latest`.
-- Přímý odkaz na instalátor nejnovější verze je v `latest.json` → `platforms["windows-x86_64"].url` (verze v `version`, poznámky v `notes`). Stránku ke stažení stačí cachovat (např. 1 h) a odkaz brát odtud. Název souboru obsahuje číslo verze, proto ho nepsat napevno.
+- Přímý odkaz na instalátor nejnovější verze: `GET https://api.github.com/repos/daasadr/vision-board/releases/latest` (veřejné API, bez tokenu) → v `assets` položka, jejíž `name` končí na `_x64-setup.exe`, a její `browser_download_url`; verze je v `tag_name`, poznámky v `body`. Stránku ke stažení stačí cachovat (např. 1 h, API má limit 60 dotazů za hodinu na IP). Pozor: `url` v `latest.json` je adresa GitHub API pro updater (vyžaduje hlavičku `Accept: application/octet-stream`), do prohlížeče se nehodí. Název souboru obsahuje číslo verze, proto ho nepsat napevno.
 - Instalátor není podepsaný Authenticode (rozhodnutí: odloženo), takže Windows SmartScreen může při prvním spuštění ukázat „Systém Windows ochránil váš počítač“ → **Další informace → Přesto spustit**. Stránka ke stažení by to měla říct. Aktualizace z aplikace se tím netýkají.
 
 ## Co když…

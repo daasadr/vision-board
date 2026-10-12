@@ -181,7 +181,7 @@ Rozhodnutí uživatelky 2026-10-12: licenci dostane každý registrovaný uživa
 Vision Board se vydává přes GitHub Releases veřejného repa `daasadr/vision-board` (podrobně `docs/releasing.md`):
 
 - Stálý odkaz na nejnovější vydání: `https://github.com/daasadr/vision-board/releases/latest`.
-- Strojově čitelný popis nejnovější verze: `https://github.com/daasadr/vision-board/releases/latest/download/latest.json`. Odkaz na instalátor pro Windows je v `platforms["windows-x86_64"].url`, verze v `version`. Stránka ke stažení si ho může načíst (na serveru, s cache např. 1 h) a nabídnout přímý odkaz na instalátor.
+- Strojově čitelný popis nejnovější verze: `https://github.com/daasadr/vision-board/releases/latest/download/latest.json`. Ten čte aplikace. Přímý odkaz na instalátor nejnovější verze: `GET https://api.github.com/repos/daasadr/vision-board/releases/latest` (veřejné API, bez tokenu) → v `assets` položka, jejíž `name` končí na `_x64-setup.exe`, a její `browser_download_url`; verze je v `tag_name`, poznámky v `body`. Stránku ke stažení stačí cachovat (např. 1 h, API má limit 60 dotazů za hodinu na IP). Pozor: `url` v `latest.json` je adresa GitHub API pro updater (vyžaduje hlavičku `Accept: application/octet-stream`), do prohlížeče se nehodí. Název souboru obsahuje číslo verze, proto ho nepsat napevno.
 - Nainstalovaná aplikace se aktualizuje sama z GitHub Releases. Změny na webu Almost-there.eu aktualizaci aplikace nevyžadují, pokud se nemění tento kontrakt.
 
 ## 8. Bezpečnostní požadavky na straně webu

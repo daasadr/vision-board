@@ -12,7 +12,7 @@
 
 ## 3. Vydávání
 
-- [ ] 3.1 `scripts/version.mjs`, `CHANGELOG.md`, `.github/workflows/release.yml` (kontrola verze, tauri-action, poznámky z changelogu) a ověřit lokálním během skriptů a prvním vydáním
+- [x] 3.1 `scripts/version.mjs`, `CHANGELOG.md`, `.github/workflows/release.yml` (kontrola verze, tauri-action, poznámky z changelogu) a ověřit lokálním během skriptů a prvním vydáním
 - [x] 3.2 Celý tok ručně: nainstalovat starší verzi, nabídnout novější, nainstalovat, data zůstala, aplikace se spustila
 
 ## 4. Dokončení
