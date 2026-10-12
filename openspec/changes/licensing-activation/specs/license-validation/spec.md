@@ -7,14 +7,18 @@ Ověřuje uloženou licenci offline a podle ní určuje dostupnost prémiových 
 ## ADDED Requirements
 
 ### Requirement: Offline ověření
-Aplikace SHALL při startu ověřit licenci lokálně pomocí vestavěného veřejného klíče (podpis, vydavatel, identifikátor aplikace, platnost) a MUST k tomu nepotřebovat síť.
+Aplikace SHALL při startu ověřit licenci lokálně pomocí vestavěného veřejného klíče (podpis, vydavatel, příjemce, instalace, platnost) a MUST k tomu nepotřebovat síť.
 
 #### Scenario: Start bez internetu
 - **WHEN** aktivovaná aplikace startuje bez připojení k síti
 - **THEN** prémiové funkce jsou dostupné
 
+#### Scenario: Licence z jiného počítače
+- **WHEN** někdo zkopíruje licenci do instalace na jiném počítači
+- **THEN** licence je vyhodnocena jako neplatná, protože patří jiné instalaci
+
 ### Requirement: Freemium dostupnost
-Bez platné licence SHALL být dostupné všechny základní funkce nástěnky a MUST být zamčené funkce PremiumFrames, Wallpaper a ScheduledPopup. S platnou licencí SHALL být dostupné funkce uvedené v licenci.
+Bez platné licence SHALL být dostupné všechny základní funkce nástěnky (včetně hotspotů a úkolů) a MUST být zamčené funkce PremiumFrames, Wallpaper a ScheduledPopup. S platnou licencí SHALL být dostupné funkce uvedené v licenci.
 
 #### Scenario: Bez licence
 - **WHEN** uživatel nemá licenci
@@ -22,7 +26,7 @@ Bez platné licence SHALL být dostupné všechny základní funkce nástěnky a
 
 #### Scenario: Zamčení po ztrátě licence
 - **WHEN** měl uživatel zapnutou tapetu a licence přestane být platná
-- **THEN** tapeta se vypne, původní tapeta se obnoví a uživatel je informován proč
+- **THEN** tapeta se vypne, původní tapeta se obnoví a nastavení ukáže proč
 
 ### Requirement: Obnova licence
 Pokud licence obsahuje datum expirace, SHALL se ji aplikace pokusit obnovit nejdříve 14 dní před expirací, nejvýše jednou denně a jen při startu nebo otevření nastavení. Neúspěšná obnova MUST NOT zamknout funkce před skutečnou expirací.
@@ -32,8 +36,8 @@ Pokud licence obsahuje datum expirace, SHALL se ji aplikace pokusit obnovit nejd
 - **THEN** funkce zůstávají dostupné a obnova se zkusí při dalším startu
 
 ### Requirement: Žádná jiná komunikace
-Aplikace MUST komunikovat se serverem jen při aktivaci, deaktivaci a obnově licence a MUST NOT odesílat obsah nástěnky ani údaje o používání.
+Aplikace MUST komunikovat s Almost-there.eu jen při aktivaci, deaktivaci a obnově licence a MUST NOT odesílat obsah nástěnky ani údaje o používání.
 
 #### Scenario: Běžné používání
 - **WHEN** uživatel s platnou licencí týden používá aplikaci a licence neblíží expiraci
-- **THEN** aplikace neprovede žádný síťový požadavek
+- **THEN** aplikace neprovede žádný požadavek na Almost-there.eu

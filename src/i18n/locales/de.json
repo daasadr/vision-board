@@ -14,7 +14,8 @@
     "label": "Pinnwand",
     "empty": {
       "title": "Hier beginnt Ihre Vision",
-      "body": "Fügen Sie ein Foto Ihres Ziels hinzu, ein Zitat, das Sie antreibt, oder ein paar Worte darüber, wohin Sie wollen. Bilder können Sie auch direkt hierher ziehen."
+      "body": "Fügen Sie ein Foto Ihres Ziels hinzu, ein Zitat, das Sie antreibt, oder ein paar Worte darüber, wohin Sie wollen. Bilder können Sie auch direkt hierher ziehen.",
+      "help": "Wie funktioniert Vision Board?"
     },
     "add": {
       "image": "Bild",
@@ -26,7 +27,8 @@
       "undo": "Rückgängig",
       "redo": "Wiederholen",
       "settings": "Einstellungen",
-      "imagesOnly": "Nur Bilder"
+      "imagesOnly": "Nur Bilder",
+      "help": "Hilfe"
     },
     "quoteDialog": {
       "title": "Zitat hinzufügen",
@@ -107,7 +109,8 @@
       "general": "Allgemein",
       "appearance": "Darstellung",
       "display": "Anzeige",
-      "timing": "Zeitplan"
+      "timing": "Zeitplan",
+      "help": "Hilfe"
     },
     "language": {
       "label": "Sprache",
@@ -233,6 +236,21 @@
       "side": "Pinnwand",
       "left": "Links",
       "right": "Rechts"
+    },
+    "updates": {
+      "title": "Updates",
+      "version": "Version {{version}}",
+      "autoCheck": "Automatisch nach Updates suchen",
+      "hint": "Einmal am Tag sucht die App nach einer neuen Version. Ohne Ihre Zustimmung wird nichts installiert.",
+      "check": "Jetzt prüfen",
+      "checking": "Wird geprüft…",
+      "upToDate": "Sie haben die neueste Version.",
+      "available": "Version {{version}} ist verfügbar.",
+      "notes": "Was ist neu",
+      "install": "Installieren und neu starten",
+      "installing": "Wird heruntergeladen und installiert…",
+      "checkFailed": "Die Prüfung hat nicht geklappt. Sind Sie mit dem Internet verbunden?",
+      "installFailed": "Das Update konnte nicht installiert werden. Bitte versuchen Sie es erneut."
     }
   },
   "popup": {
@@ -265,5 +283,96 @@
     "leftover": "Von früheren Tagen offen geblieben: {{count}}. Auf heute verschieben?",
     "moveToToday": "Auf heute verschieben",
     "drop": "Verwerfen"
+  },
+  "updates": {
+    "notice": "Eine neue Version von Vision Board ist verfügbar ({{version}}).",
+    "install": "Installieren"
+  },
+  "help": {
+    "intro": "Eine kurze Anleitung zur App. Klicken Sie auf ein Thema, um mehr zu lesen.",
+    "topics": {
+      "start": {
+        "title": "Erste Schritte",
+        "items": [
+          "Ziehen Sie Fotos, die Sie an Ihre Ziele erinnern, auf die Pinnwand. Fügen Sie ein Zitat oder einen kurzen Text hinzu.",
+          "Alles wird automatisch gespeichert und bleibt nur auf Ihrem Computer.",
+          "Wenn Sie das Fenster schließen, läuft die App als Symbol neben der Uhr weiter und belastet den Computer kaum. Beenden: Rechtsklick auf das Symbol → Beenden.",
+          "Auf Wunsch erinnert Sie die Pinnwand im Laufe des Tages an sich, oder sie wird Ihr Desktop-Hintergrund.",
+          "Hintergrund, geplante Anzeige und die Rahmen Polaroid und Glas sind Teil des Geschenks von Almost-there.eu."
+        ]
+      },
+      "board": {
+        "title": "Die Pinnwand",
+        "items": [
+          "Ein Bild fügen Sie per Ziehen vom Computer, Einfügen (Strg+V) oder mit der Schaltfläche Bild hinzu. Zitate und Texte über die Schaltflächen in der unteren Leiste.",
+          "Ein Klick wählt ein Element aus. Ziehen verschiebt es, Ziehen an einer Ecke ändert die Größe und Ziehen am runden Griff darüber dreht es.",
+          "In der Leiste über dem ausgewählten Element bearbeiten Sie den Text, ändern den Rahmen, holen es nach vorn oder hinten, fügen Hotspots hinzu oder löschen es.",
+          "Rückgängig und Wiederholen umfassen bis zu 50 Änderungen (Strg+Z und Strg+Umschalt+Z).",
+          "Nur Bilder blendet Zitate und Texte aus. Es wird nichts gelöscht."
+        ]
+      },
+      "hotspots": {
+        "title": "Hotspots auf Bildern",
+        "items": [
+          "Ein Hotspot ist eine kleine runde Schaltfläche auf einem Foto. Er führt zu einer Website oder zu einem Fenster mit weiteren Fotos und Text.",
+          "Wählen Sie ein Bild aus, klicken Sie in der Leiste darüber auf Hotspots und dann an die Stelle im Bild, wo der Hotspot hin soll. Geben Sie einen Namen ein und was beim Klicken passieren soll.",
+          "Einen Hotspot verschieben Sie durch Ziehen, ein Klick bearbeitet ihn. Mit Fertig beenden Sie die Bearbeitung.",
+          "Links öffnen sich in Ihrem Browser."
+        ]
+      },
+      "tasks": {
+        "title": "Aufgaben neben der Pinnwand (optional)",
+        "items": [
+          "Neben der Pinnwand kann eine Liste mit Schritten für heute und morgen stehen. Standardmäßig ist sie aus.",
+          "Sie schalten sie unter Einstellungen → Anzeige → Aufgaben neben der Pinnwand ein, getrennt für das Pinnwandfenster, die geplante Anzeige und den Hintergrund.",
+          "Schreiben Sie einen Schritt in das Feld unter Heute oder Morgen und drücken Sie die Eingabetaste. Abhaken, wenn er erledigt ist.",
+          "Unerledigte Aufgaben von früheren Tagen können Sie auf heute verschieben oder verwerfen."
+        ]
+      },
+      "popup": {
+        "title": "Geplante Anzeige",
+        "items": [
+          "Zu den gewählten Zeiten erscheint die Pinnwand kurz über allen Fenstern und verschwindet dann von selbst.",
+          "Unter Einstellungen → Zeitplan wählen Sie feste Zeiten oder eine Wiederholung, die Wochentage und die Anzeigedauer. Jetzt ausprobieren zeigt, wie es aussieht.",
+          "Sie stört nicht: Sie wartet, bis Sie aufhören zu tippen, und erscheint nie während einer Präsentation, eines Spiels oder eines Videos im Vollbild.",
+          "Schließen Sie sie mit Schließen oder Esc, oder zeigen Sie sie mit Später in 5, 15 oder 60 Minuten erneut."
+        ]
+      },
+      "wallpaper": {
+        "title": "Die Pinnwand als Hintergrund",
+        "items": [
+          "Schalten Sie unter Einstellungen → Anzeige die Pinnwand als Desktop-Hintergrund ein. Die Pinnwand liegt dann unter Ihren Symbolen.",
+          "Wählen Sie den ganzen Bildschirm oder einen Teil. Ein Teil liegt auf Ihrem ursprünglichen Hintergrund.",
+          "Nach jeder Änderung der Pinnwand wird der Hintergrund in wenigen Sekunden aktualisiert.",
+          "Ihr ursprünglicher Hintergrund kehrt zurück, wenn Sie die Funktion ausschalten, die App beenden oder deinstallieren. Vorerst nur unter Windows."
+        ]
+      },
+      "control": {
+        "title": "Bedienelement und Symbol",
+        "items": [
+          "Ein Klick auf das kleine Feld auf dem Desktop öffnet die Einstellungen. Ziehen verschiebt es, ein Rechtsklick öffnet ein Menü.",
+          "Unter Einstellungen → Allgemein wählen Sie, ob es hinter den Fenstern (Standard) oder davor liegt. Sie können es auch ausblenden.",
+          "Ein Klick auf das Symbol neben der Uhr öffnet die Pinnwand. Ein Rechtsklick öffnet ein Menü: Pinnwand jetzt zeigen, Einstellungen, Hilfe, Beenden.",
+          "Beim Anmelden starten (Einstellungen → Allgemein) startet Vision Board mit dem Computer, ohne ein Fenster zu öffnen."
+        ]
+      },
+      "privacy": {
+        "title": "Datenschutz",
+        "items": [
+          "Pinnwand, Fotos und Aufgaben bleiben nur auf Ihrem Computer. Die App sendet nichts und sammelt keine Statistiken.",
+          "Für die geplante Anzeige prüft sie nur, wie lange Tastatur und Maus unbenutzt waren und ob etwas im Vollbild läuft. Sie liest nie, was Sie tippen oder was auf dem Bildschirm ist.",
+          "Aus hinzugefügten Fotos werden versteckte Metadaten wie der GPS-Standort entfernt.",
+          "Online geht die App nur, um nach Updates zu suchen (abschaltbar) und das Geschenk zu aktivieren."
+        ]
+      },
+      "updates": {
+        "title": "Updates",
+        "items": [
+          "Einmal am Tag sucht die App nach einer neuen Version. Gibt es eine, bietet sie sie in den Einstellungen, auf der Pinnwand und im Symbolmenü an.",
+          "Die Installation braucht einen Klick, danach startet die App von selbst neu. Ihre Pinnwand bleibt unverändert.",
+          "Die automatische Suche schalten Sie unter Einstellungen → Allgemein → Updates aus."
+        ]
+      }
+    }
   }
 }

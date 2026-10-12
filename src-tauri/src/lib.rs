@@ -7,6 +7,7 @@ mod preferences;
 mod scheduler;
 mod state;
 mod tray;
+mod updates;
 mod wallpaper;
 mod window_manager;
 
@@ -48,6 +49,7 @@ pub fn run() {
             Some(vec![AUTOSTART_ARG]),
         ))
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .invoke_handler(commands.invoke_handler())
         .setup(|app| {
             let data_dir = app.path().app_data_dir()?;
@@ -64,6 +66,7 @@ pub fn run() {
             app.manage(scheduler::Scheduler::default());
             app.manage(popup::Popup::default());
             app.manage(wallpaper::Wallpaper::default());
+            app.manage(updates::Updates::new());
             // Run by the uninstaller: put the original wallpaper back and quit.
             // Arguments only choose what to open at start; nothing security-relevant.
             // nosemgrep: rust.lang.security.args.args
@@ -85,6 +88,7 @@ pub fn run() {
             // Shows the board as the wallpaper when that is on; otherwise puts back an original
             // left over from a crash.
             wallpaper::refresh(app.handle(), true);
+            updates::restart(app.handle());
             Ok(())
         })
         .build(tauri::generate_context!())

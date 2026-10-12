@@ -41,23 +41,24 @@ pub fn set(conn: &Connection, flag: AppFlag) -> rusqlite::Result<()> {
 }
 
 /// Text values the backend keeps for itself (never written by the frontend).
-#[cfg_attr(not(target_os = "windows"), allow(dead_code))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AppValue {
     /// The user's wallpapers from before the board became the wallpaper (JSON), to restore.
+    #[cfg_attr(not(target_os = "windows"), allow(dead_code))]
     WallpaperOriginals,
+    /// Wall-clock time (ms) of the last automatic update check.
+    UpdateLastCheck,
 }
 
-#[cfg_attr(not(target_os = "windows"), allow(dead_code))]
 impl AppValue {
     fn key(self) -> &'static str {
         match self {
             Self::WallpaperOriginals => "wallpaper_originals",
+            Self::UpdateLastCheck => "update_last_check",
         }
     }
 }
 
-#[cfg_attr(not(target_os = "windows"), allow(dead_code))]
 pub fn value(conn: &Connection, key: AppValue) -> rusqlite::Result<Option<String>> {
     conn.query_row(
         "SELECT value FROM app_state WHERE key = ?1",
@@ -68,7 +69,6 @@ pub fn value(conn: &Connection, key: AppValue) -> rusqlite::Result<Option<String
 }
 
 /// Stores a value, or removes it with `None`.
-#[cfg_attr(not(target_os = "windows"), allow(dead_code))]
 pub fn set_value(conn: &Connection, key: AppValue, value: Option<&str>) -> rusqlite::Result<()> {
     match value {
         Some(value) => conn.execute(

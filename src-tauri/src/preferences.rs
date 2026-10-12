@@ -5,7 +5,7 @@ use tauri::{AppHandle, Emitter, Manager};
 
 use crate::domain::settings::{self, Settings};
 use crate::state::Db;
-use crate::{scheduler, tray, wallpaper, window_manager};
+use crate::{scheduler, tray, updates, wallpaper, window_manager};
 
 /// Event carrying the new settings to every window. Matches SETTINGS_CHANGED_EVENT in
 /// src/lib/settings.ts.
@@ -52,5 +52,6 @@ fn apply(app: &AppHandle, settings: &Settings) {
     }
     scheduler::restart(app);
     wallpaper::refresh(app, false);
+    updates::restart(app);
     let _ = app.emit(SETTINGS_CHANGED_EVENT, settings);
 }

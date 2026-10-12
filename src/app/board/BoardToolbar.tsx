@@ -6,7 +6,7 @@ import { useBoard, useBoardActions } from "./boardContext";
 import styles from "./BoardToolbar.module.css";
 import type { AddActions } from "./EmptyState";
 
-/** Persistent bar for adding content, undo/redo, the images-only mode and the settings. */
+/** Persistent bar for adding content, undo/redo, the images-only mode, the settings and help. */
 export function BoardToolbar({ onAddImage, onAddQuote, onAddText }: AddActions) {
   const { t } = useTranslation();
   const canUndo = useBoard((s) => s.past.length > 0);
@@ -57,6 +57,9 @@ export function BoardToolbar({ onAddImage, onAddQuote, onAddText }: AddActions) 
       </Button>
       <Button size="sm" variant="ghost" onClick={() => void ipc.openSettings()}>
         {t("board.toolbar.settings")}
+      </Button>
+      <Button size="sm" variant="ghost" onClick={() => void ipc.openSettings("help")}>
+        {t("board.toolbar.help")}
       </Button>
     </div>
   );

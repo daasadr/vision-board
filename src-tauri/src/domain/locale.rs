@@ -37,12 +37,15 @@ pub struct Texts {
     pub open: &'static str,
     pub show_now: &'static str,
     pub settings: &'static str,
+    pub help: &'static str,
     pub control_widget: &'static str,
     pub hide_control: &'static str,
     // Only the native control widget (Windows) has this menu item.
     #[cfg_attr(not(target_os = "windows"), allow(dead_code))]
     pub reset_control_position: &'static str,
     pub quit: &'static str,
+    /// Followed by the version number.
+    pub install_update: &'static str,
     pub settings_title: &'static str,
 }
 
@@ -53,10 +56,12 @@ pub fn texts(language: Language) -> Texts {
             open: "Otevřít nástěnku",
             show_now: "Zobrazit nástěnku teď",
             settings: "Nastavení…",
+            help: "Nápověda",
             control_widget: "Ovládací prvek na ploše",
             hide_control: "Skrýt",
             reset_control_position: "Vrátit do rohu",
             quit: "Ukončit",
+            install_update: "Nainstalovat aktualizaci",
             settings_title: "Nastavení – Vision Board",
         },
         Language::En => Texts {
@@ -64,10 +69,12 @@ pub fn texts(language: Language) -> Texts {
             open: "Open board",
             show_now: "Show the board now",
             settings: "Settings…",
+            help: "Help",
             control_widget: "Desktop control",
             hide_control: "Hide",
             reset_control_position: "Move back to the corner",
             quit: "Quit",
+            install_update: "Install update",
             settings_title: "Settings – Vision Board",
         },
         Language::De => Texts {
@@ -75,10 +82,12 @@ pub fn texts(language: Language) -> Texts {
             open: "Pinnwand öffnen",
             show_now: "Pinnwand jetzt zeigen",
             settings: "Einstellungen…",
+            help: "Hilfe",
             control_widget: "Bedienelement auf dem Desktop",
             hide_control: "Ausblenden",
             reset_control_position: "Zurück in die Ecke",
             quit: "Beenden",
+            install_update: "Update installieren",
             settings_title: "Einstellungen – Vision Board",
         },
     }

@@ -72,3 +72,14 @@ Release build, Windows 11, dva monitory (3840×2160 + 1920×1080 fyzických px):
 | Klid s tapetou, okno nástěnky zavřené, 60 s | 5,3 MB, 0 s CPU, 1 proces (žádné webview)                   | ≤ +60 MB, < 0,5 %                  |
 
 Paměť při vykreslení je krátkodobá (webview na pár sekund) a po skončení se uvolní spolu s WebView2. Zapnutí trvá 7 s místo požadovaných 3 s. Většinu času zabere složení a zakódování obrázku ve 4K (Lanczos, stín, JPEG). Zrychlit jde rychlejším filtrem nebo vykreslením rovnou v rozlišení každého monitoru (úkol vb-tn2.3).
+
+### 2026-10-12 – automatické aktualizace
+
+Windows 11, release build (LTO), nainstalovaná verze 0.1.91 spuštěná s `--autostart` (jen tray a nativní prvek).
+
+| Měření                                       | Hodnota                                       | Poznámka                                                                             |
+| -------------------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `vision-board.exe` před / po updateru        | 8,58 MB → 10,51 MB (+1,93 MB)                 | `reqwest` + rustls, `minisign-verify`, `zip`/`tar`; fáze 6 HTTP klient znovu použije |
+| NSIS instalátor                              | 4,27 MB                                       |                                                                                      |
+| Klid v trayi, 60 s                           | 3,9 MB, 0 % CPU, žádné procesy msedgewebview2 | kontrola aktualizace čeká 60 s po startu, pak 1× denně                               |
+| Aktualizace 0.1.90 → 0.1.91 (lokální server) | 7,4 s od kliknutí po běžící novou verzi       | stažení, ověření podpisu, NSIS passive, nové spuštění                                |

@@ -30,10 +30,14 @@ export const DEFAULT_SETTINGS: Settings = {
     maxDelayMin: 30,
   },
   split: { board: false, popup: false, wallpaper: false, side: "left" },
+  updates: { autoCheck: true },
 };
 
 const defaultHandlers: IpcHandlers = {
   app_version: "0.0.0-e2e",
+  update_status: { current: "0.0.0-e2e", available: null },
+  update_check: null,
+  update_install: null,
   entitlements_get: [
     { feature: "premiumFrames", enabled: true },
     { feature: "wallpaper", enabled: true },
@@ -60,7 +64,8 @@ interface MockOptions {
  * - board, media and settings commands are backed by localStorage (storing settings emits
  *   `settings://changed` in this page, as the backend does for every window),
  * - Tauri events work (`window.__E2E_EMIT__(event, payload)` fires them),
- * - other commands answer from `handlers`; unknown commands reject like unregistered ones.
+ * - other commands answer from `handlers` (`{ __error: message }` fails the command); unknown
+ *   commands reject like unregistered ones.
  *
  * Mock media "import" accepts any file whose name does not end in .pdf and reports it as an
  * 800×600 image; image URLs resolve to an inline SVG.
@@ -218,7 +223,14 @@ export async function mockIpc(page: Page, options: Partial<MockOptions> = {}) {
           convertFileSrc: () => `data:image/svg+xml,${svg}`,
           invoke: async (cmd: string, args: Record<string, unknown> = {}) => {
             calls.push({ cmd, args });
-            if (cmd in responses) return responses[cmd];
+            if (cmd in responses) {
+              const response = responses[cmd];
+              // { __error: message } makes the command fail, as a Rust Err(message) does.
+              if (response && typeof response === "object" && "__error" in response) {
+                throw (response as { __error: unknown }).__error;
+              }
+              return response;
+            }
             if (cmd in events) return events[cmd](args);
             if (cmd in backend) return backend[cmd](args);
             throw new Error(`Command ${cmd} not mocked`);

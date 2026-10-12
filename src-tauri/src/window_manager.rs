@@ -2,9 +2,11 @@
 //! when closed, so no idle webview keeps memory. The control widget is the only window that
 //! stays open, and only while the user wants it (native on Windows, a webview elsewhere).
 
+use serde::{Deserialize, Serialize};
+use specta::Type;
 use tauri::menu::{Menu, MenuEvent, MenuItem};
 use tauri::{
-    AppHandle, Manager, PhysicalPosition, PhysicalSize, WebviewUrl, WebviewWindow,
+    AppHandle, Emitter, Manager, PhysicalPosition, PhysicalSize, WebviewUrl, WebviewWindow,
     WebviewWindowBuilder,
 };
 use tauri_plugin_window_state::{StateFlags, WindowExt};
@@ -20,6 +22,21 @@ pub const SETTINGS: &str = "settings";
 /// The webview control widget (macOS, Linux); on Windows it is a native window.
 #[cfg(not(target_os = "windows"))]
 pub const CONTROL: &str = "control";
+
+/// A section of the settings window to show. Matches SECTIONS in src/app/settings/SettingsApp.tsx.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub enum SettingsSection {
+    General,
+    Appearance,
+    Timing,
+    Display,
+    Help,
+}
+
+/// Event asking an open settings window to switch to a section. Matches
+/// SETTINGS_SECTION_EVENT in src/app/settings/SettingsApp.tsx.
+pub const SETTINGS_SECTION_EVENT: &str = "settings://section";
 
 const CONTROL_MENU_OPEN: &str = "control-open";
 const CONTROL_MENU_SETTINGS: &str = "control-settings";
@@ -70,18 +87,28 @@ pub fn open_board(app: &AppHandle) -> tauri::Result<()> {
 }
 
 /// Shows the settings window, creating it when it does not exist. Closing destroys it.
-pub fn open_settings(app: &AppHandle) -> tauri::Result<()> {
+/// Opens (or focuses) the settings window, on the given section if any.
+pub fn open_settings(app: &AppHandle, section: Option<SettingsSection>) -> tauri::Result<()> {
     if reveal(app, SETTINGS)? {
+        if let Some(section) = section {
+            app.emit_to(SETTINGS, SETTINGS_SECTION_EVENT, section)?;
+        }
         return Ok(());
     }
     let settings = preferences::current(app).unwrap_or_default();
+    let mut script = settings_script(app);
+    if let Some(section) = section {
+        // A JSON string is a valid JavaScript expression; the value is one of the enum names.
+        let name = serde_json::to_string(&section).unwrap_or_else(|_| "null".into());
+        script.push_str(&format!("window.__VB_SETTINGS_SECTION__ = {name};"));
+    }
     let window = WebviewWindowBuilder::new(app, SETTINGS, WebviewUrl::App("index.html".into()))
         .title(tray::texts(&settings).settings_title)
         .inner_size(760.0, 560.0)
         .min_inner_size(640.0, 480.0)
         .center()
         .visible(false)
-        .initialization_script(settings_script(app))
+        .initialization_script(script)
         .build()?;
     window.show()?;
     window.set_focus()
@@ -249,7 +276,7 @@ mod native_control {
         tauri::async_runtime::spawn(async move {
             let result = match event {
                 ControlEvent::Click | ControlEvent::Menu(ControlMenuItem::Settings) => {
-                    open_settings(&app).map_err(|e| e.to_string())
+                    open_settings(&app, None).map_err(|e| e.to_string())
                 }
                 ControlEvent::Menu(ControlMenuItem::OpenBoard) => {
                     open_board(&app).map_err(|e| e.to_string())
@@ -351,7 +378,7 @@ pub fn show_control_menu(window: &WebviewWindow) -> tauri::Result<()> {
 pub fn on_menu_event(app: &AppHandle, event: MenuEvent) {
     let result = match event.id().as_ref() {
         CONTROL_MENU_OPEN => open_board(app),
-        CONTROL_MENU_SETTINGS => open_settings(app),
+        CONTROL_MENU_SETTINGS => open_settings(app, None),
         CONTROL_MENU_HIDE => {
             if let Err(e) = preferences::change(app, |s| s.control_widget = false) {
                 eprintln!("hiding the control widget failed: {e}");

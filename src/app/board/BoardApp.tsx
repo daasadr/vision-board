@@ -17,6 +17,7 @@ import { newQuote, newText } from "./newItems";
 import { createSaver } from "./saver";
 import { createBoardStore, topZ } from "./store";
 import { useImageImport } from "./useImageImport";
+import { useUpdateNotice } from "./useUpdateNotice";
 import { useWindowLifecycle } from "./useWindowLifecycle";
 
 function createServices(): BoardServices {
@@ -91,6 +92,7 @@ function Board() {
   const tasks = useTaskStore();
 
   useShortcuts();
+  useUpdateNotice(notify);
   const { trayNoticeOpen, acknowledgeTrayNotice } = useWindowLifecycle(saver);
 
   useEffect(() => {

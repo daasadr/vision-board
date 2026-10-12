@@ -95,6 +95,8 @@ Before finishing a task, run lint, typecheck, test, e2e and the rust:* scripts. 
 
 Details: `docs/development.md` (hooks, CI), `docs/testing.md` (test layers, IPC mock, manual checklist), `docs/design-system.md`, `docs/architecture.md`.
 
+Releases: tag `vX.Y.Z` → GitHub Release + signed update (`docs/releasing.md`, `scripts/version.mjs`, `CHANGELOG.md`). The signing key lives outside the repo; never commit it. Almost-there.eu integration contract: `docs/almost-there-api.md` (change it only together with the Almost-there side; their instructions are in `docs/handoff/almost-there-claude.md`).
+
 ## Architecture Overview
 
 - Single Tauri process. Windows (`board`, `control`, `popup`, `wallpaper`, `settings`, `detail`) are created on demand in `src-tauri/src/window_manager.rs` and **destroyed** when closed. No background polling unless a feature that needs it is enabled.

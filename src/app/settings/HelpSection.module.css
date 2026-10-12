@@ -1,0 +1,42 @@
+.help {
+  display: grid;
+  gap: var(--space-2);
+  max-width: 620px;
+}
+
+.intro {
+  margin: 0 0 var(--space-2);
+  color: var(--color-ink-muted);
+}
+
+.topic {
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.topic[open] {
+  background: var(--color-surface-raised);
+}
+
+.summary {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  color: var(--color-ink);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.summary:hover {
+  background: var(--color-surface-sunken);
+}
+
+.items {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0 var(--space-5) var(--space-4) var(--space-7);
+  color: var(--color-ink);
+  font-size: var(--text-sm);
+  line-height: 1.55;
+}

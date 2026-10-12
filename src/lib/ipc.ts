@@ -4,6 +4,7 @@ import {
   commands,
   type Anchor,
   type AppFlag,
+  type AvailableUpdate,
   type BoardOp,
   type ControlLayer,
   type Entitlement,
@@ -21,15 +22,18 @@ import {
   type Item as RawItem,
   type Schedule,
   type Settings,
+  type SettingsSection,
   type SplitSide,
   type Task,
   type TaskOp,
   type TextVariant,
   type ThemePreference,
+  type UpdateStatus,
 } from "./bindings";
 
 export type {
   Anchor,
+  AvailableUpdate,
   BoardOp,
   ControlLayer,
   Entitlement,
@@ -46,11 +50,13 @@ export type {
   PlacementMode,
   Schedule,
   Settings,
+  SettingsSection,
   SplitSide,
   Task,
   TaskOp,
   TextVariant,
   ThemePreference,
+  UpdateStatus,
 };
 
 /**
@@ -154,8 +160,9 @@ export const ipc = {
     return unwrap("autostart_set", await commands.autostartSet(enabled));
   },
 
-  async openSettings(): Promise<void> {
-    unwrap("window_open_settings", await commands.windowOpenSettings());
+  /** Opens the settings window, on the given section if any (e.g. "help"). */
+  async openSettings(section: SettingsSection | null = null): Promise<void> {
+    unwrap("window_open_settings", await commands.windowOpenSettings(section));
   },
 
   /** Shows the pop-up now, regardless of the schedule ("Try it", tray). */
@@ -197,6 +204,20 @@ export const ipc = {
 
   /** The wallpaper renderer has drawn the board; the backend captures it. */
   wallpaperRendered: () => commands.wallpaperRendered(),
+
+  /** The running version and a newer one, if a check found it. */
+  updateStatus: () => commands.updateStatus(),
+
+  /** Looks for a newer version now; 
+ull when the running one is the latest. */
+  async checkForUpdate(): Promise<AvailableUpdate | null> {
+    return unwrap("update_check", await commands.updateCheck());
+  },
+
+  /** Installs the found version; the app restarts, so this resolves only on failure. */
+  async installUpdate(): Promise<void> {
+    unwrap("update_install", await commands.updateInstall());
+  },
 
   /** Native context menu of the control widget. */
   async controlMenu(): Promise<void> {

@@ -14,7 +14,8 @@
     "label": "Nástěnka",
     "empty": {
       "title": "Vaše vize začíná tady",
-      "body": "Přidejte fotku svého cíle, citát, který vás žene dopředu, nebo pár slov o tom, kam míříte. Obrázky můžete také přetáhnout přímo sem."
+      "body": "Přidejte fotku svého cíle, citát, který vás žene dopředu, nebo pár slov o tom, kam míříte. Obrázky můžete také přetáhnout přímo sem.",
+      "help": "Jak Vision Board funguje?"
     },
     "add": {
       "image": "Obrázek",
@@ -26,7 +27,8 @@
       "undo": "Zpět",
       "redo": "Znovu",
       "settings": "Nastavení",
-      "imagesOnly": "Jen obrázky"
+      "imagesOnly": "Jen obrázky",
+      "help": "Nápověda"
     },
     "quoteDialog": {
       "title": "Přidat citát",
@@ -107,7 +109,8 @@
       "general": "Obecné",
       "appearance": "Vzhled",
       "display": "Zobrazení",
-      "timing": "Časování"
+      "timing": "Časování",
+      "help": "Nápověda"
     },
     "language": {
       "label": "Jazyk",
@@ -233,6 +236,21 @@
       "side": "Nástěnka",
       "left": "Vlevo",
       "right": "Vpravo"
+    },
+    "updates": {
+      "title": "Aktualizace",
+      "version": "Verze {{version}}",
+      "autoCheck": "Automaticky kontrolovat aktualizace",
+      "hint": "Jednou denně se aplikace podívá, jestli je nová verze. Nic se nenainstaluje bez vašeho souhlasu.",
+      "check": "Zkontrolovat teď",
+      "checking": "Kontroluji…",
+      "upToDate": "Máte nejnovější verzi.",
+      "available": "Je k dispozici verze {{version}}.",
+      "notes": "Co je nového",
+      "install": "Nainstalovat a restartovat",
+      "installing": "Stahuji a instaluji…",
+      "checkFailed": "Kontrola se nepovedla. Jste připojeni k internetu?",
+      "installFailed": "Aktualizaci se nepodařilo nainstalovat. Zkuste to prosím znovu."
     }
   },
   "popup": {
@@ -265,5 +283,96 @@
     "leftover": "Z minulých dnů zůstalo nedokončeno: {{count}}. Přesunout na dnešek?",
     "moveToToday": "Přesunout na dnes",
     "drop": "Zahodit"
+  },
+  "updates": {
+    "notice": "Je k dispozici nová verze Vision Boardu ({{version}}).",
+    "install": "Nainstalovat"
+  },
+  "help": {
+    "intro": "Krátký průvodce aplikací. Klikněte na téma, které vás zajímá.",
+    "topics": {
+      "start": {
+        "title": "Začínáme",
+        "items": [
+          "Přetáhněte na nástěnku fotky, které vám připomínají, kam míříte. Přidejte citát nebo krátký text.",
+          "Všechno se ukládá samo a zůstává jen ve vašem počítači.",
+          "Zavřením okna aplikace neskončí. Běží dál jako ikona u hodin a počítač téměř nezatěžuje. Úplně ji ukončíte pravým tlačítkem na ikoně → Ukončit.",
+          "Když chcete, nástěnka se vám během dne sama připomene, nebo bude tapetou plochy.",
+          "Tapeta, naplánované zobrazení a rámy Polaroid a Sklo jsou součástí dárku od Almost-there.eu."
+        ]
+      },
+      "board": {
+        "title": "Nástěnka",
+        "items": [
+          "Obrázek přidáte přetažením z počítače, vložením ze schránky (Ctrl+V) nebo tlačítkem Obrázek. Citát a text přidáte tlačítky v dolní liště.",
+          "Kliknutím položku vyberete. Tažením ji přesunete, tažením za roh zvětšíte a tažením za kulatý úchyt nahoře natočíte.",
+          "V liště nad vybranou položkou upravíte text, změníte rám, posunete ji do popředí či pozadí, přidáte hotspoty nebo ji smažete.",
+          "Zpět a Znovu vrátí až 50 posledních úprav (Ctrl+Z a Ctrl+Shift+Z).",
+          "Přepínač Jen obrázky skryje citáty a texty. Nic se nemaže."
+        ]
+      },
+      "hotspots": {
+        "title": "Hotspoty na obrázcích",
+        "items": [
+          "Hotspot je malé kulaté tlačítko na fotce. Vede na web, nebo do okna s dalšími fotkami a textem.",
+          "Vyberte obrázek, v liště nad ním zvolte Hotspoty a klikněte do obrázku tam, kde má hotspot být. Vyplňte název a co se má po kliknutí stát.",
+          "Hotspot posunete tažením a kliknutím ho upravíte. Úpravy ukončíte tlačítkem Hotovo.",
+          "Odkazy se otevírají ve vašem prohlížeči."
+        ]
+      },
+      "tasks": {
+        "title": "Úkoly vedle nástěnky (nepovinné)",
+        "items": [
+          "Vedle nástěnky můžete mít seznam kroků na dnes a zítra. Ve výchozím stavu je vypnutý.",
+          "Zapnete ho v Nastavení → Zobrazení → Úkoly vedle nástěnky, zvlášť pro okno nástěnky, naplánované zobrazení a tapetu.",
+          "Do pole pod Dnes nebo Zítra napište krok a stiskněte Enter. Zaškrtnutím ho splníte.",
+          "Nedokončené úkoly z minulých dnů můžete přesunout na dnešek, nebo zahodit."
+        ]
+      },
+      "popup": {
+        "title": "Naplánované zobrazení",
+        "items": [
+          "V nastavené časy se nástěnka na chvíli ukáže přes všechna okna a pak sama zmizí.",
+          "V Nastavení → Časování zvolíte pevné časy nebo opakování, dny v týdnu a délku zobrazení. Tlačítko Vyzkoušet teď ukáže, jak to vypadá.",
+          "Neruší: počká, až přestanete psát, a neukáže se při prezentaci, hře nebo videu přes celou obrazovku.",
+          "Zobrazenou nástěnku zavřete tlačítkem Zavřít nebo klávesou Esc, nebo ji odložíte o 5, 15 či 60 minut."
+        ]
+      },
+      "wallpaper": {
+        "title": "Nástěnka jako tapeta",
+        "items": [
+          "V Nastavení → Zobrazení zapněte Nástěnka jako tapeta plochy. Nástěnka bude pozadím plochy pod ikonami.",
+          "Zvolíte celou obrazovku, nebo jen její část. Pak nástěnka leží na vaší původní tapetě.",
+          "Po každé změně nástěnky se tapeta do pár sekund obnoví.",
+          "Původní tapeta se vrátí, když funkci vypnete, aplikaci ukončíte nebo odinstalujete. Zatím funguje jen ve Windows."
+        ]
+      },
+      "control": {
+        "title": "Ovládací prvek a ikona",
+        "items": [
+          "Kliknutím na malý obdélník na ploše otevřete nastavení. Tažením ho přesunete, pravým tlačítkem otevřete nabídku.",
+          "V Nastavení → Obecné zvolíte, jestli prvek leží za okny (výchozí), nebo před nimi. Můžete ho i skrýt.",
+          "Kliknutím na ikonu u hodin otevřete nástěnku. Pravým tlačítkem otevřete nabídku: Zobrazit nástěnku teď, Nastavení, Nápověda, Ukončit.",
+          "Volba Spouštět po přihlášení (Nastavení → Obecné) spustí Vision Board se zapnutím počítače, bez otevřeného okna."
+        ]
+      },
+      "privacy": {
+        "title": "Soukromí",
+        "items": [
+          "Nástěnka, fotky i úkoly zůstávají jen ve vašem počítači. Aplikace nic neodesílá a nesbírá žádné statistiky.",
+          "Kvůli naplánovanému zobrazení zjišťuje jen to, jak dlouho jste nesáhli na klávesnici a myš a jestli něco běží přes celou obrazovku. Nikdy nečte, co píšete ani co je na obrazovce.",
+          "Z vložených fotek se odstraní skrytá metadata, například poloha GPS.",
+          "Na internet se aplikace připojí jen kvůli kontrole aktualizací (dá se vypnout) a aktivaci dárku."
+        ]
+      },
+      "updates": {
+        "title": "Aktualizace",
+        "items": [
+          "Jednou denně se aplikace podívá, jestli je k dispozici nová verze. Pokud ano, nabídne ji v nastavení, na nástěnce a v nabídce ikony.",
+          "Instalace je na jedno kliknutí a aplikace se pak sama znovu spustí. Vaše nástěnka zůstane beze změny.",
+          "Automatickou kontrolu vypnete v Nastavení → Obecné → Aktualizace."
+        ]
+      }
+    }
   }
 }

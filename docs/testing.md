@@ -107,3 +107,12 @@ Poloha okna se ukládá při zavření. Násilné ukončení procesu (Správce �
 | Split-screen v okně | Zapnout „V okně nástěnky“, přidat úkoly             | Nástěnka a seznam vedle sebe, úkoly zůstanou po restartu    | Ručně neověřeno |
 | Úkoly na tapetě     | Tapeta + „Na tapetě“, přidat úkol                   | Do pár sekund je úkol na tapetě, bez zaškrtávacích políček  | Ručně neověřeno |
 | Nový den            | Nechat úkol nedokončený, druhý den otevřít nástěnku | Nabídka Přesunout na dnes / Zahodit                         | Ručně neověřeno |
+
+### Aktualizace a nápověda (auto-update)
+
+| Scénář                 | Postup                                                                      | Očekávaný výsledek                                                 | Ověřeno                                          |
+| ---------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------ |
+| Aktualizace z aplikace | Nainstalovaná starší verze, lokální `latest.json` (viz `docs/releasing.md`) | Nabídka v nastavení, na nástěnce a v trayi; instalace a nový start | Windows 11, 2026-10-12: 0.1.90 → 0.1.91 za 7,4 s |
+| Data po aktualizaci    | Po aktualizaci otevřít nástěnku, úkoly a nastavení                          | Vše jako před aktualizací, autostart i tapeta zůstaly              | Windows 11, 2026-10-12 (nástěnka, téma, jazyk)   |
+| První vydání z GitHubu | Tag `v0.2.0`, nainstalovaná testovací verze                                 | Do 24 h (nebo po Zkontrolovat teď) nabídka verze 0.2.0             | Ručně neověřeno                                  |
+| Nápověda z trayi       | Tray → Nápověda (s otevřeným i zavřeným nastavením)                         | Okno nastavení na sekci Nápověda                                   | Ručně neověřeno                                  |

@@ -14,6 +14,7 @@ pub mod placement;
 pub mod schedule;
 pub mod settings;
 pub mod tasks;
+pub mod updates;
 // The wallpaper is implemented on Windows only so far.
 #[cfg_attr(not(target_os = "windows"), allow(dead_code))]
 pub mod wallpaper;

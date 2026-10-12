@@ -1,15 +1,18 @@
 use tauri::{AppHandle, WebviewWindow};
 
-use crate::window_manager;
+use crate::window_manager::{self, SettingsSection};
 
 // Window commands are async: creating a window from a synchronous command can deadlock on
 // Windows.
 
-/// Opens (or focuses) the settings window.
+/// Opens (or focuses) the settings window, on the given section if any.
 #[tauri::command]
 #[specta::specta]
-pub async fn window_open_settings(app: AppHandle) -> Result<(), String> {
-    window_manager::open_settings(&app).map_err(|e| e.to_string())
+pub async fn window_open_settings(
+    app: AppHandle,
+    section: Option<SettingsSection>,
+) -> Result<(), String> {
+    window_manager::open_settings(&app, section).map_err(|e| e.to_string())
 }
 
 /// Opens the detail window of a hotspot (it loads the data itself from the stored board).

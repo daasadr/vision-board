@@ -174,6 +174,11 @@ změna nástěnky / nastavení / tématu OS / monitorů → wallpaper::refresh (
 - **Úkoly:** `domain::tasks` + `tasks_list` / `tasks_unfinished_before` / `tasks_apply` (dávka v transakci). Po změně přijde událost `tasks://changed` do všech oken a při split-screenu na tapetě i obnova tapety. Frontend: `lib/tasks.ts` (store s optimistickými úpravami), `TaskList` v režimech `edit` / `check` / `read`.
 - **Split-screen:** `Settings.split` (hlavní okno, pop-up, tapeta, strana). `SplitView` dělí prostor 3:2. Tapeta s úkoly se obnoví i o půlnoci (`wallpaper::schedule_midnight`).
 
+## Aktualizace a nápověda
+
+- **Aktualizace** (`updates.rs`, `tauri-plugin-updater`): úloha na pozadí jen se zapnutým `Settings.updates.autoCheck`. První kontrola 60 s po startu, pak 24 h po poslední (`domain::updates::next_check`, čas v `app_state.update_last_check`), spí max. 1 h a přepočítává podle hodin. Nalezená verze se drží v `Updates.found`, přidá položku do tray menu a emituje `update://available` (nastavení a jednorázové upozornění na nástěnce). `update_install` stáhne a ověří podpis (minisign, veřejný klíč v `tauri.conf.json`), pak `lifecycle::prepare_for_update` nechá uložit nástěnku jako při Ukončit (tapetu ale nevrací), odebere ikonu z trayi a spustí NSIS v režimu passive. Endpoint je GitHub Releases, pro testy ho přepíše `VISION_BOARD_UPDATE_URL`. Vydávání: `docs/releasing.md`.
+- **Nápověda:** sekce `help` okna nastavení (`HelpSection`, texty `help.topics.*` v locales). Otevírá ji tray (Nápověda), lišta nástěnky a prázdná nástěnka přes `window_open_settings(section)`. Nové okno dostane sekci v `window.__VB_SETTINGS_SECTION__`, otevřené událost `settings://section`.
+
 ## Kde co najít
 
 | Chci změnit…                   | Soubor                                                                                       |
@@ -197,3 +202,5 @@ změna nástěnky / nastavení / tématu OS / monitorů → wallpaper::refresh (
 | hotspoty                       | `src/app/board/hotspots.tsx`, `useHotspotEditor.tsx`, `HotspotDialog.tsx`, `src/app/detail/` |
 | úkoly a split-screen           | `src-tauri/src/domain/tasks.rs`, `src/lib/tasks.ts`, `src/app/tasks/`                        |
 | tapeta                         | `src-tauri/src/wallpaper.rs`, `domain/wallpaper.rs`, `platform/windows.rs`                   |
+| aktualizace a vydávání         | `src-tauri/src/updates.rs`, `.github/workflows/release.yml`, `docs/releasing.md`             |
+| texty nápovědy                 | `help.topics` v `src/i18n/locales/*.json`, `src/app/settings/HelpSection.tsx`                |

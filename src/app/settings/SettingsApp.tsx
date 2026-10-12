@@ -1,15 +1,31 @@
-import { useCallback, useRef, useState, type KeyboardEvent } from "react";
+import { listen } from "@tauri-apps/api/event";
+import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { Notices, type Notice } from "../../design/components";
 import { AppearanceSection } from "./AppearanceSection";
 import { DisplaySection } from "./DisplaySection";
 import { GeneralSection } from "./GeneralSection";
+import { HelpSection } from "./HelpSection";
 import styles from "./SettingsApp.module.css";
 import { TimingSection } from "./TimingSection";
 import type { Notify } from "./useSaveSettings";
 
-const SECTIONS = ["general", "appearance", "timing", "display"] as const;
+const SECTIONS = ["general", "appearance", "timing", "display", "help"] as const;
 type Section = (typeof SECTIONS)[number];
+
+/** Matches window_manager::SETTINGS_SECTION_EVENT in Rust. */
+const SETTINGS_SECTION_EVENT = "settings://section";
+
+declare global {
+  interface Window {
+    /** The section to open first, injected by the backend (e.g. Help from the tray menu). */
+    __VB_SETTINGS_SECTION__?: string;
+  }
+}
+
+function isSection(value: unknown): value is Section {
+  return typeof value === "string" && (SECTIONS as readonly string[]).includes(value);
+}
 
 /**
  * The settings window. Every change is stored right away (no Save button) and reaches all open
@@ -17,12 +33,16 @@ type Section = (typeof SECTIONS)[number];
  */
 export default function SettingsApp() {
   const { t } = useTranslation();
-  const [section, setSection] = useState<Section>("general");
+  const [section, setSection] = useState<Section>(() => {
+    const requested = window.__VB_SETTINGS_SECTION__;
+    return isSection(requested) ? requested : "general";
+  });
   const tabs = useRef<Record<Section, HTMLButtonElement | null>>({
     general: null,
     appearance: null,
     timing: null,
     display: null,
+    help: null,
   });
   const [notices, setNotices] = useState<Notice[]>([]);
   const notify = useCallback<Notify>(
@@ -33,6 +53,21 @@ export default function SettingsApp() {
     (id: string) => setNotices((list) => list.filter((n) => n.id !== id)),
     [],
   );
+
+  // The backend asks an open window to switch, e.g. when Help is chosen in the tray menu.
+  useEffect(() => {
+    let disposed = false;
+    let unlisten: (() => void) | undefined;
+    listen<string>(SETTINGS_SECTION_EVENT, (event) => {
+      if (isSection(event.payload)) setSection(event.payload);
+    })
+      .then((fn) => (disposed ? fn() : (unlisten = fn)))
+      .catch(() => {});
+    return () => {
+      disposed = true;
+      unlisten?.();
+    };
+  }, []);
 
   // Arrow keys move between tabs (WAI-ARIA tabs pattern, automatic activation).
   function onTabKeyDown(event: KeyboardEvent) {
@@ -86,6 +121,7 @@ export default function SettingsApp() {
         {section === "appearance" && <AppearanceSection notify={notify} />}
         {section === "timing" && <TimingSection notify={notify} />}
         {section === "display" && <DisplaySection notify={notify} />}
+        {section === "help" && <HelpSection />}
       </main>
       <Notices notices={notices} onDismiss={dismiss} dismissLabel={t("common.dismiss")} />
     </div>

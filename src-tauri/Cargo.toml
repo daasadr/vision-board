@@ -1,7 +1,7 @@
 [package]
 name = "vision-board"
-version = "0.1.0"
-description = "Vision Board â€“ personal vision board desktop app"
+version = "0.2.0"
+description = "Vision Board - personal vision board desktop app"
 authors = ["Almost-there.eu"]
 edition = "2021"
 rust-version = "1.85"
@@ -46,6 +46,9 @@ tauri-plugin-autostart = "=2.5.1"
 # Opens hotspot links in the default browser (from Rust only, no JS permissions). Pinned:
 # newer releases require Tauri 2.12.
 tauri-plugin-opener = "=2.5.0"
+# Signed updates from GitHub Releases (minisign). Brings reqwest with rustls, which phase 6
+# reuses for license activation. Pinned: newer releases require Tauri 2.12.
+tauri-plugin-updater = "=2.12.0"
 
 # Already compiled for tao/wry (same version and features), so this adds no code of its own.
 [target.'cfg(windows)'.dependencies]
@@ -71,7 +74,7 @@ windows = { version = "0.61", features = [
 codegen-units = 1
 lto = true
 opt-level = 3
-# Abort keeps the binary small: unwinding costs +4.3 MB (7.4 â†’ 11.8 MB, measured 2026-10-08).
+# Abort keeps the binary small: unwinding costs +4.3 MB (7.4 -> 11.8 MB, measured 2026-10-08).
 # The price is that a decoder panic on a malformed image ends the app (the board loses at most
 # the last second of edits); the pure-Rust decoders are fuzzed upstream.
 panic = "abort"

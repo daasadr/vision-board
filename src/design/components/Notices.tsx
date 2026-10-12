@@ -1,10 +1,15 @@
 import { useEffect } from "react";
+import { Button } from "./Button";
 import styles from "./Notices.module.css";
 
 export interface Notice {
   id: string;
   message: string;
   tone?: "info" | "error";
+  /** A button next to the message; using it also dismisses the notice. */
+  action?: { label: string; onClick: () => void };
+  /** Stays until dismissed, whatever the timeout. */
+  persistent?: boolean;
 }
 
 interface Props {
@@ -44,14 +49,26 @@ function NoticeView({
   dismissLabel: string;
 }) {
   useEffect(() => {
-    if (timeoutMs <= 0) return;
+    if (timeoutMs <= 0 || notice.persistent) return;
     const timer = setTimeout(() => onDismiss(notice.id), timeoutMs);
     return () => clearTimeout(timer);
-  }, [notice.id, onDismiss, timeoutMs]);
+  }, [notice.id, notice.persistent, onDismiss, timeoutMs]);
 
   return (
     <div className={`${styles.notice} ${notice.tone === "error" ? styles.error : ""}`}>
       <p className={styles.message}>{notice.message}</p>
+      {notice.action && (
+        <Button
+          size="sm"
+          variant="primary"
+          onClick={() => {
+            notice.action?.onClick();
+            onDismiss(notice.id);
+          }}
+        >
+          {notice.action.label}
+        </Button>
+      )}
       <button
         type="button"
         className={styles.dismiss}

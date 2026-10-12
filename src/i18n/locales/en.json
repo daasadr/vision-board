@@ -14,7 +14,8 @@
     "label": "Board",
     "empty": {
       "title": "Your vision starts here",
-      "body": "Add a photo of your goal, a quote that keeps you going, or a few words about where you are headed. You can also drop images right here."
+      "body": "Add a photo of your goal, a quote that keeps you going, or a few words about where you are headed. You can also drop images right here.",
+      "help": "How does Vision Board work?"
     },
     "add": {
       "image": "Image",
@@ -26,7 +27,8 @@
       "undo": "Undo",
       "redo": "Redo",
       "settings": "Settings",
-      "imagesOnly": "Images only"
+      "imagesOnly": "Images only",
+      "help": "Help"
     },
     "quoteDialog": {
       "title": "Add a quote",
@@ -107,7 +109,8 @@
       "general": "General",
       "appearance": "Appearance",
       "display": "Display",
-      "timing": "Timing"
+      "timing": "Timing",
+      "help": "Help"
     },
     "language": {
       "label": "Language",
@@ -233,6 +236,21 @@
       "side": "Board",
       "left": "Left",
       "right": "Right"
+    },
+    "updates": {
+      "title": "Updates",
+      "version": "Version {{version}}",
+      "autoCheck": "Check for updates automatically",
+      "hint": "Once a day the app looks for a new version. Nothing is installed without your consent.",
+      "check": "Check now",
+      "checking": "Checking…",
+      "upToDate": "You have the latest version.",
+      "available": "Version {{version}} is available.",
+      "notes": "What's new",
+      "install": "Install and restart",
+      "installing": "Downloading and installing…",
+      "checkFailed": "The check did not work. Are you connected to the internet?",
+      "installFailed": "The update could not be installed. Please try again."
     }
   },
   "popup": {
@@ -265,5 +283,96 @@
     "leftover": "Left unfinished from earlier days: {{count}}. Move to today?",
     "moveToToday": "Move to today",
     "drop": "Drop"
+  },
+  "updates": {
+    "notice": "A new version of Vision Board is available ({{version}}).",
+    "install": "Install"
+  },
+  "help": {
+    "intro": "A short guide to the app. Click a topic to read more.",
+    "topics": {
+      "start": {
+        "title": "Getting started",
+        "items": [
+          "Drag photos that remind you where you are heading onto the board. Add a quote or a short text.",
+          "Everything is saved automatically and stays on your computer only.",
+          "Closing the window does not end the app. It keeps running as an icon next to the clock and barely uses the computer. To quit, right-click the icon → Quit.",
+          "If you like, the board can remind you of itself during the day, or become your desktop wallpaper.",
+          "The wallpaper, scheduled display and the Polaroid and Glass frames are part of the gift from Almost-there.eu."
+        ]
+      },
+      "board": {
+        "title": "The board",
+        "items": [
+          "Add an image by dragging it from your computer, pasting it (Ctrl+V) or with the Image button. Add quotes and texts with the buttons in the bottom bar.",
+          "Click an item to select it. Drag it to move it, drag a corner to resize it and drag the round handle above it to rotate it.",
+          "The bar above a selected item lets you edit its text, change its frame, bring it forward or back, add hotspots or delete it.",
+          "Undo and Redo go back up to 50 edits (Ctrl+Z and Ctrl+Shift+Z).",
+          "Images only hides quotes and texts. Nothing is deleted."
+        ]
+      },
+      "hotspots": {
+        "title": "Hotspots on images",
+        "items": [
+          "A hotspot is a small round button on a photo. It leads to a website, or to a window with more photos and text.",
+          "Select an image, choose Hotspots in the bar above it and click where the hotspot should go. Fill in a name and what happens on click.",
+          "Drag a hotspot to move it and click it to edit it. Finish with Done.",
+          "Links open in your browser."
+        ]
+      },
+      "tasks": {
+        "title": "Tasks next to the board (optional)",
+        "items": [
+          "You can have a list of steps for today and tomorrow next to the board. It is off by default.",
+          "Turn it on in Settings → Display → Tasks next to the board, separately for the board window, the scheduled display and the wallpaper.",
+          "Type a step in the field under Today or Tomorrow and press Enter. Tick it off when it is done.",
+          "Unfinished tasks from earlier days can be moved to today or dropped."
+        ]
+      },
+      "popup": {
+        "title": "Scheduled display",
+        "items": [
+          "At the times you choose, the board shows over all windows for a moment and then disappears by itself.",
+          "In Settings → Timing choose fixed times or a repeat, the days of the week and how long it shows. Try it now shows what it looks like.",
+          "It does not interrupt: it waits until you stop typing and never shows during a presentation, game or full-screen video.",
+          "Close it with Close or Esc, or snooze it for 5, 15 or 60 minutes."
+        ]
+      },
+      "wallpaper": {
+        "title": "The board as wallpaper",
+        "items": [
+          "In Settings → Display turn on Board as desktop wallpaper. The board becomes the desktop background under your icons.",
+          "Choose the whole screen or a part of it. A part lies on your original wallpaper.",
+          "After every change to the board, the wallpaper updates within a few seconds.",
+          "Your original wallpaper comes back when you turn this off, quit or uninstall the app. Windows only for now."
+        ]
+      },
+      "control": {
+        "title": "Desktop control and tray icon",
+        "items": [
+          "Click the small box on the desktop to open the settings. Drag it to move it, right-click it for a menu.",
+          "In Settings → General choose whether it stays behind windows (default) or in front of them. You can also hide it.",
+          "Click the icon next to the clock to open the board. Right-click it for a menu: Show the board now, Settings, Help, Quit.",
+          "Start when I sign in (Settings → General) starts Vision Board with your computer, without opening a window."
+        ]
+      },
+      "privacy": {
+        "title": "Privacy",
+        "items": [
+          "Your board, photos and tasks stay on your computer only. The app sends nothing and collects no statistics.",
+          "For the scheduled display it only checks how long the keyboard and mouse were idle and whether something runs full screen. It never reads what you type or what is on the screen.",
+          "Hidden metadata such as GPS location is removed from added photos.",
+          "The app goes online only to check for updates (can be turned off) and to activate the gift."
+        ]
+      },
+      "updates": {
+        "title": "Updates",
+        "items": [
+          "Once a day the app checks for a new version. If there is one, it offers it in the settings, on the board and in the icon menu.",
+          "Installing takes one click and the app then restarts by itself. Your board stays as it is.",
+          "Turn automatic checks off in Settings → General → Updates."
+        ]
+      }
+    }
   }
 }

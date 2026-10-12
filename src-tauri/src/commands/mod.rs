@@ -11,6 +11,7 @@ mod media;
 mod popup;
 mod settings;
 mod tasks;
+mod updates;
 mod wallpaper;
 mod windows;
 
@@ -47,6 +48,9 @@ pub fn builder() -> Builder<tauri::Wry> {
         tasks::tasks_unfinished_before,
         tasks::tasks_apply,
         windows::control_context_menu,
+        updates::update_status,
+        updates::update_check,
+        updates::update_install,
     ])
 }
 

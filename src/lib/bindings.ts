@@ -48,8 +48,8 @@ export const commands = {
 	autostartGet: () => typedError<boolean, string>(__TAURI_INVOKE("autostart_get")),
 	/**  Registers or unregisters the app to start at login (in the tray, without a window). */
 	autostartSet: (enabled: boolean) => typedError<boolean, string>(__TAURI_INVOKE("autostart_set", { enabled })),
-	/**  Opens (or focuses) the settings window. */
-	windowOpenSettings: () => typedError<null, string>(__TAURI_INVOKE("window_open_settings")),
+	/**  Opens (or focuses) the settings window, on the given section if any. */
+	windowOpenSettings: (section: "general" | "appearance" | "timing" | "display" | "help" | null) => typedError<null, string>(__TAURI_INVOKE("window_open_settings", { section })),
 	/**  Opens the detail window of a hotspot (it loads the data itself from the stored board). */
 	windowOpenDetail: (itemId: string, hotspotId: string) => typedError<null, string>(__TAURI_INVOKE("window_open_detail", { itemId, hotspotId })),
 	/**
@@ -82,6 +82,19 @@ export const commands = {
 	tasksApply: (ops: TaskOp[]) => typedError<null, string>(__TAURI_INVOKE("tasks_apply", { ops })),
 	/**  Shows the native context menu of the control widget at the pointer. */
 	controlContextMenu: () => typedError<null, string>(__TAURI_INVOKE("control_context_menu")),
+	/**  The running version and the version that can be installed, if a check found one. */
+	updateStatus: () => __TAURI_INVOKE<UpdateStatus>("update_status"),
+	/**  "Check now": asks GitHub Releases right away, also with automatic checks off. */
+	updateCheck: () => typedError<{
+	version: string,
+	/**  Release notes (from CHANGELOG.md), if any. */
+	notes: string | null,
+} | null, string>(__TAURI_INVOKE("update_check")),
+	/**
+	 *  Installs the found version and restarts. Returns only when installing failed (or, on
+	 *  macOS and Linux, never: the app restarts).
+	 */
+	updateInstall: () => typedError<null, string>(__TAURI_INVOKE("update_install")),
 };
 
 /* Types */
@@ -91,6 +104,12 @@ export type Anchor = "center" | "topLeft" | "topRight" | "bottomLeft" | "bottomR
 export type AppFlag = 
 /**  The user was told that closing the window keeps the app running in the tray. */
 "trayNoticeShown";
+
+export type AvailableUpdate = {
+	version: string,
+	/**  Release notes (from CHANGELOG.md), if any. */
+	notes: string | null,
+};
 
 export type Board = {
 	id: string,
@@ -245,7 +264,11 @@ export type Settings = {
 	startup: Startup,
 	schedule: Schedule,
 	split: Split,
+	updates: UpdatePreferences,
 };
+
+/**  A section of the settings window to show. Matches SECTIONS in src/app/settings/SettingsApp.tsx. */
+export type SettingsSection = "general" | "appearance" | "timing" | "display" | "help";
 
 /**  Board and daily tasks side by side, separately for each place the board shows. */
 export type Split = {
@@ -282,6 +305,17 @@ export type TaskOp = { op: "upsert"; task: Task } | { op: "delete"; id: string }
 export type TextVariant = "heading" | "note";
 
 export type ThemePreference = "system" | "galerie" | "noc";
+
+/**  Checking GitHub Releases for a newer version (once a day). */
+export type UpdatePreferences = {
+	autoCheck: boolean,
+};
+
+export type UpdateStatus = {
+	/**  The running version. */
+	current: string,
+	available: AvailableUpdate | null,
+};
 
 /* Tauri Specta runtime */
 async function typedError<T, E>(result: Promise<T>): Promise<{ status: "ok"; data: T } | { status: "error"; error: E }> {

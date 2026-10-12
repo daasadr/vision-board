@@ -7,14 +7,17 @@ use tauri::{AppHandle, Manager, Wry};
 use crate::domain::locale;
 use crate::domain::settings::Settings;
 use crate::state::Db;
-use crate::{lifecycle, popup, preferences, window_manager};
+use crate::window_manager::SettingsSection;
+use crate::{lifecycle, popup, preferences, updates, window_manager};
 
-const TRAY_ID: &str = "main";
+pub const TRAY_ID: &str = "main";
 const OPEN_ID: &str = "open";
 const SHOW_NOW_ID: &str = "show-now";
 const SETTINGS_ID: &str = "settings";
+const HELP_ID: &str = "help";
 const CONTROL_ID: &str = "control";
 const QUIT_ID: &str = "quit";
+const INSTALL_UPDATE_ID: &str = "install-update";
 
 /// Language of the native menus for the given settings.
 pub fn texts(settings: &Settings) -> locale::Texts {
@@ -24,12 +27,13 @@ pub fn texts(settings: &Settings) -> locale::Texts {
 
 fn menu(app: &AppHandle, settings: &Settings) -> tauri::Result<Menu<Wry>> {
     let text = texts(settings);
-    Menu::with_items(
+    let menu = Menu::with_items(
         app,
         &[
             &MenuItem::with_id(app, OPEN_ID, text.open, true, None::<&str>)?,
             &MenuItem::with_id(app, SHOW_NOW_ID, text.show_now, true, None::<&str>)?,
             &MenuItem::with_id(app, SETTINGS_ID, text.settings, true, None::<&str>)?,
+            &MenuItem::with_id(app, HELP_ID, text.help, true, None::<&str>)?,
             &CheckMenuItem::with_id(
                 app,
                 CONTROL_ID,
@@ -41,7 +45,17 @@ fn menu(app: &AppHandle, settings: &Settings) -> tauri::Result<Menu<Wry>> {
             &PredefinedMenuItem::separator(app)?,
             &MenuItem::with_id(app, QUIT_ID, text.quit, true, None::<&str>)?,
         ],
-    )
+    )?;
+    // Offered only while a newer version is known, right above Quit.
+    if let Some(update) = updates::available(app) {
+        let label = format!("{} {}", text.install_update, update.version);
+        let position = menu.items()?.len() - 1;
+        menu.insert(
+            &MenuItem::with_id(app, INSTALL_UPDATE_ID, label, true, None::<&str>)?,
+            position,
+        )?;
+    }
+    Ok(menu)
 }
 
 pub fn create(app: &AppHandle, settings: &Settings) -> tauri::Result<()> {
@@ -60,10 +74,23 @@ pub fn create(app: &AppHandle, settings: &Settings) -> tauri::Result<()> {
                 }
             }
             SETTINGS_ID => {
-                let _ = window_manager::open_settings(app);
+                let _ = window_manager::open_settings(app, None);
+            }
+            HELP_ID => {
+                let _ = window_manager::open_settings(app, Some(SettingsSection::Help));
             }
             CONTROL_ID => toggle_control(app),
             QUIT_ID => lifecycle::request_quit(app),
+            INSTALL_UPDATE_ID => {
+                let app = app.clone();
+                tauri::async_runtime::spawn(async move {
+                    if let Err(e) = updates::install(&app).await {
+                        eprintln!("installing the update failed: {e}");
+                        // The settings show the update again with its error.
+                        let _ = window_manager::open_settings(&app, Some(SettingsSection::General));
+                    }
+                });
+            }
             _ => {}
         })
         .on_tray_icon_event(|tray, event| {

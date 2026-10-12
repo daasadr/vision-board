@@ -7,6 +7,7 @@ vi.mock("../../lib/ipc", () => ({
     loadBoard: vi.fn().mockResolvedValue([]),
     mediaLibrary: vi.fn().mockResolvedValue({ dir: "/media", items: [] }),
     applyBoardOps: vi.fn().mockResolvedValue(undefined),
+    updateStatus: vi.fn().mockResolvedValue({ current: "0.1.0", available: null }),
   },
 }));
 

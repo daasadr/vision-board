@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Button } from "../../design/components";
+import { ipc } from "../../lib/ipc";
 import styles from "./EmptyState.module.css";
 
 export interface AddActions {
@@ -27,6 +28,9 @@ export function EmptyState({ onAddImage, onAddQuote, onAddText }: AddActions) {
           </Button>
           <Button onClick={onAddText}>{t("board.add.text")}</Button>
         </div>
+        <Button size="sm" variant="ghost" onClick={() => void ipc.openSettings("help")}>
+          {t("board.empty.help")}
+        </Button>
       </div>
     </div>
   );

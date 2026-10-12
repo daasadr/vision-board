@@ -1,0 +1,12 @@
+title = "Vision Board"
+
+[extend]
+useDefault = true
+
+# The test license from docs/almost-there-api.md (section 9), also used by cargo test. It is
+# signed with a published test-only key and unlocks nothing in release builds. Allowed by its
+# exact signature, so any other token still fails the scan.
+[[allowlists]]
+description = "Test-only license vector shared with Almost-there.eu"
+regexTarget = "match"
+regexes = ['''Xf1bJVk-CFD4WTstRyhQL3Lrwx9bBbu_t3tb_E0MkQQ1rwcJ9WEqw8L0TSqsbJcIlyvE0QIFAjXPfbVDQeuJAQ''']

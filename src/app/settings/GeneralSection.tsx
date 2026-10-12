@@ -4,6 +4,7 @@ import { Button, Dialog, DialogClose, SegmentedControl, Switch } from "../../des
 import { ipc, type ControlLayer, type LanguagePreference } from "../../lib/ipc";
 import { useSettings } from "../../lib/settings";
 import styles from "./SettingsApp.module.css";
+import { UpdatesGroup } from "./UpdatesGroup";
 import { useSaveSettings, type Notify } from "./useSaveSettings";
 
 const LANGUAGES: LanguagePreference[] = ["system", "cs", "en", "de"];
@@ -107,6 +108,7 @@ export function GeneralSection({ notify }: { notify: Notify }) {
           )}
         </div>
       )}
+      <UpdatesGroup notify={notify} />
       <div className={`${styles.group} ${styles.danger}`}>
         <Dialog
           open={confirmReset}

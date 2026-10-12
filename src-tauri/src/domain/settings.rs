@@ -123,6 +123,19 @@ pub struct Split {
     pub side: SplitSide,
 }
 
+/// Checking GitHub Releases for a newer version (once a day).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdatePreferences {
+    pub auto_check: bool,
+}
+
+impl Default for UpdatePreferences {
+    fn default() -> Self {
+        Self { auto_check: true }
+    }
+}
+
 /// Modes that start with the app. Phases 3 and 4 act on them.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, Type)]
 #[serde(rename_all = "camelCase")]
@@ -150,6 +163,7 @@ pub struct Settings {
     pub startup: Startup,
     pub schedule: Schedule,
     pub split: Split,
+    pub updates: UpdatePreferences,
 }
 
 impl Default for Settings {
@@ -166,6 +180,7 @@ impl Default for Settings {
             startup: Startup::default(),
             schedule: Schedule::default(),
             split: Split::default(),
+            updates: UpdatePreferences::default(),
         }
     }
 }
@@ -284,6 +299,7 @@ mod tests {
                 wallpaper: true,
                 side: SplitSide::Right,
             },
+            updates: UpdatePreferences { auto_check: false },
         };
         save(&conn, settings.clone()).expect("save");
         save(&conn, settings.clone()).expect("save again");
@@ -312,6 +328,10 @@ mod tests {
         assert_eq!(settings.control_layer, ControlLayer::Behind);
         assert_eq!(settings.control_position, None);
         assert_eq!(settings.placement, Placement::default());
+        assert!(
+            settings.updates.auto_check,
+            "update checks are on by default"
+        );
 
         let nested = Settings::from_json_lenient(r#"{"placement":{"mode":"partial"}}"#);
         assert_eq!(nested.placement.mode, PlacementMode::Partial);
@@ -347,5 +367,6 @@ mod tests {
         assert!(json.contains(r#""controlPosition":null"#));
         assert!(json.contains(r#""scheduledPopup":false"#));
         assert!(json.contains(r#""theme":"system""#));
+        assert!(json.contains(r#""updates":{"autoCheck":true}"#));
     }
 }

@@ -50,35 +50,64 @@ impl Drop for ImportGuard<'_> {
 
 /// Quits the app after pending work finishes or QUIT_TIMEOUT passes, whichever is first.
 pub fn request_quit(app: &AppHandle) {
-    let lifecycle = app.state::<Lifecycle>();
-    if lifecycle.quitting.swap(true, Ordering::SeqCst) {
+    if app
+        .state::<Lifecycle>()
+        .quitting
+        .swap(true, Ordering::SeqCst)
+    {
         return;
     }
     let app = app.clone();
     tauri::async_runtime::spawn(async move {
-        let deadline = Instant::now() + QUIT_TIMEOUT;
-        let lifecycle = app.state::<Lifecycle>();
-
-        if let Some(window) = app.get_webview_window(window_manager::BOARD) {
-            if window.emit(QUIT_REQUESTED_EVENT, ()).is_ok() {
-                let _ =
-                    tokio::time::timeout_at(deadline, lifecycle.frontend_saved.notified()).await;
-            }
-        }
-        while lifecycle.imports.load(Ordering::SeqCst) > 0 && Instant::now() < deadline {
-            tokio::time::sleep(Duration::from_millis(50)).await;
-        }
-        // With the board saved and no import running, nothing can refer to unused media.
-        if lifecycle.imports.load(Ordering::SeqCst) == 0 {
-            let db = app.state::<Db>();
-            let media_dir = app.state::<MediaDir>();
-            let result = crate::domain::media::remove_unreferenced(&db.lock(), &media_dir.0);
-            if let Err(e) = result {
-                eprintln!("media cleanup failed: {e}");
-            }
-        }
+        finish_pending_work(&app).await;
         // The desktop must look as before the app ran.
         crate::wallpaper::restore(&app);
         app.exit(0);
     });
+}
+
+/// Before an update replaces the app: pending work finishes like on Quit, but the wallpaper
+/// stays (the updated app starts again right away). Returns false when already quitting.
+pub async fn prepare_for_update(app: &AppHandle) -> bool {
+    if app
+        .state::<Lifecycle>()
+        .quitting
+        .swap(true, Ordering::SeqCst)
+    {
+        return false;
+    }
+    finish_pending_work(app).await;
+    true
+}
+
+/// Lets the board window store its edits and running imports finish (at most QUIT_TIMEOUT),
+/// then removes media nothing refers to.
+async fn finish_pending_work(app: &AppHandle) {
+    let deadline = Instant::now() + QUIT_TIMEOUT;
+    let lifecycle = app.state::<Lifecycle>();
+
+    if let Some(window) = app.get_webview_window(window_manager::BOARD) {
+        if window.emit(QUIT_REQUESTED_EVENT, ()).is_ok() {
+            let _ = tokio::time::timeout_at(deadline, lifecycle.frontend_saved.notified()).await;
+        }
+    }
+    while lifecycle.imports.load(Ordering::SeqCst) > 0 && Instant::now() < deadline {
+        tokio::time::sleep(Duration::from_millis(50)).await;
+    }
+    // With the board saved and no import running, nothing can refer to unused media.
+    if lifecycle.imports.load(Ordering::SeqCst) == 0 {
+        let db = app.state::<Db>();
+        let media_dir = app.state::<MediaDir>();
+        let result = crate::domain::media::remove_unreferenced(&db.lock(), &media_dir.0);
+        if let Err(e) = result {
+            eprintln!("media cleanup failed: {e}");
+        }
+    }
+}
+
+/// An update that could not be installed: the app keeps running normally.
+pub fn cancel_update(app: &AppHandle) {
+    app.state::<Lifecycle>()
+        .quitting
+        .store(false, Ordering::SeqCst);
 }

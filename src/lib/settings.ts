@@ -31,6 +31,7 @@ export const DEFAULT_SETTINGS: Settings = {
     maxDelayMin: 30,
   },
   split: { board: false, popup: false, wallpaper: false, side: "left" },
+  updates: { autoCheck: true },
 };
 
 declare global {

@@ -2,36 +2,37 @@
 
 ## Why
 
-Fáze 6 ze zadani.txt bod 5 a body 3.4 a 4: Vision Board je dárek pro předplatitele Almost-there.eu. Prémiové funkce (styly rámování, tapeta, pop-upy) se odemykají dárkovým kódem navázaným na účet Almost-there.eu. Po aktivaci musí appka fungovat offline, bez pravidelného dotazování serveru.
+Fáze 6 ze zadani.txt bod 5 a body 3.4 a 4: Vision Board je dárek pro uživatele Almost-there.eu. Prémiové funkce (styly rámování, tapeta, pop-upy) odemyká licence navázaná na účet Almost-there.eu. Po aktivaci musí appka fungovat offline, bez pravidelného dotazování serveru.
+
+Upřesnění od uživatelky (2026-10-12): každý registrovaný uživatel Almost-there.eu dostane licenci ke svému účtu a může jednou darovat aplikaci jednomu člověku odkazem (dárková licence). Obdarovaný si vytvoří účet a licence se připíše jemu. Dárky, registrace a evidence licencí jsou celé na webu Almost-there.eu (Next.js, vlastní server) a implementuje je Claude Code v jeho repu podle `docs/almost-there-api.md`.
 
 ## What Changes
 
-- Aktivace: přihlášení k účtu Almost-there.eu v systémovém prohlížeči (OAuth 2.0 authorization code + PKCE), uplatnění dárkového kódu, vydání licence.
-- Deep link `visionboard://activate?code=…` z dárkového odkazu předvyplní kód.
-- Licence: podepsaný token (Ed25519, formát JWT/PASETO – rozhodne design.md) uložený lokálně, ověřený offline vestavěným veřejným klíčem.
-- Napojení vrstvy Entitlements na licenci (dosud vše odemčeno → nově dle licence).
-- Sekce „Licence“ v nastavení: stav, účet, odhlášení/deaktivace zařízení.
-- Návrh API kontraktu pro Almost-there.eu (`docs/almost-there-api.md`) – implementace je v jejich repu.
+- Aktivace: přihlášení k účtu Almost-there.eu v systémovém prohlížeči (authorization code + PKCE, návrat deep linkem `visionboard://activate`, záložně ruční opsání kódu), vydání licence pro tuto instalaci.
+- Licence: JWT podepsaný Ed25519 a vázaný na instalaci, uložený lokálně a ověřený offline vestavěným veřejným klíčem. Volitelná expirace s tichou obnovou.
+- Napojení vrstvy Entitlements na licenci (dosud vše odemčeno, nově podle licence).
+- Sekce „Licence“ v nastavení: stav, účet, aktivace, deaktivace zařízení.
+- API kontrakt pro Almost-there.eu (`docs/almost-there-api.md`). Implementace je v jejich repu.
 
 ## Non-goals
 
-- Implementace gift mechaniky, alotmentů a UI „Darovat vision board“ v Almost-there.eu (jiné repo).
+- Dárková mechanika, registrace, alotmenty a UI „Darovat Vision Board“ v Almost-there.eu (jiné repo). Aplikace dárkové kódy vůbec nezná: dárek se uplatní na webu a aktivace pak probíhá stejně jako u vlastní licence.
 - Platby přímo ve Vision Boardu.
 - Synchronizace dat nástěnky s účtem.
+- Dlouhodobé přihlášení v aplikaci (refresh tokeny). Po aktivaci aplikace drží jen licenci.
 
 ## Capabilities
 
 ### New Capabilities
-- `license-activation`: přihlášení, uplatnění kódu, deep link a uložení licence.
+- `license-activation`: přihlášení v prohlížeči, výměna kódu za licenci, deep link, ruční kód, deaktivace.
 - `license-validation`: offline ověření licence, platnost, obnova a vliv na dostupnost prémiových funkcí.
 
 ### Modified Capabilities
-<!-- `entitlements` z board-core bude po archivaci upraven: "Vše odemčeno před fází licencí" nahradí vazba na licenci. Delta se doplní v design fázi této změny, až bude `entitlements` v openspec/specs. -->
+- `entitlements`: „Vše odemčeno před fází licencí“ nahradí vazba na licenci.
 
 ## Impact
 
-- Síť: jediná komunikace s almost-there.eu při aktivaci a volitelné obnově (HTTPS, certifikát pinning zvážit v design.md).
-- `tauri-plugin-deep-link`, `tauri-plugin-opener`, `ed25519-dalek`, HTTP klient (`reqwest` s rustls).
-- Uložení tokenů v úložišti pověření OS (Windows Credential Manager / macOS Keychain) přes `keyring`.
-- Codex review ověřování licence a OAuth toku.
-- Otevřená rozhodnutí pro Almost-there.eu (zadani.txt bod 4): obnovování alotmentu kódů – nemá vliv na tuto appku.
+- Síť: jen při aktivaci, deaktivaci a obnově licence (HTTPS na almost-there.eu). Žádné jiné požadavky.
+- Nové závislosti: `tauri-plugin-deep-link` (registrace schématu `visionboard://`), `ed25519-dalek` (ověření podpisu), HTTP klient `reqwest` (už ve stromu přes updater, viz změna `auto-update`), `sha2` (PKCE).
+- Bez úložiště pověření OS (`keyring`): aplikace neukládá žádné přihlašovací tokeny.
+- Review ověřování licence a aktivačního toku (dělá Claude, viz rozhodnutí 2026-10-08).
