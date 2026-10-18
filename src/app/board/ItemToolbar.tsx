@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "../../design/components";
 import { useEntitlement } from "../../lib/entitlements";
@@ -5,7 +6,8 @@ import { FRAMES, isPremiumFrame } from "../../lib/frames";
 import type { FrameStyle, Item } from "../../lib/ipc";
 import { useSettings } from "../../lib/settings";
 import { useBoardActions } from "./boardContext";
-import type { Fit } from "./geometry";
+import { CANVAS_HEIGHT, CANVAS_WIDTH, type Fit } from "./geometry";
+import { placeToolbar } from "./toolbarPlacement";
 import styles from "./ItemToolbar.module.css";
 
 const BOARD_DEFAULT = "default";
@@ -52,7 +54,8 @@ function FrameSelect({ item }: { item: Item }) {
 /** Space between the item top and the toolbar: clears the rotate handle above the item. */
 const GAP = 96;
 
-/** Actions for the selected item, floating above it in screen space (not scaled). */
+/** Actions for the selected item, floating above it in screen space (not scaled), always fully
+ * inside the board area. */
 export function ItemToolbar({
   item,
   fit,
@@ -68,17 +71,46 @@ export function ItemToolbar({
 }) {
   const { t } = useTranslation();
   const actions = useBoardActions();
-  const centerX = (item.x + item.w / 2) * fit.scale + fit.offsetX;
-  const top = item.y * fit.scale + fit.offsetY;
-  // Flip below the item when there is no room above.
-  const y = top > GAP ? top - GAP : (item.y + item.h) * fit.scale + fit.offsetY + GAP / 3;
+  const ref = useRef<HTMLDivElement>(null);
+  // The toolbar's own size (it differs for images and texts and wraps in a narrow window);
+  // null until measured before the first paint.
+  const [size, setSize] = useState<{ width: number; height: number } | null>(null);
+  useLayoutEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+    const measure = () =>
+      setSize((previous) =>
+        previous?.width === element.offsetWidth && previous.height === element.offsetHeight
+          ? previous
+          : { width: element.offsetWidth, height: element.offsetHeight },
+      );
+    measure();
+    if (typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
+
+  const viewport = {
+    width: CANVAS_WIDTH * fit.scale + 2 * fit.offsetX,
+    height: CANVAS_HEIGHT * fit.scale + 2 * fit.offsetY,
+  };
+  const onScreen = {
+    x: item.x * fit.scale + fit.offsetX,
+    y: item.y * fit.scale + fit.offsetY,
+    w: item.w * fit.scale,
+    h: item.h * fit.scale,
+  };
+  const position = placeToolbar(onScreen, viewport, size ?? { width: 0, height: 0 }, GAP);
 
   return (
     <div
+      ref={ref}
       className={styles.toolbar}
       role="toolbar"
       aria-label={t("board.item.actions")}
-      style={{ left: centerX, top: y }}
+      // Hidden until measured, so it never flashes at a clipped position.
+      style={{ left: position.x, top: position.y, visibility: size ? undefined : "hidden" }}
       onPointerDown={(e) => e.stopPropagation()}
     >
       <Button size="sm" variant="ghost" onClick={() => actions.bringToFront(item.id)}>

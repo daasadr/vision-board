@@ -2,6 +2,10 @@
 
 Oddíl každé verze se při vydání zkopíruje do popisu GitHub Release a aplikace ho ukáže v nabídce aktualizace („Co je nového“). Pište ho pro uživatele, česky a krátce.
 
+## [0.2.1] – 2026-10-18
+
+- Lišta nad vybraným obrázkem (Rám, Hotspoty, Smazat) je teď vždy celá vidět, i v malém okně a u obrázku na kraji nástěnky.
+
 ## [0.2.0] – 2026-10-12
 
 - Nápověda přímo v aplikaci: Nastavení → Nápověda, tlačítko Nápověda na nástěnce a v nabídce ikony.
