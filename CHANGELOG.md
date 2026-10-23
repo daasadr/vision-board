@@ -19,3 +19,8 @@ Oddíl každé verze se při vydání zkopíruje do popisu GitHub Release a apli
 ## [0.1.0] – 2026-10-08
 
 - První verze: nástěnka s obrázky, citáty a texty, ikona v oznamovací oblasti.
+
+## [0.3.0] – 2026-10-23
+
+- Licence z účtu AlmostThere: Nastavení → Licence → Aktivovat. Vision Board je zdarma ke každému účtu, placenému i neplacenému.
+- Jeden účet na třech zařízeních; přehled máš na almost-there.eu v sekci Extra.

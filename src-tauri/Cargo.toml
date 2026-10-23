@@ -1,6 +1,6 @@
 [package]
 name = "vision-board"
-version = "0.2.1"
+version = "0.3.0"
 description = "Vision Board - personal vision board desktop app"
 authors = ["Almost-there.eu"]
 edition = "2021"
