@@ -72,6 +72,13 @@ windows = { version = "0.61", features = [
   "Win32_UI_WindowsAndMessaging",
 ] }
 
+# Already compiled for wry's WebKitGTK webview (same versions), so this adds no code of its own;
+# cairo's `png` feature only binds cairo_surface_write_to_png from the system library.
+[target.'cfg(target_os = "linux")'.dependencies]
+# Snapshot of the board for the wallpaper (webkit_web_view_get_snapshot).
+webkit2gtk = "2.0"
+gtk = "0.18"
+cairo-rs = { version = "0.18", features = ["png"] }
 
 # Read the optimization guideline for more details: https://tauri.app/concept/size/#cargo-configuration
 [profile.release]

@@ -397,8 +397,126 @@ mod imp {
     }
 }
 
-/// macOS and Linux: not implemented yet (the setting stays off there).
-#[cfg(not(target_os = "windows"))]
+/// Spike (temporary, removed before merge): can WebKitGTK snapshot a window that is never
+/// shown? `vision-board --wallpaper-probe` prints what it got and exits.
+#[cfg(target_os = "linux")]
+pub const PROBE_ARG: &str = "--wallpaper-probe";
+
+#[cfg(target_os = "linux")]
+pub async fn probe(app: &AppHandle) -> String {
+    imp::probe(app).await
+}
+
+/// GNOME only. Not implemented yet beyond the snapshot spike.
+#[cfg(target_os = "linux")]
+mod imp {
+    use std::collections::HashSet;
+    use std::time::{Duration, Instant};
+
+    use image::ImageFormat;
+    use tauri::{AppHandle, Manager, PhysicalSize, WebviewUrl, WebviewWindowBuilder};
+
+    use super::{Wallpaper, RENDERER};
+    use crate::platform::wallpaper as os;
+    use crate::window_manager;
+
+    const RENDER_TIMEOUT: Duration = Duration::from_secs(20);
+
+    pub async fn refresh(_app: &AppHandle, _force: bool) -> Result<(), String> {
+        Ok(())
+    }
+
+    pub fn restore(_app: &AppHandle) -> Result<(), String> {
+        Ok(())
+    }
+
+    pub async fn probe(app: &AppHandle) -> String {
+        let mut report = format!(
+            "session: XDG_SESSION_TYPE={:?} XDG_CURRENT_DESKTOP={:?}\n",
+            std::env::var("XDG_SESSION_TYPE").ok(),
+            std::env::var("XDG_CURRENT_DESKTOP").ok(),
+        );
+        for whole_page in [false, true] {
+            let name = if whole_page { "full-document" } else { "visible" };
+            let line = match probe_once(app, whole_page, name).await {
+                Ok(line) => line,
+                Err(e) => format!("failed: {e}"),
+            };
+            report.push_str(&format!("{name}: {line}\n"));
+        }
+        report
+    }
+
+    async fn probe_once(app: &AppHandle, whole_page: bool, name: &str) -> Result<String, String> {
+        if let Some(stale) = app.get_webview_window(RENDERER) {
+            let _ = stale.destroy();
+        }
+        let window = WebviewWindowBuilder::new(app, RENDERER, WebviewUrl::App("index.html".into()))
+            .title("Vision Board")
+            .decorations(false)
+            .skip_taskbar(true)
+            .focused(false)
+            .resizable(false)
+            // The question of the spike: never shown, so it cannot flash on Wayland.
+            .visible(false)
+            .initialization_script(window_manager::settings_script(app))
+            .build()
+            .map_err(|e| e.to_string())?;
+        window
+            .set_size(PhysicalSize::new(1920, 1080))
+            .map_err(|e| e.to_string())?;
+
+        let started = Instant::now();
+        let state = app.state::<Wallpaper>();
+        let drawn = tokio::time::timeout(RENDER_TIMEOUT, state.rendered.notified())
+            .await
+            .is_ok();
+        let page = if drawn {
+            format!("page reported drawn after {:.1} s", started.elapsed().as_secs_f32())
+        } else {
+            format!("page did NOT report drawn within {} s", RENDER_TIMEOUT.as_secs())
+        };
+
+        // Snapshot even when the page did not report: an empty image tells something too.
+        let (tx, rx) = tokio::sync::oneshot::channel();
+        let captured = os::capture_png(
+            &window,
+            whole_page,
+            Box::new(move |r| {
+                let _ = tx.send(r);
+            }),
+        );
+        let png = match captured {
+            Ok(()) => tokio::time::timeout(RENDER_TIMEOUT, rx)
+                .await
+                .map_err(|_| "snapshot callback never came".to_owned())
+                .and_then(|r| r.map_err(|e| e.to_string()))
+                .and_then(|r| r),
+            Err(e) => Err(e.to_string()),
+        };
+        let _ = window.destroy();
+        let png = png.map_err(|e| format!("{page}; snapshot error: {e}"))?;
+
+        let image = image::load_from_memory_with_format(&png, ImageFormat::Png)
+            .map_err(|e| e.to_string())?
+            .to_rgba8();
+        let colors: HashSet<[u8; 4]> = image.pixels().map(|p| p.0).take(4_000_000).collect();
+        let dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
+        std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+        let path = dir.join(format!("wallpaper-probe-{name}.png"));
+        std::fs::write(&path, &png).map_err(|e| e.to_string())?;
+        Ok(format!(
+            "{page}; snapshot {}x{}, {} distinct colors; saved to {}",
+            image.width(),
+            image.height(),
+            colors.len(),
+            path.display()
+        ))
+    }
+}
+
+/// macOS: not implemented yet (the setting stays off there).
+#[cfg(not(any(target_os = "windows", target_os = "linux")))]
 mod imp {
     use tauri::AppHandle;
 

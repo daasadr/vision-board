@@ -13,6 +13,8 @@ mod windows;
 
 #[cfg(target_os = "windows")]
 pub use windows::{control, system_prefers_dark, wallpaper};
+#[cfg(target_os = "linux")]
+pub use linux::wallpaper;
 
 use crate::domain::activity::Activity;
 

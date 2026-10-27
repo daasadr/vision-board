@@ -74,6 +74,16 @@ pub fn run() {
                 wallpaper::restore(app.handle());
                 std::process::exit(0);
             }
+            // nosemgrep: rust.lang.security.args.args
+            #[cfg(target_os = "linux")]
+            if std::env::args().any(|arg| arg == wallpaper::PROBE_ARG) {
+                let app = app.handle().clone();
+                tauri::async_runtime::spawn(async move {
+                    println!("{}", wallpaper::probe(&app).await);
+                    app.exit(0);
+                });
+                return Ok(());
+            }
 
             let settings = preferences::current(app.handle()).unwrap_or_default();
             tray::create(app.handle(), &settings)?;
